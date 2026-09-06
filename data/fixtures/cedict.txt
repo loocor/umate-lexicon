@@ -1,0 +1,6 @@
+# CC-CEDICT sample for tests. Original short excerpt, not a community recipe dump.
+重慶 重庆 [chong2 qing4] /Chongqing municipality/
+銀行 银行 [yin2 hang2] /bank/
+行走 行走 [xing2 zou3] /to walk/
+你好 你好 [ni3 hao3] /hello/
+編程 编程 [bian1 cheng2] /programming/

@@ -1,0 +1,26 @@
+umate-lexicon
+Copyright 2026 uMate contributors
+
+This software is licensed under Apache License 2.0.
+
+Emitted Rime tables are a separate data product. Each lemma carries
+source and license metadata in the SQLite store and in the emitted
+NOTICE fragments. Do not treat this Apache-2.0 grant as a license
+for third-party lexicon dumps.
+
+Typical upstream licenses encountered during ingest (not bundled
+here unless a fixture is a short original sample):
+
+- Table of General Standard Chinese Characters (PRC) — official character list
+- Unicode Unihan Database — Unicode License
+- CC-CEDICT — Creative Commons Attribution-ShareAlike
+- THUOCL — MIT
+- Tencent AI Lab Chinese embedding vocabulary — CC BY 3.0
+- Wikimedia dumps — CC BY-SA
+
+Share-alike sources (CC-CEDICT, Wikipedia titles) must not be mixed
+into a proprietary table without a recorded legal decision. Track them
+in lemma_sources and in dist/rime/NOTICE.
+
+This factory must not ingest rime-ice, rime-wanxiang recipe trees, or
+commercial IME cell dictionaries. See CLEANROOM.md.

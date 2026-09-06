@@ -1,0 +1,44 @@
+# Rime emit contract
+
+Target: librime 1.16 dictionary source format.
+
+A dict file is a YAML header between `---` and `...`, then tab-separated
+rows: `text`, `code`, `weight`.
+
+```yaml
+# Rime dictionary
+# encoding: utf-8
+---
+name: umate_hans
+version: "0.1.0"
+sort: by_weight
+use_preset_vocabulary: false
+import_tables:
+  - umate_chars
+  - umate_base
+...
+```
+
+Packs (librime ≥ 1.6) are extra `*.table.bin` files sharing the core
+prism syllable table. Schema:
+
+```yaml
+translator:
+  dictionary: umate_hans
+  packs:
+    - umate_ext
+    - umate_names
+    - umate_places
+    - umate_brands
+    - umate_orgs
+    - umate_events
+    - umate_bulk
+    - umate_corrections
+```
+
+This repo emits **source YAML**. Binary compilation is a Host job in
+VoiMate (`table.bin`, `prism.bin`, `reverse.bin`). The keyboard extension
+must not run `start_maintenance`.
+
+Alphabet digits and `A`–`Z` belong in the core dict body so mixed input
+can form syllables, matching Rime practice without copying a recipe.

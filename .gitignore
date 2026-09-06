@@ -1,0 +1,14 @@
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+data/store/*
+!data/store/.gitkeep
+dist/rime/*
+!dist/rime/.gitkeep
+data/sources/downloads/
+.DS_Store
+uv.lock

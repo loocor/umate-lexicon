@@ -1,0 +1,136 @@
+# umate-lexicon
+
+A **lexicon factory** for [uMate](https://github.com): licensed public
+corpora in, a versioned lemma store in the middle, Rime-digestible
+layered dictionaries out.
+
+This repository is a **sibling of VoiMate**, not a package inside it.
+Intended path: `/Volumes/External/GitHub/umate-lexicon`.
+VoiMate remains the product (keyboard, voice ledger, Host). This repo
+produces the Chinese word data the keyboard will eventually mmap.
+
+If this tree is still under `/tmp/umate-lexicon`, place it with:
+
+```sh
+/tmp/umate-lexicon/scripts/place-next-to-voimate.sh
+```
+
+## Why this repo exists
+
+Rime is the right engine. The bottleneck is data.
+
+uMate already embeds librime and a small official luna_pinyin + essay
+bundle. That stack is classic, local, and license-clean. It is also
+dated: literary weights, thin modern coverage, and almost no personal
+accumulation on the keyboard. Community recipes that *feel* like a 2026
+IME (rime-ice / 雾凇, wanxiang / 万象) got there by years of dictionary
+work, not by a better C++ core.
+
+We will not vendor those recipes:
+
+- rime-ice is **GPL-3.0-only**. Copying its schema, Lua, or curated
+  `cn_dicts` would pull the product under GPL.
+- Its interesting *ideas* (character table, base, ext, bulk coverage,
+  mixed Latin, first-import wins) are not copyrightable. We re-implement
+  them against **upstream dumps** (Unihan, CC-CEDICT, THUOCL, Tencent
+  embedding vocabulary, Wikimedia), with provenance on every lemma.
+- Official Rime already defined the file contract we emit:
+  `*.dict.yaml`, `import_tables`, and `translator/packs`
+  (librime ≥ 1.6). Ice is one productization of that contract. This
+  factory is another.
+
+The factory is designed like a compiler, not like a pile of YAML:
+
+```text
+pinned dumps
+  → ingest (license stamp, clean-room gate)
+  → lemma store  (surface, pinyin) primary key
+  → enrich (polyphone closed set, categories)
+  → verify (rules + gold + optional LLM checker)
+  → emit layered dict.yaml + packs
+  → Host compiles table.bin / prism.bin
+  → eval gate (must not regress gold readings)
+```
+
+YAML is an **object dump**, not the source of truth.
+
+## What "at least 雾凇" means here
+
+- **Structure:** at least ice's layers, plus packs, provenance, a
+  polyphone closed set, and an eval gate. Bulk coverage must not rely on
+  Rime guessing pinyin for polyphonic words.
+- **Scale:** coverage and first-candidate quality, not line count of
+  `tencent.dict.yaml`.
+- **Not:** a fork, a re-licensed ice tree, or a web crawler as the
+  primary corpus.
+
+## Clean room
+
+See [CLEANROOM.md](CLEANROOM.md). Ingest refuses rime-ice paths and
+markers. Do not use ice or wanxiang files as raw material. Comparing
+typing-test *behavior* is allowed.
+
+## Pipeline
+
+```text
+umate_hans.dict.yaml          core: chars + 2–3 char base + A–Z/digits
+translator/packs:
+  umate_ext                   4-char and curated extra
+  umate_names                 people
+  umate_places                admin divisions / POI
+  umate_brands                brands / products
+  umate_orgs                  orgs / industries
+  umate_events                dated events (droppable)
+  umate_bulk                  large coverage, no unresolved polyphones
+  umate_corrections           common typos / wrong pinyin
+secondary translators:
+  umate_en                    English (already a uMate table)
+  umate_cn_en                 mixed phrases
+```
+
+Keyboard default SKU: core + ext + names/brands. Bulk and events stay
+optional so the iOS Keyboard Extension can mmap without compiling.
+
+## Quick start
+
+Python 3.12+. No required third-party packages for the core factory.
+
+```sh
+cd umate-lexicon
+PYTHONPATH=src python -m pytest
+PYTHONPATH=src python -m umate_lexicon pipeline --fixtures
+```
+
+Fixtures ship in `data/fixtures/` (short original samples, not community
+recipes). Full dumps belong in `data/sources/downloads/` (gitignored)
+and must be fetched by documented scripts, never from rime-ice.
+
+```sh
+PYTHONPATH=src python -m umate_lexicon ingest cedict path/to/cedict_ts.u8
+PYTHONPATH=src python -m umate_lexicon ingest thuocl path/to/THUOCL_IT.txt
+PYTHONPATH=src python -m umate_lexicon emit --out dist/rime
+PYTHONPATH=src python -m umate_lexicon eval
+```
+
+`eval` fails the build if gold pairs such as 重庆/`chong qing`,
+银行/`yin hang`, 行走/`xing zou` are missing or wrong.
+
+## LLM role
+
+Large language models may classify categories or flag likely-wrong
+readings through `umate_lexicon.verify.llm`. They must return structured
+JSON. They must not invent lemmas. Gold tests own pinyin.
+
+## License
+
+- **Code:** Apache-2.0 (see [LICENSE](LICENSE)).
+- **Data:** per lemma, recorded in the store and [NOTICE](NOTICE).
+  Share-alike sources need an explicit product decision before they
+  enter a default keyboard table.
+
+## Relationship to VoiMate
+
+VoiMate consumes emitted `table.bin` / `prism.bin` produced on a Mac
+Host. This repo does not call `start_maintenance` inside a keyboard
+extension. Voice Ledger remains a separate ledger; confirmed transcripts
+may later *project* into a personal pack, never the other way around.

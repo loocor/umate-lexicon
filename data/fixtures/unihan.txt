@@ -1,0 +1,4 @@
+# Unihan kMandarin sample
+U+91CD	kMandarin	ZHÒNG ZHÓNG
+U+4F60	kMandarin	NǏ
+U+597D	kMandarin	HǍO

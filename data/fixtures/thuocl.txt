@@ -1,0 +1,4 @@
+# THUOCL-shaped sample: word<TAB>DF
+文件备份	128
+虚拟地址	96
+C++编程	12
