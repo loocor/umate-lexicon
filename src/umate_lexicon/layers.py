@@ -19,14 +19,34 @@ PACK_LAYERS = (
     "bulk",
     "corrections",
 )
+COVERAGE_SOURCE_IDS = frozenset({"wiki", "tencent"})
 
 
 def han_len(surface: str) -> int:
     return len(_HAN.findall(surface))
 
 
+def source_ids(lemma: Lemma) -> set[str]:
+    return {ref.source_id for ref in lemma.sources}
+
+
 def is_wiki_only(lemma: Lemma) -> bool:
-    return {ref.source_id for ref in lemma.sources} == {"wiki"}
+    """True when wiki is the only promoting source.
+
+    Tencent is coverage, not a promotion source: overlaying the light
+    vocab must not take a wiki-only title out of bulk or protect a
+    wiki-only redirect.
+    """
+    return source_ids(lemma) - {"tencent"} == {"wiki"}
+
+
+def is_tencent_only(lemma: Lemma) -> bool:
+    return source_ids(lemma) == {"tencent"}
+
+
+def is_coverage_only(lemma: Lemma) -> bool:
+    ids = source_ids(lemma)
+    return bool(ids) and ids <= COVERAGE_SOURCE_IDS
 
 
 def emit_weight(lemma: Lemma) -> int:
@@ -43,7 +63,7 @@ def assign_layer(lemma: Lemma) -> str | None:
         return "emoji"
     if "correction" in lemma.flags:
         return "corrections"
-    if is_wiki_only(lemma):
+    if is_coverage_only(lemma):
         return "bulk"
     if lemma.entity_type == "person" or "person" in lemma.categories:
         return "names"

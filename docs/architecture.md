@@ -8,8 +8,8 @@ data/fixtures         tiny original samples for tests
 data/gold             readings, polyphones, eval sentences
         │
         ▼
-   ingest adapters    cedict / thuocl / chars / unihan / t2s / tgh / luna / essay / emoji / tencent / wiki
-        │             t2s folds luna/essay/emoji/tencent/wiki to Hans; clean-room gate first
+   ingest adapters    cedict / thuocl / chars / unihan / t2s / tgh / luna / essay / emoji / wiki / tencent
+        │             t2s folds luna/essay/emoji/tencent/wiki to Hans; tencent last; clean-room gate first
         ▼
    SQLite store       lemmas + lemma_sources
         │
@@ -45,10 +45,10 @@ Status:
 | Layer | Predicate | Rime role |
 | --- | --- | --- |
 | chars | one Han character | core `import_tables` |
-| base | 2–3 Han chars, status gold/auto | core |
-| ext | 4 Han chars, curated | pack |
+| base | 2–3 Han chars, status gold/auto; not coverage-only | core |
+| ext | 4 Han chars, curated; not coverage-only | pack |
 | names / places / brands / orgs / events | `entity_type` | packs |
-| bulk | auto, no `polyphone` flag; **wiki-only always bulk** | pack |
+| bulk | auto, no `polyphone` flag; **wiki-only and Tencent-only always bulk** | pack |
 | corrections | `correction` flag | pack |
 | mixed | `mixed_latin` flag | pack or secondary translator |
 

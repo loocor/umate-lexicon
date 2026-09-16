@@ -63,6 +63,19 @@ as text / tar.gz. CI stays on fixtures; do not commit the ~111MB bin
 or the derived vocab. ModelScope card Apache-2.0 is packaging;
 vocabulary attribution remains CC BY 3.0 Tencent AI Lab.
 
+Fusion is careful, not a dump into default `base`:
+
+- Overlay `domain_freq.tencent` on lemmas that already exist (gold /
+  essay / cedict / thuocl / luna / wiki). That does not change layer
+  for trusted daily sources.
+- Tencent-only lemmas (2–4 Han, unique compose) may be tracked, but
+  `assign_layer` sends **coverage-only** (`tencent`, `wiki`, or both)
+  to `bulk`. They must not enter default `base` or curated `ext`.
+- Suffix classifiers do not promote coverage-only terms into
+  places/orgs. Tencent is not a promoting source for wiki redirects.
+- Lock order puts `tencent-light` after the wiki dumps so overlay
+  cannot steal wiki identity.
+
 Share-alike (CC-CEDICT, Wikipedia titles) is tagged, never silently
 folded into a default keyboard SKU.
 

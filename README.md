@@ -111,7 +111,7 @@ PYTHONPATH=src python -m umate_lexicon pipeline
 银行/`yin hang`, 行走/`xing zou` are missing or wrong.
 
 Coverage after a locked emit is recorded in [docs/zh/inventory.md](docs/zh/inventory.md).
-8105, zhwiki titles, and authored brand/event packs are in. Wikipedia page/category dumps now reject wiki-only redirects and type inventory; wiki-only stays bulk. Tencent coverage is the ModelScope **light** high-frequency subset (`tencent-light`), not the official ~8M dump. Official Tencent download URLs still return HTML; do not copy rime-ice `tencent.dict.yaml`. CI stays on fixtures; a locked fetch downloads the ~111MB `.bin` locally.
+8105, zhwiki titles, and authored brand/event packs are in. Wikipedia page/category dumps now reject wiki-only redirects and type inventory; wiki-only stays bulk. Tencent coverage is the ModelScope **light** high-frequency subset (`tencent-light`), not the official ~8M dump. Official Tencent download URLs still return HTML; do not copy rime-ice `tencent.dict.yaml`. Fusion overlays existing lemmas and keeps Tencent-only / wiki+Tencent terms in `bulk` — they do not enter default `base` or curated `ext`. CI stays on fixtures; a locked fetch downloads the ~111MB `.bin` locally.
 
 ## LLM role
 

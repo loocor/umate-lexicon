@@ -57,11 +57,11 @@ def run_fixture_pipeline(
             "luna": ingest_luna(store, root / "fixtures" / "luna.dict.yaml", simplify=simplify),
             "essay": ingest_essay(store, root / "fixtures" / "essay.txt", simplify=simplify),
             "emoji": ingest_emoji(store, root / "fixtures" / "emoji_word.txt", simplify=simplify),
-            "tencent": ingest_tencent(store, root / "fixtures" / "tencent.txt", simplify=simplify),
             "wiki": ingest_wiki(store, root / "fixtures" / "wiki-titles.txt", simplify=simplify),
             "wiki_page": ingest_wiki_page(store, root / "fixtures" / "wiki-page.sql", simplify=simplify),
             "wiki_linktarget": ingest_wiki_linktarget(store, root / "fixtures" / "wiki-linktarget.sql"),
             "wiki_category": ingest_wiki_category(store, root / "fixtures" / "wiki-categorylinks.sql"),
+            "tencent": ingest_tencent(store, root / "fixtures" / "tencent.txt", simplify=simplify),
         }
     return _finish(store, stats, out_dir)
 

@@ -67,7 +67,7 @@ wiki-only 库存类型（**不改变发射层**，只记账）：
 
 ## 明确还没做
 
-1. 腾讯官方约 800 万全量 dump 仍不可用（URL 返回 HTML）。已钉 ModelScope light 高频子集（`tencent-light`），本盘点数字是钉 light **之前** 的 wiki 轮，未重跑 locked emit。
+1. 腾讯官方约 800 万全量 dump 仍不可用（URL 返回 HTML）。已钉 ModelScope light 高频子集（`tencent-light`），本盘点数字是钉 light **之前** 的 wiki 轮，未重跑 locked emit。融合纪律：Tencent-only / wiki+腾讯只进 bulk，不抬进默认 base。验证覆盖时先 `fetch` 再对 store 做 inventory，不要把 light 词表粗暴并进 base。
 2. 不把 bulk 放进默认 SKU。
 3. 不把维基人物/作品用 pageviews 抬出 bulk。
 4. 不接键盘，不抄雾凇。

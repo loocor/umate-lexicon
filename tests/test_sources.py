@@ -57,6 +57,8 @@ def test_repo_lock_version_and_kinds() -> None:
     assert tencent.extract is not None
     assert tencent.extract.kind == "word2vec-vocab"
     assert tencent.extract.output == "tencent-light-vocab.txt"
+    ids = [source.id for source in lock.sources]
+    assert ids.index("tencent-light") > ids.index("zhwiki-categorylinks")
 
 
 def test_hash_mismatch_is_hard_failure(tmp_path: Path) -> None:
