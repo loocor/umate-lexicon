@@ -17,6 +17,20 @@
       }
     },
     {
+      "id": "unihan-variants",
+      "license": "unicode",
+      "homepage": "https://www.unicode.org/charts/unihan.html",
+      "url": "https://www.unicode.org/Public/17.0.0/ucd/Unihan.zip",
+      "sha256": "f7a48b2b545acfaa77b2d607ae28747404ce02baefee16396c5d2d7a8ef34b5e",
+      "filename": "Unihan-17.0.0.zip",
+      "ingest": "t2s",
+      "extract": {
+        "kind": "zip",
+        "member": "Unihan_Variants.txt",
+        "output": "Unihan_Variants.txt"
+      }
+    },
+    {
       "id": "cedict",
       "license": "cc-by-sa-cedict",
       "homepage": "https://www.mdbg.net/chinese/dictionary?page=cc-cedict",

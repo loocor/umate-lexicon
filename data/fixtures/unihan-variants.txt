@@ -1,0 +1,4 @@
+# Unihan kSimplifiedVariant sample for tests.
+U+9280	kSimplifiedVariant	U+94F6
+U+7E46	kSimplifiedVariant	U+7F2A
+U+570B	kSimplifiedVariant	U+56FD

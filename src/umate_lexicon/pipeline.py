@@ -24,6 +24,7 @@ from umate_lexicon.sources import (
     verify_ingest_file,
 )
 from umate_lexicon.store import LemmaStore
+from umate_lexicon.t2s import SimplifyFn, load_unihan_simplified, make_simplifier
 from umate_lexicon.verify.rules import apply_rules
 
 
@@ -33,6 +34,7 @@ def run_fixture_pipeline(
 ) -> dict[str, int]:
     root = data_dir()
     store = LemmaStore(store_path or default_store_path())
+    simplify = make_simplifier(load_unihan_simplified(root / "fixtures" / "unihan-variants.txt"))
     with store.deferred_commit():
         stats = {
             "gold": _ingest_authored_gold(store),
@@ -40,10 +42,10 @@ def run_fixture_pipeline(
             "unihan": ingest_unihan(store, root / "fixtures" / "unihan.txt"),
             "cedict": ingest_cedict(store, root / "fixtures" / "cedict.txt"),
             "thuocl": ingest_thuocl(store, root / "fixtures" / "thuocl.txt"),
-            "luna": ingest_luna(store, root / "fixtures" / "luna.dict.yaml"),
-            "essay": ingest_essay(store, root / "fixtures" / "essay.txt"),
-            "emoji": ingest_emoji(store, root / "fixtures" / "emoji_word.txt"),
-            "tencent": ingest_tencent(store, root / "fixtures" / "tencent.txt"),
+            "luna": ingest_luna(store, root / "fixtures" / "luna.dict.yaml", simplify=simplify),
+            "essay": ingest_essay(store, root / "fixtures" / "essay.txt", simplify=simplify),
+            "emoji": ingest_emoji(store, root / "fixtures" / "emoji_word.txt", simplify=simplify),
+            "tencent": ingest_tencent(store, root / "fixtures" / "tencent.txt", simplify=simplify),
         }
     return _finish(store, stats, out_dir)
 
@@ -58,11 +60,12 @@ def run_locked_pipeline(
     dest = downloads_dir or default_downloads_dir()
     ready = {source.id: verify_ingest_file(source, dest) for source in lock.sources}
     store = LemmaStore(store_path or default_store_path())
+    simplify = _simplifier_from_lock(lock.sources, ready)
     stats: dict[str, int] = {}
     with store.deferred_commit():
         stats["gold"] = _ingest_authored_gold(store)
         for source in lock.sources:
-            stats[source.id] = _ingest_pinned(store, source, ready[source.id])
+            stats[source.id] = _ingest_pinned(store, source, ready[source.id], simplify=simplify)
     return _finish(store, stats, out_dir)
 
 
@@ -75,22 +78,36 @@ def _ingest_authored_gold(store: LemmaStore) -> int:
     return count
 
 
-def _ingest_pinned(store: LemmaStore, source: PinnedSource, path: Path) -> int:
+def _simplifier_from_lock(sources: tuple[PinnedSource, ...], ready: dict[str, Path]) -> SimplifyFn:
+    for source in sources:
+        if source.ingest == "t2s":
+            return make_simplifier(load_unihan_simplified(ready[source.id]))
+    return make_simplifier(None)
+
+
+def _ingest_pinned(
+    store: LemmaStore,
+    source: PinnedSource,
+    path: Path,
+    simplify: SimplifyFn | None = None,
+) -> int:
     locator = f"{source.id}:{source.filename}"
     if source.ingest == "unihan":
         return ingest_unihan(store, path, locator=locator)
+    if source.ingest == "t2s":
+        return len(load_unihan_simplified(path))
     if source.ingest == "cedict":
         return ingest_cedict(store, path, locator=locator)
     if source.ingest == "thuocl":
         return ingest_thuocl(store, path, locator=locator)
     if source.ingest == "luna":
-        return ingest_luna(store, path, locator=locator)
+        return ingest_luna(store, path, locator=locator, simplify=simplify)
     if source.ingest == "essay":
-        return ingest_essay(store, path, locator=locator)
+        return ingest_essay(store, path, locator=locator, simplify=simplify)
     if source.ingest == "emoji":
-        return ingest_emoji(store, path, locator=locator)
+        return ingest_emoji(store, path, locator=locator, simplify=simplify)
     if source.ingest == "tencent":
-        return ingest_tencent(store, path, locator=locator)
+        return ingest_tencent(store, path, locator=locator, simplify=simplify)
     raise SourceLockError(f"unknown ingest kind {source.ingest!r} for {source.id}")
 
 

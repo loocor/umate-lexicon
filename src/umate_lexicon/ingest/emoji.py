@@ -6,6 +6,7 @@ from umate_lexicon.ingest.compose import compose_pinyin, is_han_only
 from umate_lexicon.ingest.io import read_ingest_text
 from umate_lexicon.lemma import Lemma, SourceRef
 from umate_lexicon.store import LemmaStore
+from umate_lexicon.t2s import SimplifyFn
 
 LICENSE_ID = "lgpl-rime-emoji"
 
@@ -14,7 +15,12 @@ def emoji_opencc_sidecar(store: LemmaStore) -> Path:
     return store.path.with_name("emoji_word.txt")
 
 
-def ingest_emoji(store: LemmaStore, path: Path, locator: str | None = None) -> int:
+def ingest_emoji(
+    store: LemmaStore,
+    path: Path,
+    locator: str | None = None,
+    simplify: SimplifyFn | None = None,
+) -> int:
     text = read_ingest_text(path)
     source = locator or f"emoji:{path.name}"
     mappings: list[tuple[str, list[str]]] = []
@@ -27,6 +33,8 @@ def ingest_emoji(store: LemmaStore, path: Path, locator: str | None = None) -> i
         if parsed is None:
             continue
         trigger, emojis = parsed
+        if simplify is not None:
+            trigger = simplify(trigger)
         mappings.append((trigger, emojis))
         pinyin = compose_pinyin(store, trigger) if is_han_only(trigger) else None
         if pinyin is None:

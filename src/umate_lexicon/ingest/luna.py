@@ -7,13 +7,19 @@ from umate_lexicon.ingest.io import read_ingest_text
 from umate_lexicon.lemma import Lemma, SourceRef
 from umate_lexicon.pinyin import looks_like_pinyin, normalize_plain_pinyin
 from umate_lexicon.store import LemmaStore
+from umate_lexicon.t2s import SimplifyFn
 
 _BOPOMOFO = re.compile(r"[\u3100-\u312f\u31a0-\u31bf]")
 _CJK = re.compile(r"[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]")
 LICENSE_ID = "lgpl-rime-luna"
 
 
-def ingest_luna(store: LemmaStore, path: Path, locator: str | None = None) -> int:
+def ingest_luna(
+    store: LemmaStore,
+    path: Path,
+    locator: str | None = None,
+    simplify: SimplifyFn | None = None,
+) -> int:
     text = read_ingest_text(path)
     body = _body_after_header(text)
     count = 0
@@ -26,6 +32,8 @@ def ingest_luna(store: LemmaStore, path: Path, locator: str | None = None) -> in
         if len(parts) < 2:
             continue
         surface = parts[0].strip()
+        if simplify is not None:
+            surface = simplify(surface)
         code = normalize_plain_pinyin(parts[1])
         if not _surface_ok(surface) or not looks_like_pinyin(code):
             continue
@@ -42,7 +50,7 @@ def ingest_luna(store: LemmaStore, path: Path, locator: str | None = None) -> in
                 pinyin_plain=code,
                 weight=weight,
                 status="auto",
-                script="hant",
+                script="hans" if simplify is not None else "hant",
                 domain_freq={"luna": weight},
                 sources=[SourceRef("luna", LICENSE_ID, source)],
             )

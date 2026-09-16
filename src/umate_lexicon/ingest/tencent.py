@@ -6,11 +6,17 @@ from umate_lexicon.ingest.compose import compose_pinyin, is_han_only, overlay_do
 from umate_lexicon.ingest.io import read_ingest_text
 from umate_lexicon.lemma import Lemma, SourceRef
 from umate_lexicon.store import LemmaStore
+from umate_lexicon.t2s import SimplifyFn
 
 LICENSE_ID = "cc-by-3.0-tencent"
 
 
-def ingest_tencent(store: LemmaStore, path: Path, locator: str | None = None) -> int:
+def ingest_tencent(
+    store: LemmaStore,
+    path: Path,
+    locator: str | None = None,
+    simplify: SimplifyFn | None = None,
+) -> int:
     text = read_ingest_text(path)
     count = 0
     source = locator or f"tencent:{path.name}"
@@ -22,6 +28,8 @@ def ingest_tencent(store: LemmaStore, path: Path, locator: str | None = None) ->
         if parsed is None:
             continue
         surface, freq = parsed
+        if simplify is not None:
+            surface = simplify(surface)
         if not surface:
             continue
         if not is_han_only(surface):

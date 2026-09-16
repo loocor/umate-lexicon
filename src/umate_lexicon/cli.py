@@ -15,6 +15,7 @@ from umate_lexicon.ingest.luna import ingest_luna
 from umate_lexicon.ingest.tencent import ingest_tencent
 from umate_lexicon.ingest.thuocl import ingest_thuocl
 from umate_lexicon.ingest.unihan import ingest_unihan
+from umate_lexicon.inventory import render_summary, summarize_store
 from umate_lexicon.paths import default_store_path
 from umate_lexicon.pipeline import run_fixture_pipeline, run_locked_pipeline
 from umate_lexicon.sources import default_downloads_dir, load_lock, verify_ingest_file
@@ -45,6 +46,7 @@ def main(argv: list[str] | None = None) -> int:
     sub.add_parser("status")
     sub.add_parser("fetch", help="download and extract pinned dumps")
     sub.add_parser("verify-sources", help="check pinned dumps without ingesting")
+    sub.add_parser("inventory", help="summarize lemma coverage")
 
     args = parser.parse_args(argv)
     store_path = args.store or default_store_path()
@@ -102,6 +104,12 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"{item.surface}\t{item.expected_pinyin}\t{item.reason}\t{item.actual}")
             return 1
         print("ok")
+        return 0
+
+    if args.cmd == "inventory":
+        summary = summarize_store(store)
+        print(render_summary(summary), end="")
+        store.close()
         return 0
     if args.cmd == "status":
         print(store.count())

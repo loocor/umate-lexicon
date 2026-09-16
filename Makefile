@@ -1,7 +1,7 @@
 PYTHON ?= python3
 export PYTHONPATH := src
 
-.PHONY: test pipeline fetch verify-sources pipeline-locked eval emit
+.PHONY: test pipeline fetch verify-sources pipeline-locked eval emit inventory
 
 test:
 	$(PYTHON) -m pytest
@@ -23,3 +23,6 @@ eval:
 
 emit:
 	$(PYTHON) -m umate_lexicon emit --out dist/rime
+
+inventory:
+	$(PYTHON) -m umate_lexicon inventory

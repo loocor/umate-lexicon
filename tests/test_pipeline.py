@@ -22,6 +22,8 @@ def test_fixture_pipeline_passes_gold(tmp_path: Path) -> None:
     assert "umate_chars" in core
     bank = store.get("银行", "yin hang")
     assert bank is not None
+    assert bank.domain_freq.get("essay") == 36856
+    assert store.get("銀行", "yin hang") is None
     walk = store.get("行走", "xing zou")
     assert walk is not None
     model = store.get("大模型", "da mo xing")
