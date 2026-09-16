@@ -2,7 +2,7 @@
 
 1. Pin dump URLs and sha256 in `data/sources.lock.json`.
 2. `python -m umate_lexicon fetch` then `verify-sources`.
-3. Ingest in lock order after gold: Unihan readings, variants (t2s), kTGH (8105), CC-CEDICT, THUOCL, official luna, essay, emoji, zhwiki titles. Luna/essay/emoji/wiki surfaces are simplified before overlay. Wiki-only lemmas emit to bulk.
+3. Ingest in lock order after gold: Unihan readings, variants (t2s), kTGH (8105), CC-CEDICT, THUOCL, official luna, essay, emoji, zhwiki titles, Tencent light vocab (coverage overlay). Luna/essay/emoji/tencent/wiki surfaces are simplified before overlay. Wiki-only lemmas emit to bulk.
 4. Enrich polyphones; anything in the closed set without gold/cedict
    stays `review`.
 5. Emit. Run `eval`. Fail the release if gold readings regress.

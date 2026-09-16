@@ -111,7 +111,7 @@ PYTHONPATH=src python -m umate_lexicon pipeline
 银行/`yin hang`, 行走/`xing zou` are missing or wrong.
 
 Coverage after a locked emit is recorded in [docs/zh/inventory.md](docs/zh/inventory.md).
-8105, zhwiki titles, and authored brand/event packs are in. Wikipedia page/category dumps now reject wiki-only redirects and type inventory; wiki-only stays bulk. Tencent still has no real dump to pin.
+8105, zhwiki titles, and authored brand/event packs are in. Wikipedia page/category dumps now reject wiki-only redirects and type inventory; wiki-only stays bulk. Tencent is pinned as the light ModelScope/Hugging Face Word2Vec vocabulary (coverage only; the official 6GB dump URL still returns HTML). Do not copy rime-ice `tencent.dict.yaml`.
 
 ## LLM role
 

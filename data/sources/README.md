@@ -15,6 +15,8 @@ Expected artifacts after fetch:
 - Official luna `luna_pinyin.dict.yaml`
 - Official essay `essay.txt`
 - Official rime-emoji `emoji_word.txt`
+- Tencent light Word2Vec `light_Tencent_AILab_ChineseEmbedding.bin`
+  (extracted to `tencent-vocab.txt`; do not commit the `.bin`)
 
 Do not place rime-ice, rime-wanxiang, or commercial `.scel` files here.
 The ingest gate will refuse them.

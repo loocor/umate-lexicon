@@ -222,6 +222,19 @@
       "sha256": "6d323c1c88076486dfc3cda74d0c25c82da90653d393e840a8498950d035d1d5",
       "filename": "zhwiki-20260901-categorylinks.sql.gz",
       "ingest": "wiki_category"
+    },
+    {
+      "id": "tencent",
+      "license": "cc-by-3.0-tencent",
+      "homepage": "https://ai.tencent.com/ailab/nlp/en/embedding.html",
+      "url": "https://huggingface.co/shibing624/text2vec-word2vec-tencent-chinese/resolve/main/light_Tencent_AILab_ChineseEmbedding.bin",
+      "sha256": "5515923c7e67cdc7eb42996546e0bad273c8452f3bfad6db0794e51c848d151b",
+      "filename": "light_Tencent_AILab_ChineseEmbedding.bin",
+      "ingest": "tencent",
+      "extract": {
+        "kind": "word2vec_vocab",
+        "output": "tencent-vocab.txt"
+      }
     }
   ]
 }

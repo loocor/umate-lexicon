@@ -16,6 +16,8 @@ here unless a fixture is a short original sample):
 - CC-CEDICT — Creative Commons Attribution-ShareAlike
 - THUOCL — MIT
 - Tencent AI Lab Chinese embedding vocabulary — CC BY 3.0
+  (pinned light word list via ModelScope / Hugging Face; packaging
+  Apache on the model card does not replace CC BY 3.0 for the vocab)
 - Official Rime luna_pinyin / essay / rime-emoji — LGPL-3.0
 - Wikimedia dumps — CC BY-SA
 

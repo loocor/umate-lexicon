@@ -20,7 +20,7 @@ files and hash mismatches. It does not fall back to fixtures.
 | `wiki_page` | zhwiki `page` SQL | `cc-by-sa-wikimedia` | reject wiki-only redirects |
 | `wiki_linktarget` | zhwiki `linktarget` SQL | `cc-by-sa-wikimedia` | category titles |
 | `wiki_category` | zhwiki `categorylinks` SQL | `cc-by-sa-wikimedia` | type overlay, still bulk |
-| `tencent` | embedding vocab (first column) | `cc-by-3.0-tencent` | unique compose, fixture only |
+| `tencent` | embedding vocab (first column) | `cc-by-3.0-tencent` | unique compose, coverage overlay |
 
 Current pins:
 
@@ -38,6 +38,12 @@ Current pins:
 - Wikipedia `page` / `categorylinks` / `linktarget` dumps, same date, for
   redirect 排重 and entity typing. Wiki-only lemmas stay in bulk even
   when typed. Do not copy `page_len` or edit counts into `domain_freq`.
+- Tencent coverage vocab from the light Word2Vec binary
+  `light_Tencent_AILab_ChineseEmbedding.bin` (111MB, vocab_size=143613,
+  dim=200). Pin URL is the Hugging Face resolve CDN; ModelScope
+  `lili666/text2vec-word2vec-tencent-chinese` is the same artifact
+  (SHA256 matches the ModelScope `X-Linked-Etag`). Extract kind
+  `word2vec_vocab` writes `tencent-vocab.txt`. Do not commit the `.bin`.
 
 Essay is the ranking source (`domain_freq.essay`). Luna is coverage plus
 official readings. Ingest folds Traditional surfaces to Hans with Unihan
@@ -46,11 +52,16 @@ official readings. Ingest folds Traditional surfaces to Hans with Unihan
 readings (gold / cedict / unihan / chars). Leftover luna-only readings
 are flagged `untrusted_reading` and are not emitted.
 
-Tencent AI Lab embeddings are **coverage**, not frequency. The historic
-tar.gz URL currently returns a 22KB HTML page, not the 6GB+ corpus. Do
-not invent a hash. Adapter + `scripts/extract-tencent-vocab.py` are
-ready; pin only after a real vocab file is downloaded and sha256'd.
-Do not copy rime-ice `tencent.dict.yaml`.
+Tencent AI Lab embeddings are **coverage**, not frequency. Essay remains
+the ranking source. The historic official dump URL still returns a
+~22KB HTML page, not the 6GB corpus — do not invent a hash for that.
+The pinned artifact is the light gensim Word2Vec binary redistributed
+on ModelScope / Hugging Face. `scripts/extract-tencent-vocab.py` reads
+that binary (and still accepts text / tar.gz / gz). Factory ingest
+uses only the word list; vectors are discarded and are not used at
+runtime. ModelScope's Apache packaging of the card does not replace
+CC BY 3.0 for the original Tencent vocabulary. Do not copy rime-ice
+`tencent.dict.yaml`.
 
 Share-alike (CC-CEDICT, Wikipedia titles) is tagged, never silently
 folded into a default keyboard SKU.

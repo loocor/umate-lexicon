@@ -2,7 +2,9 @@
 
 本地 `lemmas.sqlite` 和 `dist/rime/*.dict.yaml` **不入库**。YAML 不是真相；发版看金标、lock 和本盘点。
 
-这一轮**先整理维基，不碰腾讯**。标题表没有拼音、没有收录时间、没有编辑次数；那些字段也不适合当输入法词频。分类和排重改走同一日期的 `page` / `linktarget` / `categorylinks` dump。
+这一轮数字仍是 **wiki 分类排重后、腾讯 light 词表尚未跑进本盘点**。标题表没有拼音、没有收录时间、没有编辑次数；那些字段也不适合当输入法词频。分类和排重改走同一日期的 `page` / `linktarget` / `categorylinks` dump。
+
+腾讯侧：官方 6GB dump URL 仍返回约 22KB HTML，**不要编哈希**。已在 `sources.lock.json` 钉死 ModelScope / Hugging Face 的 light Word2Vec 词表（`light_Tencent_AILab_ChineseEmbedding.bin`，143613×200），只抽词、不当词频，不抄雾凇 `tencent.dict.yaml`。本盘点数字还未叠加这次 ingest。
 
 ## 规模（locked dumps overlay，eval 0 failure）
 
@@ -67,7 +69,8 @@ wiki-only 库存类型（**不改变发射层**，只记账）：
 
 ## 明确还没做
 
-1. 腾讯词向量官方 dump 仍未钉哈希，**这一轮没接**。
+1. 腾讯官方大 dump 仍是 HTML，未钉。light 词表已钉，但 **本盘点还没重跑 locked pipeline**，lemma 数不含这次覆盖。
 2. 不把 bulk 放进默认 SKU。
 3. 不把维基人物/作品用 pageviews 抬出 bulk。
 4. 不接键盘，不抄雾凇。
+5. 不把 word2vec 向量送进运行时；工厂只要词表。

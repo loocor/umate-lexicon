@@ -26,11 +26,18 @@ def test_repo_lock_version_and_kinds() -> None:
     lock = load_lock()
     assert lock.version == 1
     kinds = {source.ingest for source in lock.sources}
-    assert {"unihan", "t2s", "tgh", "cedict", "thuocl", "luna", "essay", "emoji", "wiki", "wiki_page", "wiki_linktarget", "wiki_category"} <= kinds
-    assert "tencent" not in kinds
+    assert {"unihan", "t2s", "tgh", "cedict", "thuocl", "luna", "essay", "emoji", "tencent", "wiki", "wiki_page", "wiki_linktarget", "wiki_category"} <= kinds
     assert "rime-ice" not in kinds
     assert any(source.id == "unihan" for source in lock.sources)
     assert any(source.id == "cedict" for source in lock.sources)
+    tencent = next(source for source in lock.sources if source.id == "tencent")
+    assert tencent.license == "cc-by-3.0-tencent"
+    assert tencent.filename == "light_Tencent_AILab_ChineseEmbedding.bin"
+    assert tencent.sha256 == "5515923c7e67cdc7eb42996546e0bad273c8452f3bfad6db0794e51c848d151b"
+    assert tencent.url.endswith("light_Tencent_AILab_ChineseEmbedding.bin")
+    assert tencent.extract is not None
+    assert tencent.extract.kind == "word2vec_vocab"
+    assert tencent.extract.output == "tencent-vocab.txt"
 
 
 def test_hash_mismatch_is_hard_failure(tmp_path: Path) -> None:
@@ -73,6 +80,25 @@ def test_missing_dump_is_hard_failure(tmp_path: Path) -> None:
     lock = load_lock(lock_path)
     with pytest.raises(SourceLockError, match="missing pinned dump"):
         verify_ingest_file(lock.sources[0], tmp_path / "downloads")
+
+
+def test_unknown_extract_kind_rejected(tmp_path: Path) -> None:
+    lock_path = _lock(
+        tmp_path,
+        [
+            {
+                "id": "tencent",
+                "license": "cc-by-3.0-tencent",
+                "url": "https://example.invalid/tencent.bin",
+                "sha256": "0" * 64,
+                "filename": "tencent.bin",
+                "ingest": "tencent",
+                "extract": {"kind": "vectors", "output": "tencent-vocab.txt"},
+            }
+        ],
+    )
+    with pytest.raises(SourceLockError, match="unknown extract kind"):
+        load_lock(lock_path)
 
 
 def test_unknown_ingest_kind_rejected(tmp_path: Path) -> None:
@@ -120,6 +146,43 @@ def test_fetch_extracts_gzip_and_verifies(tmp_path: Path) -> None:
     assert results["cedict"] == "cached"
     extracted = downloads / "cedict_ts.u8"
     assert extracted.read_text(encoding="utf-8") == raw
+
+
+def test_fetch_extracts_word2vec_vocab(tmp_path: Path) -> None:
+    import struct
+
+    words = ["的", "微信", "抖音", "人工智能"]
+    dim = 2
+    payload = f"{len(words)} {dim}\n".encode("utf-8")
+    zeros = struct.pack(f"<{dim}f", *([0.0] * dim))
+    for word in words:
+        payload += word.encode("utf-8") + b" " + zeros
+    bin_path = tmp_path / "light_Tencent_AILab_ChineseEmbedding.bin"
+    bin_path.write_bytes(payload)
+    digest = sha256_file(bin_path)
+    downloads = tmp_path / "downloads"
+    downloads.mkdir()
+    (downloads / bin_path.name).write_bytes(payload)
+    lock_path = _lock(
+        tmp_path,
+        [
+            {
+                "id": "tencent",
+                "license": "cc-by-3.0-tencent",
+                "homepage": "https://ai.tencent.com/ailab/nlp/en/embedding.html",
+                "url": "https://example.invalid/light_Tencent_AILab_ChineseEmbedding.bin",
+                "sha256": digest,
+                "filename": "light_Tencent_AILab_ChineseEmbedding.bin",
+                "ingest": "tencent",
+                "extract": {"kind": "word2vec_vocab", "output": "tencent-vocab.txt"},
+            }
+        ],
+    )
+    lock = load_lock(lock_path)
+    results = fetch_locked_sources(lock=lock, downloads_dir=downloads)
+    assert results["tencent"] == "cached"
+    extracted = downloads / "tencent-vocab.txt"
+    assert extracted.read_text(encoding="utf-8").splitlines() == words
 
 
 def test_locked_pipeline_uses_verified_dumps(tmp_path: Path) -> None:
@@ -180,6 +243,14 @@ def test_locked_pipeline_uses_verified_dumps(tmp_path: Path) -> None:
             "filename": "emoji_word.txt",
             "ingest": "emoji",
         },
+        {
+            "id": "tencent",
+            "license": "cc-by-3.0-tencent",
+            "url": "https://example.invalid/tencent-vocab.txt",
+            "sha256": _write(downloads / "tencent-vocab.txt", "你好\n"),
+            "filename": "tencent-vocab.txt",
+            "ingest": "tencent",
+        },
     ]
     lock_path = _lock(tmp_path, sources)
     stats = run_locked_pipeline(
@@ -193,4 +264,5 @@ def test_locked_pipeline_uses_verified_dumps(tmp_path: Path) -> None:
     store = LemmaStore(tmp_path / "lemmas.sqlite")
     hello = store.get("你好", "ni hao")
     assert hello is not None
+    assert hello.domain_freq.get("tencent") == 1
     store.close()
