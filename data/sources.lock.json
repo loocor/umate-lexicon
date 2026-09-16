@@ -184,20 +184,6 @@
       "ingest": "emoji"
     },
     {
-      "id": "tencent-light",
-      "license": "cc-by-3.0-tencent",
-      "homepage": "https://ai.tencent.com/ailab/nlp/en/embedding.html",
-      "note": "Light high-frequency subset redistributed by ModelScope lili666/text2vec-word2vec-tencent-chinese. Not the official ~8M Tencent AI Lab dump. Official download URLs currently return HTML. ModelScope card Apache-2.0 is packaging; vocabulary content remains CC BY 3.0 Tencent AI Lab.",
-      "url": "https://modelscope.cn/models/lili666/text2vec-word2vec-tencent-chinese/resolve/master/light_Tencent_AILab_ChineseEmbedding.bin",
-      "sha256": "5515923c7e67cdc7eb42996546e0bad273c8452f3bfad6db0794e51c848d151b",
-      "filename": "light_Tencent_AILab_ChineseEmbedding.bin",
-      "ingest": "tencent",
-      "extract": {
-        "kind": "word2vec-vocab",
-        "output": "tencent-light-vocab.txt"
-      }
-    },
-    {
       "id": "zhwiki-titles",
       "license": "cc-by-sa-wikimedia",
       "homepage": "https://dumps.wikimedia.org/zhwiki/",
@@ -236,6 +222,20 @@
       "sha256": "6d323c1c88076486dfc3cda74d0c25c82da90653d393e840a8498950d035d1d5",
       "filename": "zhwiki-20260901-categorylinks.sql.gz",
       "ingest": "wiki_category"
+    },
+    {
+      "id": "tencent-light",
+      "license": "cc-by-3.0-tencent",
+      "homepage": "https://ai.tencent.com/ailab/nlp/en/embedding.html",
+      "note": "Light high-frequency subset redistributed by ModelScope lili666/text2vec-word2vec-tencent-chinese. Not the official ~8M Tencent AI Lab dump. Official download URLs currently return HTML. ModelScope card Apache-2.0 is packaging; vocabulary content remains CC BY 3.0 Tencent AI Lab. Ingest after wiki so Tencent overlays existing lemmas and does not steal wiki identity.",
+      "url": "https://modelscope.cn/models/lili666/text2vec-word2vec-tencent-chinese/resolve/master/light_Tencent_AILab_ChineseEmbedding.bin",
+      "sha256": "5515923c7e67cdc7eb42996546e0bad273c8452f3bfad6db0794e51c848d151b",
+      "filename": "light_Tencent_AILab_ChineseEmbedding.bin",
+      "ingest": "tencent",
+      "extract": {
+        "kind": "word2vec-vocab",
+        "output": "tencent-light-vocab.txt"
+      }
     }
   ]
 }

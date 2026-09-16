@@ -59,7 +59,7 @@ Pin 未动：`tencent-light` →
 | 总表面 |  | 去重后的 light 行 |
 | overlay 到已有 curated lemma |  | essay/cedict/thuocl/gold/luna/unihan 等 |
 | wiki±tencent 覆盖重叠 |  | 仅 coverage 源；仍是 bulk |
-| unique compose 新写入 |  | tencent-only。lock 顺序是 tencent 先于 wiki，已写入的标题 wiki 不再盖章 |
+| unique compose 新写入 |  | tencent-only。lock 顺序是 wiki 先、tencent 后，Tencent 只 overlay，不抢 wiki 身份 |
 | 跳过：非汉无金标 |  |  |
 | 跳过：长度 1 |  |  |
 | 跳过：长度 >4 且无 overlay |  |  |

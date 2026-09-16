@@ -57,7 +57,8 @@ has no counts; ingest treats vocab lines as `freq=1` / unique compose
 and never invents essay-like weights. Overlay stamps `domain_freq.tencent=1`
 on existing lemmas; emit ranking ignores that placeholder so essay
 stays the sort key. Tencent-only unique-compose lemmas stay in **bulk**
-(not base/ext). Fetch downloads the ModelScope
+(not base/ext). Lock order puts `tencent-light` after the wiki dumps
+so overlay cannot steal wiki identity. Fetch downloads the ModelScope
 resolve URL (CDN `auth_key` redirects are ephemeral; the resolve URL
 plus content sha256 are the pin). `extract.kind = word2vec-vocab`
 writes a first-column word list only — vectors never enter the store.
