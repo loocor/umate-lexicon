@@ -8,10 +8,20 @@ import pytest
 
 from umate_lexicon.ingest.chars import ingest_chars
 from umate_lexicon.ingest.gold import ingest_gold
-from umate_lexicon.ingest.tencent import ingest_tencent, parse_tencent_line
+from umate_lexicon.ingest.tencent import (
+    DROP_NON_HAN,
+    DROP_SINGLE_CHAR,
+    DROP_TOO_LONG,
+    OVERLAY_EXISTING,
+    OVERLAY_GOLD_NON_HAN,
+    classify_tencent_surface,
+    ingest_tencent,
+    parse_tencent_line,
+    summarize_tencent_gates,
+)
 from umate_lexicon.paths import data_dir
 from umate_lexicon.store import LemmaStore
-from umate_lexicon.word2vec import extract_word2vec_vocab, iter_word2vec_vocab
+from umate_lexicon.word2vec import extract_word2vec_vocab, iter_word2vec_vocab, read_word2vec_header
 
 
 def _write_word2vec_bin(path: Path, words: list[str], dim: int = 2) -> Path:
@@ -62,12 +72,21 @@ def test_covers_unique_han_and_overlays_gold_latin(tmp_path: Path) -> None:
     brand = store.get("umate", "umate")
     assert brand is not None
     assert brand.domain_freq["tencent"] == 8
+    assert classify_tencent_surface(store, "微信") == OVERLAY_EXISTING
+    assert classify_tencent_surface(store, "的") == DROP_SINGLE_CHAR
+    assert classify_tencent_surface(store, "xyz") == DROP_NON_HAN
+    assert classify_tencent_surface(store, "umate") == OVERLAY_GOLD_NON_HAN
+    assert classify_tencent_surface(store, "中华人民共和国") == DROP_TOO_LONG
+    gates = summarize_tencent_gates(store, data_dir() / "fixtures" / "tencent.txt")
+    assert gates["raw_lines"] >= 5
+    assert gates["overlap"] >= 1
     store.close()
 
 
 def test_word2vec_binary_extracts_vocab_only(tmp_path: Path) -> None:
     words = ["的", "微信", "抖音", "人工智能"]
     bin_path = _write_word2vec_bin(tmp_path / "light.bin", words, dim=200)
+    assert read_word2vec_header(bin_path) == (4, 200)
     assert list(iter_word2vec_vocab(bin_path)) == words
     vocab = tmp_path / "tencent-vocab.txt"
     extract_word2vec_vocab(bin_path, vocab)

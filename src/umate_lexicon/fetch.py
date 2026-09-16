@@ -24,14 +24,26 @@ USER_AGENT = "umate-lexicon/0.1 (+https://github.com/loocor/umate-lexicon)"
 def fetch_locked_sources(
     lock: SourceLock | None = None,
     downloads_dir: Path | None = None,
+    source_ids: set[str] | None = None,
 ) -> dict[str, str]:
     source_lock = lock or load_lock()
     dest = downloads_dir or default_downloads_dir()
     dest.mkdir(parents=True, exist_ok=True)
+    selected = _select_sources(source_lock, source_ids)
     results: dict[str, str] = {}
-    for source in source_lock.sources:
+    for source in selected:
         results[source.id] = fetch_one(source, dest)
     return results
+
+
+def _select_sources(lock: SourceLock, source_ids: set[str] | None) -> tuple[PinnedSource, ...]:
+    if not source_ids:
+        return lock.sources
+    known = {source.id for source in lock.sources}
+    unknown = sorted(source_ids - known)
+    if unknown:
+        raise SourceLockError(f"unknown source id(s): {unknown}")
+    return tuple(source for source in lock.sources if source.id in source_ids)
 
 
 def fetch_one(source: PinnedSource, downloads_dir: Path) -> str:

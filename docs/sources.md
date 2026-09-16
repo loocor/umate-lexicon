@@ -61,7 +61,9 @@ that binary (and still accepts text / tar.gz / gz). Factory ingest
 uses only the word list; vectors are discarded and are not used at
 runtime. ModelScope's Apache packaging of the card does not replace
 CC BY 3.0 for the original Tencent vocabulary. Do not copy rime-ice
-`tencent.dict.yaml`.
+`tencent.dict.yaml`. A measured fetch + fusion/clean dry-run (no
+dictionary merge, wiki dumps skipped) is in
+[`tencent-validation.md`](tencent-validation.md).
 
 Share-alike (CC-CEDICT, Wikipedia titles) is tagged, never silently
 folded into a default keyboard SKU.

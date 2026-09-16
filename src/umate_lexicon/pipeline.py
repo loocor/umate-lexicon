@@ -71,16 +71,24 @@ def run_locked_pipeline(
     out_dir: Path | None = None,
     lock_path: Path | None = None,
     downloads_dir: Path | None = None,
+    source_ids: set[str] | None = None,
 ) -> dict[str, int]:
     lock = load_lock(lock_path)
     dest = downloads_dir or default_downloads_dir()
-    ready = {source.id: verify_ingest_file(source, dest) for source in lock.sources}
+    selected = lock.sources
+    if source_ids:
+        known = {source.id for source in lock.sources}
+        unknown = sorted(source_ids - known)
+        if unknown:
+            raise SourceLockError(f"unknown source id(s): {unknown}")
+        selected = tuple(source for source in lock.sources if source.id in source_ids)
+    ready = {source.id: verify_ingest_file(source, dest) for source in selected}
     store = LemmaStore(store_path or default_store_path())
-    simplify = _simplifier_from_lock(lock.sources, ready)
+    simplify = _simplifier_from_lock(selected, ready)
     stats: dict[str, int] = {}
     with store.deferred_commit():
         stats["gold"] = _ingest_authored_gold(store)
-        for source in lock.sources:
+        for source in selected:
             stats[source.id] = _ingest_pinned(store, source, ready[source.id], simplify=simplify)
     return _finish(store, stats, out_dir)
 

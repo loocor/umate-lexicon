@@ -10,10 +10,10 @@ pipeline:
 	$(PYTHON) -m umate_lexicon pipeline --fixtures
 
 fetch:
-	$(PYTHON) -m umate_lexicon fetch
+	$(PYTHON) -m umate_lexicon fetch $(FETCH_FLAGS)
 
 verify-sources:
-	$(PYTHON) -m umate_lexicon verify-sources
+	$(PYTHON) -m umate_lexicon verify-sources $(FETCH_FLAGS)
 
 pipeline-locked:
 	$(PYTHON) -m umate_lexicon pipeline

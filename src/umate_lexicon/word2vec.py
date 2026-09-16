@@ -21,6 +21,15 @@ def iter_word2vec_vocab(source: Path | BinaryIO) -> Iterator[str]:
     yield from _iter_word2vec_handle(source)
 
 
+def read_word2vec_header(source: Path) -> tuple[int, int]:
+    with source.open("rb") as handle:
+        header = handle.readline()
+    parts = header.decode("utf-8", errors="replace").split()
+    if len(parts) != 2 or not all(part.lstrip("-").isdigit() for part in parts):
+        raise ValueError(f"bad word2vec header: {header!r}")
+    return int(parts[0]), int(parts[1])
+
+
 def extract_word2vec_vocab(source: Path, dest: Path) -> Path:
     dest.parent.mkdir(parents=True, exist_ok=True)
     with dest.open("w", encoding="utf-8") as out:

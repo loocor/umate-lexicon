@@ -25,7 +25,7 @@ from umate_lexicon.ingest.wiki import (
 from umate_lexicon.inventory import render_summary, summarize_store
 from umate_lexicon.paths import default_store_path
 from umate_lexicon.pipeline import run_fixture_pipeline, run_locked_pipeline
-from umate_lexicon.sources import default_downloads_dir, load_lock, verify_ingest_file
+from umate_lexicon.sources import SourceLockError, default_downloads_dir, load_lock, verify_ingest_file
 from umate_lexicon.store import LemmaStore
 
 
@@ -41,6 +41,13 @@ def main(argv: list[str] | None = None) -> int:
         help="use short original samples instead of pinned dumps",
     )
     pipe.add_argument("--out", type=Path, default=None)
+    pipe.add_argument(
+        "--id",
+        action="append",
+        dest="source_ids",
+        default=None,
+        help="limit locked pipeline to these source ids (repeatable)",
+    )
 
     ingest = sub.add_parser("ingest")
     ingest.add_argument("kind", choices=["cedict", "thuocl", "chars", "unihan", "tgh", "gold", "luna", "essay", "emoji", "tencent", "wiki", "wiki_page", "wiki_linktarget", "wiki_category"])
@@ -51,8 +58,22 @@ def main(argv: list[str] | None = None) -> int:
 
     sub.add_parser("eval")
     sub.add_parser("status")
-    sub.add_parser("fetch", help="download and extract pinned dumps")
-    sub.add_parser("verify-sources", help="check pinned dumps without ingesting")
+    fetch = sub.add_parser("fetch", help="download and extract pinned dumps")
+    fetch.add_argument(
+        "--id",
+        action="append",
+        dest="source_ids",
+        default=None,
+        help="fetch only these source ids (repeatable)",
+    )
+    verify = sub.add_parser("verify-sources", help="check pinned dumps without ingesting")
+    verify.add_argument(
+        "--id",
+        action="append",
+        dest="source_ids",
+        default=None,
+        help="verify only these source ids (repeatable)",
+    )
     sub.add_parser("inventory", help="summarize lemma coverage")
 
     args = parser.parse_args(argv)
@@ -62,13 +83,19 @@ def main(argv: list[str] | None = None) -> int:
         if args.fixtures:
             stats = run_fixture_pipeline(store_path=store_path, out_dir=args.out)
         else:
-            stats = run_locked_pipeline(store_path=store_path, out_dir=args.out)
+            stats = run_locked_pipeline(
+                store_path=store_path,
+                out_dir=args.out,
+                source_ids=set(args.source_ids) if args.source_ids else None,
+            )
         for key, value in stats.items():
             print(f"{key}\t{value}")
         return 0
 
     if args.cmd == "fetch":
-        results = fetch_locked_sources()
+        results = fetch_locked_sources(
+            source_ids=set(args.source_ids) if args.source_ids else None,
+        )
         for key, value in results.items():
             print(f"{key}\t{value}")
         return 0
@@ -76,7 +103,15 @@ def main(argv: list[str] | None = None) -> int:
     if args.cmd == "verify-sources":
         lock = load_lock()
         dest = default_downloads_dir()
-        for source in lock.sources:
+        selected = lock.sources
+        if args.source_ids:
+            wanted = set(args.source_ids)
+            known = {source.id for source in lock.sources}
+            unknown = sorted(wanted - known)
+            if unknown:
+                raise SourceLockError(f"unknown source id(s): {unknown}")
+            selected = tuple(source for source in lock.sources if source.id in wanted)
+        for source in selected:
             path = verify_ingest_file(source, dest)
             print(f"{source.id}\t{path}")
         return 0

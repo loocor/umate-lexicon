@@ -69,7 +69,7 @@ wiki-only 库存类型（**不改变发射层**，只记账）：
 
 ## 明确还没做
 
-1. 腾讯官方大 dump 仍是 HTML，未钉。light 词表已钉，但 **本盘点还没重跑 locked pipeline**，lemma 数不含这次覆盖。
+1. 腾讯官方大 dump 仍是 HTML，未钉。light 词表已钉且做过 fetch/抽词/融合干跑（见 [../tencent-validation.md](../tencent-validation.md)）。**本盘点表没重跑**（跳过 wiki；CEDICT 是滚动文件，现网哈希已变，未编新哈希）。
 2. 不把 bulk 放进默认 SKU。
 3. 不把维基人物/作品用 pageviews 抬出 bulk。
 4. 不接键盘，不抄雾凇。

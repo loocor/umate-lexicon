@@ -185,6 +185,38 @@ def test_fetch_extracts_word2vec_vocab(tmp_path: Path) -> None:
     assert extracted.read_text(encoding="utf-8").splitlines() == words
 
 
+def test_fetch_can_select_source_ids(tmp_path: Path) -> None:
+    downloads = tmp_path / "downloads"
+    downloads.mkdir()
+    digest = _write(downloads / "essay.txt", "你好\t9\n")
+    lock_path = _lock(
+        tmp_path,
+        [
+            {
+                "id": "essay",
+                "license": "lgpl-rime-essay",
+                "url": "https://example.invalid/essay.txt",
+                "sha256": digest,
+                "filename": "essay.txt",
+                "ingest": "essay",
+            },
+            {
+                "id": "emoji",
+                "license": "lgpl-rime-emoji",
+                "url": "https://example.invalid/emoji_word.txt",
+                "sha256": "0" * 64,
+                "filename": "emoji_word.txt",
+                "ingest": "emoji",
+            },
+        ],
+    )
+    lock = load_lock(lock_path)
+    results = fetch_locked_sources(lock=lock, downloads_dir=downloads, source_ids={"essay"})
+    assert results == {"essay": "cached"}
+    with pytest.raises(SourceLockError, match="unknown source id"):
+        fetch_locked_sources(lock=lock, downloads_dir=downloads, source_ids={"rime-ice"})
+
+
 def test_locked_pipeline_uses_verified_dumps(tmp_path: Path) -> None:
     downloads = tmp_path / "downloads"
     downloads.mkdir()
