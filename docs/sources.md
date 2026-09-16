@@ -20,7 +20,7 @@ files and hash mismatches. It does not fall back to fixtures.
 | `wiki_page` | zhwiki `page` SQL | `cc-by-sa-wikimedia` | reject wiki-only redirects |
 | `wiki_linktarget` | zhwiki `linktarget` SQL | `cc-by-sa-wikimedia` | category titles |
 | `wiki_category` | zhwiki `categorylinks` SQL | `cc-by-sa-wikimedia` | type overlay, still bulk |
-| `tencent` | embedding vocab (first column) | `cc-by-3.0-tencent` | unique compose, fixture only |
+| `tencent` | embedding vocab (first column) | `cc-by-3.0-tencent` | unique compose, coverage only |
 
 Current pins:
 
@@ -38,6 +38,12 @@ Current pins:
 - Wikipedia `page` / `categorylinks` / `linktarget` dumps, same date, for
   redirect 排重 and entity typing. Wiki-only lemmas stay in bulk even
   when typed. Do not copy `page_len` or edit counts into `domain_freq`.
+- Tencent AI Lab embedding **light** subset via ModelScope
+  `lili666/text2vec-word2vec-tencent-chinese`
+  (`light_Tencent_AILab_ChineseEmbedding.bin`, lock id `tencent-light`).
+  Official full dump (~8M words / multi-GB) is still unavailable; those
+  URLs return HTML. This is not that dump. Do not copy rime-ice
+  `tencent.dict.yaml`.
 
 Essay is the ranking source (`domain_freq.essay`). Luna is coverage plus
 official readings. Ingest folds Traditional surfaces to Hans with Unihan
@@ -46,11 +52,16 @@ official readings. Ingest folds Traditional surfaces to Hans with Unihan
 readings (gold / cedict / unihan / chars). Leftover luna-only readings
 are flagged `untrusted_reading` and are not emitted.
 
-Tencent AI Lab embeddings are **coverage**, not frequency. The historic
-tar.gz URL currently returns a 22KB HTML page, not the 6GB+ corpus. Do
-not invent a hash. Adapter + `scripts/extract-tencent-vocab.py` are
-ready; pin only after a real vocab file is downloaded and sha256'd.
-Do not copy rime-ice `tencent.dict.yaml`.
+Tencent AI Lab embeddings are **coverage**, not frequency. The binary
+has no counts; ingest treats vocab lines as `freq=1` / unique compose
+and never invents essay-like weights. Fetch downloads the ModelScope
+resolve URL (CDN `auth_key` redirects are ephemeral; the resolve URL
+plus content sha256 are the pin). `extract.kind = word2vec-vocab`
+writes a first-column word list only — vectors never enter the store.
+`scripts/extract-tencent-vocab.py` reads Google/gensim binary as well
+as text / tar.gz. CI stays on fixtures; do not commit the ~111MB bin
+or the derived vocab. ModelScope card Apache-2.0 is packaging;
+vocabulary attribution remains CC BY 3.0 Tencent AI Lab.
 
 Share-alike (CC-CEDICT, Wikipedia titles) is tagged, never silently
 folded into a default keyboard SKU.

@@ -1,6 +1,7 @@
 import gzip
 import hashlib
 import json
+import struct
 from pathlib import Path
 
 import pytest
@@ -26,11 +27,36 @@ def test_repo_lock_version_and_kinds() -> None:
     lock = load_lock()
     assert lock.version == 1
     kinds = {source.ingest for source in lock.sources}
-    assert {"unihan", "t2s", "tgh", "cedict", "thuocl", "luna", "essay", "emoji", "wiki", "wiki_page", "wiki_linktarget", "wiki_category"} <= kinds
-    assert "tencent" not in kinds
+    assert {
+        "unihan",
+        "t2s",
+        "tgh",
+        "cedict",
+        "thuocl",
+        "luna",
+        "essay",
+        "emoji",
+        "wiki",
+        "wiki_page",
+        "wiki_linktarget",
+        "wiki_category",
+        "tencent",
+    } <= kinds
     assert "rime-ice" not in kinds
     assert any(source.id == "unihan" for source in lock.sources)
     assert any(source.id == "cedict" for source in lock.sources)
+    tencent = next(source for source in lock.sources if source.id == "tencent-light")
+    assert tencent.ingest == "tencent"
+    assert tencent.license == "cc-by-3.0-tencent"
+    assert tencent.sha256 == "5515923c7e67cdc7eb42996546e0bad273c8452f3bfad6db0794e51c848d151b"
+    assert tencent.filename == "light_Tencent_AILab_ChineseEmbedding.bin"
+    assert "modelscope.cn" in tencent.url
+    assert tencent.url.endswith("light_Tencent_AILab_ChineseEmbedding.bin")
+    assert tencent.homepage is not None
+    assert "tencent" in tencent.homepage.lower() or "ailab" in tencent.homepage.lower()
+    assert tencent.extract is not None
+    assert tencent.extract.kind == "word2vec-vocab"
+    assert tencent.extract.output == "tencent-light-vocab.txt"
 
 
 def test_hash_mismatch_is_hard_failure(tmp_path: Path) -> None:
@@ -120,6 +146,48 @@ def test_fetch_extracts_gzip_and_verifies(tmp_path: Path) -> None:
     assert results["cedict"] == "cached"
     extracted = downloads / "cedict_ts.u8"
     assert extracted.read_text(encoding="utf-8") == raw
+
+
+def _write_word2vec_binary(path: Path, items: list[tuple[str, list[float]]]) -> None:
+    dim = len(items[0][1])
+    with path.open("wb") as handle:
+        handle.write(f"{len(items)} {dim}\n".encode("ascii"))
+        for word, vector in items:
+            handle.write(word.encode("utf-8") + b" ")
+            handle.write(struct.pack("<" + "f" * dim, *vector))
+            handle.write(b"\n")
+
+
+def test_fetch_extracts_word2vec_vocab_without_vectors(tmp_path: Path) -> None:
+    artifact = tmp_path / "downloads" / "light.bin"
+    artifact.parent.mkdir()
+    _write_word2vec_binary(
+        artifact,
+        [("微信", [0.12, -0.03]), ("人工智能", [1.0, 2.0]), ("银行卡", [0.0, 0.5])],
+    )
+    digest = sha256_file(artifact)
+    lock_path = _lock(
+        tmp_path,
+        [
+            {
+                "id": "tencent-light",
+                "license": "cc-by-3.0-tencent",
+                "homepage": "https://ai.tencent.com/ailab/nlp/en/embedding.html",
+                "url": "https://example.invalid/light.bin",
+                "sha256": digest,
+                "filename": "light.bin",
+                "ingest": "tencent",
+                "extract": {"kind": "word2vec-vocab", "output": "tencent-light-vocab.txt"},
+            }
+        ],
+    )
+    lock = load_lock(lock_path)
+    results = fetch_locked_sources(lock=lock, downloads_dir=artifact.parent)
+    assert results["tencent-light"] == "cached"
+    vocab = (artifact.parent / "tencent-light-vocab.txt").read_text(encoding="utf-8")
+    assert vocab.splitlines() == ["微信", "人工智能", "银行卡"]
+    assert "0.12" not in vocab
+    assert "143613" not in vocab
 
 
 def test_locked_pipeline_uses_verified_dumps(tmp_path: Path) -> None:
