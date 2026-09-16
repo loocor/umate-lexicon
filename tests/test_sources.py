@@ -26,7 +26,9 @@ def test_repo_lock_version_and_kinds() -> None:
     lock = load_lock()
     assert lock.version == 1
     kinds = {source.ingest for source in lock.sources}
-    assert kinds == {"unihan", "cedict", "thuocl"}
+    assert {"unihan", "cedict", "thuocl", "luna", "essay", "emoji"} <= kinds
+    assert "tencent" not in kinds
+    assert "rime-ice" not in kinds
     assert any(source.id == "unihan" for source in lock.sources)
     assert any(source.id == "cedict" for source in lock.sources)
 
@@ -150,6 +152,33 @@ def test_locked_pipeline_uses_verified_dumps(tmp_path: Path) -> None:
             "sha256": _write(downloads / "THUOCL_IT.txt", thuocl),
             "filename": "THUOCL_IT.txt",
             "ingest": "thuocl",
+        },
+        {
+            "id": "luna",
+            "license": "lgpl-rime-luna",
+            "url": "https://example.invalid/luna.dict.yaml",
+            "sha256": _write(
+                downloads / "luna.dict.yaml",
+                "---\nname: luna_pinyin\n...\n\n你好\tni hao\n",
+            ),
+            "filename": "luna.dict.yaml",
+            "ingest": "luna",
+        },
+        {
+            "id": "essay",
+            "license": "lgpl-rime-essay",
+            "url": "https://example.invalid/essay.txt",
+            "sha256": _write(downloads / "essay.txt", "你好\t9\n"),
+            "filename": "essay.txt",
+            "ingest": "essay",
+        },
+        {
+            "id": "emoji",
+            "license": "lgpl-rime-emoji",
+            "url": "https://example.invalid/emoji_word.txt",
+            "sha256": _write(downloads / "emoji_word.txt", "哈哈\t哈哈 😂\n"),
+            "filename": "emoji_word.txt",
+            "ingest": "emoji",
         },
     ]
     lock_path = _lock(tmp_path, sources)

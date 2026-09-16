@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from collections import defaultdict
 from pathlib import Path
+import shutil
 
+from umate_lexicon.ingest.emoji import emoji_opencc_sidecar
 from umate_lexicon.layers import CORE_LAYERS, PACK_LAYERS, assign_layer, emit_weight
 from umate_lexicon.lemma import Lemma
 from umate_lexicon.store import LemmaStore
@@ -37,8 +39,10 @@ def emit_rime(store: LemmaStore, out_dir: Path, version: str = "0.1.0") -> dict[
     _write_table(out_dir / "umate_base.dict.yaml", "umate_base", version, buckets.get("base", []))
     for pack in PACK_LAYERS:
         _write_table(out_dir / f"umate_{pack}.dict.yaml", f"umate_{pack}", version, buckets.get(pack, []))
+    _write_table(out_dir / "umate_emoji.dict.yaml", "umate_emoji", version, buckets.get("emoji", []))
     _write_core(out_dir / "umate_hans.dict.yaml", version)
     _write_schema(out_dir / "umate_hans.schema.yaml")
+    _write_emoji_opencc(out_dir, store)
     _write_notice(out_dir / "NOTICE", store)
     return counts
 
@@ -116,6 +120,21 @@ translator:
     )
 
 
+def _write_emoji_opencc(out_dir: Path, store: LemmaStore) -> None:
+    sidecar = emoji_opencc_sidecar(store)
+    if not sidecar.is_file():
+        return
+    dest_dir = out_dir / "opencc"
+    dest_dir.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(sidecar, dest_dir / "emoji_word.txt")
+    (dest_dir / "NOTICE").write_text(
+        "emoji_word.txt is generated from official rime/rime-emoji "
+        "(LGPL-3.0). Do not enable simplifier@emoji_suggestion in the "
+        "uMate keyboard schema unless that pack is explicitly selected.\n",
+        encoding="utf-8",
+    )
+
+
 def _write_notice(path: Path, store: LemmaStore) -> None:
     licenses: dict[str, int] = defaultdict(int)
     for lemma in store.all_lemmas():
@@ -124,4 +143,6 @@ def _write_notice(path: Path, store: LemmaStore) -> None:
     body = ["umate-lexicon emit NOTICE", ""]
     for key, count in sorted(licenses.items()):
         body.append(f"{key}: {count} lemmas")
+    if (path.parent / "opencc" / "emoji_word.txt").is_file():
+        body.append("emoji (lgpl-rime-emoji): opencc/emoji_word.txt")
     path.write_text("\n".join(body) + "\n", encoding="utf-8")

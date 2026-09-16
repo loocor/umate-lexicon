@@ -1,0 +1,17 @@
+# Original short Luna-shaped sample for tests. Not a community recipe dump.
+---
+name: luna_pinyin
+version: "0.0"
+sort: by_weight
+use_preset_vocabulary: true
+...
+
+你	ni
+好	hao
+哈	ha
+的	de
+你好	ni hao
+微信	wei xin
+銀行	yin hang
+繰	zao	0
+ㄓ	zhi

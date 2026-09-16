@@ -33,6 +33,8 @@ def emit_weight(lemma: Lemma) -> int:
 def assign_layer(lemma: Lemma) -> str | None:
     if lemma.status == "rejected":
         return None
+    if "emoji" in lemma.flags or lemma.entity_type == "emoji" or "emoji" in lemma.categories:
+        return "emoji"
     if "correction" in lemma.flags:
         return "corrections"
     if lemma.entity_type == "person" or "person" in lemma.categories:

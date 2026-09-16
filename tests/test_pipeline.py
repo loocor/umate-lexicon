@@ -30,6 +30,15 @@ def test_fixture_pipeline_passes_gold(tmp_path: Path) -> None:
     brand = store.get("umate", "umate")
     assert brand is not None
     assert brand.status == "gold"
+    weixin = store.get("微信", "wei xin")
+    assert weixin is not None
+    assert weixin.status == "gold"
+    assert weixin.domain_freq.get("essay") == 31877
+    laugh = store.get("😂", "ha ha")
+    assert laugh is not None
+    assert (out_dir / "opencc" / "emoji_word.txt").exists()
+    schema = (out_dir / "umate_hans.schema.yaml").read_text(encoding="utf-8")
+    assert "umate_emoji" not in schema
     store.close()
 
 

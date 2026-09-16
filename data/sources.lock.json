@@ -127,6 +127,33 @@
       "sha256": "f7045571f57114a3a70d2eaaeec8f991897d536be808f93161709f1289c8108c",
       "filename": "THUOCL_poem.txt",
       "ingest": "thuocl"
+    },
+    {
+      "id": "luna",
+      "license": "lgpl-rime-luna",
+      "homepage": "https://github.com/rime/rime-luna-pinyin",
+      "url": "https://raw.githubusercontent.com/rime/rime-luna-pinyin/56b934b099dfbeab842320f13aa8b461a6ab3e42/luna_pinyin.dict.yaml",
+      "sha256": "75bcf6eb3ff62b129882ed89cc22b2d80a5347aa72bcfa2ccc839bac298e7314",
+      "filename": "luna_pinyin.dict.yaml",
+      "ingest": "luna"
+    },
+    {
+      "id": "essay",
+      "license": "lgpl-rime-essay",
+      "homepage": "https://github.com/rime/rime-essay",
+      "url": "https://raw.githubusercontent.com/rime/rime-essay/e9b1a374a6ea015fca5bdd04318924b4483ac35a/essay.txt",
+      "sha256": "a6f8409c261e5d21bd78e6cbcde8f8e1ef7f68c07ff1c2692c07dd4ff4151cea",
+      "filename": "essay.txt",
+      "ingest": "essay"
+    },
+    {
+      "id": "emoji",
+      "license": "lgpl-rime-emoji",
+      "homepage": "https://github.com/rime/rime-emoji",
+      "url": "https://raw.githubusercontent.com/rime/rime-emoji/d1dbb424124fc50452a179300c7f287dbcc0db64/opencc/emoji_word.txt",
+      "sha256": "301d3ea25833186aa89369ecc515f8f43fe6d9db2a9794df083f7316375b18f5",
+      "filename": "emoji_word.txt",
+      "ingest": "emoji"
     }
   ]
 }

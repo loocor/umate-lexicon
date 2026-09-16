@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from umate_lexicon.ingest.compose import compose_pinyin
 from umate_lexicon.ingest.io import read_ingest_text
 from umate_lexicon.lemma import Lemma, SourceRef
 from umate_lexicon.store import LemmaStore
@@ -36,18 +37,6 @@ def ingest_thuocl(store: LemmaStore, path: Path, domain: str = "thuocl", locator
         )
         count += 1
     return count
-
-
-def compose_pinyin(store: LemmaStore, surface: str) -> str | None:
-    syllables: list[str] = []
-    for char in surface:
-        readings = store.char_plain(char)
-        if len(readings) != 1:
-            return None
-        syllables.append(readings[0])
-    if not syllables:
-        return None
-    return " ".join(syllables)
 
 
 def _categories_from_name(name: str) -> list[str]:

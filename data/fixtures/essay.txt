@@ -1,0 +1,8 @@
+# Original short essay-shaped sample: word<TAB>freq
+你	9000
+好	8000
+的	4822928
+你好	21493
+微信	31877
+銀行	36856
+抖音	8777
