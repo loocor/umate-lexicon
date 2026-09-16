@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 
+from umate_lexicon.layers import han_len
 from umate_lexicon.lemma import Lemma
 
 _PLACE_SUFFIX = re.compile(r"(市|县|区|镇|乡|村|州|省|盟|旗)$")
@@ -33,6 +34,14 @@ def classify(lemma: Lemma) -> Lemma:
         if "org" not in categories:
             categories.append("org")
         entity = entity or "org"
+    if (
+        entity == "place"
+        and "gold" not in flags
+        and han_len(lemma.surface) <= 3
+        and not _has_extra_suffix(lemma.surface, _PLACE_SUFFIX)
+    ):
+        entity = None
+        categories = [item for item in categories if item != "place"]
     lemma.flags = flags
     lemma.categories = categories
     lemma.entity_type = entity

@@ -19,6 +19,13 @@ def ingest_gold(store: LemmaStore, path: Path) -> int:
             continue
         surface, pinyin = parts[0], parts[1].strip().lower().replace("ü", "v")
         toned = parts[2].strip() if len(parts) > 2 and parts[2].strip() else None
+        entity = parts[3].strip() if len(parts) > 3 and parts[3].strip() else None
+        if entity in {"", "-"}:
+            entity = None
+        flags = ["gold"]
+        if len(parts) > 4 and parts[4].strip() and parts[4].strip() != "-":
+            flags.extend(item.strip() for item in parts[4].split(",") if item.strip())
+        categories = [entity] if entity and entity not in {"correction"} else []
         store.upsert(
             Lemma(
                 surface=surface,
@@ -26,7 +33,9 @@ def ingest_gold(store: LemmaStore, path: Path) -> int:
                 pinyin_toned=toned,
                 weight=1000,
                 status="gold",
-                flags=["gold"],
+                flags=flags,
+                categories=categories,
+                entity_type=entity,
                 domain_freq={"gold": 1000},
                 sources=[SourceRef("gold", "umate-gold", str(path))],
             )

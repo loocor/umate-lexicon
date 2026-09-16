@@ -26,7 +26,10 @@ def test_covers_unique_han_and_overlays_gold_latin(tmp_path: Path) -> None:
     assert ai is not None
     assert ai.domain_freq["tencent"] == 1
     assert store.get("的", "de") is None or "tencent" not in (store.get("的", "de").domain_freq)
-    assert store.get("向量数据库", "xiang liang shu ju ku") is None
+    vector = store.get("向量数据库", "xiang liang shu ju ku")
+    assert vector is not None
+    assert vector.status == "gold"
+    assert vector.domain_freq["tencent"] == 3
     brand = store.get("umate", "umate")
     assert brand is not None
     assert brand.domain_freq["tencent"] == 8

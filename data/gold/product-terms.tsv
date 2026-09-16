@@ -1,9 +1,22 @@
-# surface	pinyin_plain	pinyin_toned
+# surface	pinyin_plain	pinyin_toned	entity_type	flags
 # Authored product lemmas. Not rime-ice. Not short English acronyms.
 大模型	da mo xing	dà mó xíng
 提示词	ti shi ci	tí shì cí
 多模态	duo mo tai	duō mó tài
 向量库	xiang liang ku	xiàng liàng kù
+大语言模型	da yu yan mo xing	dà yǔ yán mó xíng
+提示工程	ti shi gong cheng	tí shì gōng chéng
+向量数据库	xiang liang shu ju ku	xiàng liàng shù jù kù
+检索增强	jian suo zeng qiang	jiǎn suǒ zēng qiáng
+云原生	yun yuan sheng	yún yuán shēng
+预训练	yu xun lian	yù xùn liàn
 微信	wei xin	wēi xìn
 抖音	dou yin	dǒu yīn
+美团	mei tuan	měi tuán
+得物	de wu	dé wù
+闲鱼	xian yu	xián yú
+视频号	shi pin hao	shì pín hào
+腾讯会议	teng xun hui yi	téng xùn huì yì
+好的	hao de	hǎo de
+笑哭	xiao ku	xiào kū
 umate	umate

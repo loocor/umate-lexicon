@@ -26,7 +26,7 @@ def test_repo_lock_version_and_kinds() -> None:
     lock = load_lock()
     assert lock.version == 1
     kinds = {source.ingest for source in lock.sources}
-    assert {"unihan", "t2s", "cedict", "thuocl", "luna", "essay", "emoji"} <= kinds
+    assert {"unihan", "t2s", "tgh", "cedict", "thuocl", "luna", "essay", "emoji", "wiki"} <= kinds
     assert "tencent" not in kinds
     assert "rime-ice" not in kinds
     assert any(source.id == "unihan" for source in lock.sources)

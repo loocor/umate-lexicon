@@ -33,6 +33,8 @@ def emit_weight(lemma: Lemma) -> int:
 def assign_layer(lemma: Lemma) -> str | None:
     if lemma.status == "rejected":
         return None
+    if "untrusted_reading" in lemma.flags:
+        return None
     if "emoji" in lemma.flags or lemma.entity_type == "emoji" or "emoji" in lemma.categories:
         return "emoji"
     if "correction" in lemma.flags:
@@ -50,13 +52,24 @@ def assign_layer(lemma: Lemma) -> str | None:
     if lemma.entity_type == "event" or "event" in lemma.categories:
         return "events"
     n = han_len(lemma.surface)
-    if n == 0 and lemma.status == "gold":
-        return "brands"
+    wiki_only = {ref.source_id for ref in lemma.sources} == {"wiki"}
+    if n == 0:
+        if lemma.status == "gold":
+            return "brands"
+        return None
     if n == 1:
-        return "chars"
+        if lemma.status == "gold" or "tgh" in lemma.flags or any(ref.source_id == "chars" for ref in lemma.sources):
+            return "chars"
+        return None
     if n in {2, 3} and lemma.status in {"gold", "auto"}:
+        if wiki_only:
+            return "bulk"
         return "base"
+    if lemma.status == "gold" and n >= 4:
+        return "ext"
     if n == 4:
+        if wiki_only:
+            return "bulk"
         return "ext"
     if "polyphone" in lemma.flags and lemma.status != "gold":
         return None

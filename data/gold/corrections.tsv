@@ -1,0 +1,12 @@
+# surface	pinyin_plain	pinyin_toned	entity_type	flags
+# Preferred PRC surface with a common cross-strait alias code, not the standard pinyin.
+出租车	ji cheng che	jì chéng chē	correction	correction
+公交车	gong che	gōng chē	correction	correction
+地铁	jie yun	jié yùn	correction	correction
+菠萝	feng li	fèng lí	correction	correction
+软件	ruan ti	ruǎn tǐ	correction	correction
+信息	zi xun	zī xùn	correction	correction
+博客	bu luo ge	bù luò gé	correction	correction
+打印机	yin biao ji	yìn biǎo jī	correction	correction
+方便面	pao mian	pào miàn	correction	correction
+纳米	nai mi	nài mǐ	correction	correction

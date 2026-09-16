@@ -45,7 +45,7 @@ class SourceLock:
     sources: tuple[PinnedSource, ...]
 
 
-ALLOWED_INGEST = frozenset({"unihan", "t2s", "cedict", "thuocl", "luna", "essay", "emoji", "tencent"})
+ALLOWED_INGEST = frozenset({"unihan", "t2s", "tgh", "cedict", "thuocl", "luna", "essay", "emoji", "tencent", "wiki"})
 ALLOWED_EXTRACT = frozenset({"gzip", "zip"})
 
 

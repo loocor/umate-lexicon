@@ -13,8 +13,10 @@ from umate_lexicon.ingest.essay import ingest_essay
 from umate_lexicon.ingest.gold import ingest_gold
 from umate_lexicon.ingest.luna import ingest_luna
 from umate_lexicon.ingest.tencent import ingest_tencent
+from umate_lexicon.ingest.tgh import ingest_tgh
 from umate_lexicon.ingest.thuocl import ingest_thuocl
 from umate_lexicon.ingest.unihan import ingest_unihan
+from umate_lexicon.ingest.wiki import ingest_wiki
 from umate_lexicon.inventory import render_summary, summarize_store
 from umate_lexicon.paths import default_store_path
 from umate_lexicon.pipeline import run_fixture_pipeline, run_locked_pipeline
@@ -36,7 +38,7 @@ def main(argv: list[str] | None = None) -> int:
     pipe.add_argument("--out", type=Path, default=None)
 
     ingest = sub.add_parser("ingest")
-    ingest.add_argument("kind", choices=["cedict", "thuocl", "chars", "unihan", "gold", "luna", "essay", "emoji", "tencent"])
+    ingest.add_argument("kind", choices=["cedict", "thuocl", "chars", "unihan", "tgh", "gold", "luna", "essay", "emoji", "tencent", "wiki"])
     ingest.add_argument("path", type=Path)
 
     emit = sub.add_parser("emit")
@@ -81,11 +83,13 @@ def main(argv: list[str] | None = None) -> int:
             "thuocl": ingest_thuocl,
             "chars": ingest_chars,
             "unihan": ingest_unihan,
+            "tgh": ingest_tgh,
             "gold": ingest_gold,
             "luna": ingest_luna,
             "essay": ingest_essay,
             "emoji": ingest_emoji,
             "tencent": ingest_tencent,
+            "wiki": ingest_wiki,
         }[args.kind](store, args.path)
         print(count)
         store.close()

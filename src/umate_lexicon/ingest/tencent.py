@@ -45,7 +45,7 @@ def ingest_tencent(
                     locator=source,
                 )
             continue
-        if len(surface) == 1 or len(surface) > 4:
+        if len(surface) == 1:
             continue
         overlaid = overlay_domain_freq(
             store,
@@ -58,6 +58,8 @@ def ingest_tencent(
         )
         if overlaid:
             count += overlaid
+            continue
+        if len(surface) > 4:
             continue
         pinyin = compose_pinyin(store, surface)
         if pinyin is None:

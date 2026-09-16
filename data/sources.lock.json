@@ -31,6 +31,20 @@
       }
     },
     {
+      "id": "unihan-tgh",
+      "license": "unicode",
+      "homepage": "https://www.unicode.org/charts/unihan.html",
+      "url": "https://www.unicode.org/Public/17.0.0/ucd/Unihan.zip",
+      "sha256": "f7a48b2b545acfaa77b2d607ae28747404ce02baefee16396c5d2d7a8ef34b5e",
+      "filename": "Unihan-17.0.0.zip",
+      "ingest": "tgh",
+      "extract": {
+        "kind": "zip",
+        "member": "Unihan_OtherMappings.txt",
+        "output": "Unihan_OtherMappings.txt"
+      }
+    },
+    {
       "id": "cedict",
       "license": "cc-by-sa-cedict",
       "homepage": "https://www.mdbg.net/chinese/dictionary?page=cc-cedict",
@@ -168,6 +182,19 @@
       "sha256": "301d3ea25833186aa89369ecc515f8f43fe6d9db2a9794df083f7316375b18f5",
       "filename": "emoji_word.txt",
       "ingest": "emoji"
+    },
+    {
+      "id": "zhwiki-titles",
+      "license": "cc-by-sa-wikimedia",
+      "homepage": "https://dumps.wikimedia.org/zhwiki/",
+      "url": "https://dumps.wikimedia.org/zhwiki/20260901/zhwiki-20260901-all-titles-in-ns0.gz",
+      "sha256": "7af018a9499eec5ccfa826e5cda7ddf98dc32108202f8761ea87493dfd6c1446",
+      "filename": "zhwiki-20260901-all-titles-in-ns0.gz",
+      "ingest": "wiki",
+      "extract": {
+        "kind": "gzip",
+        "output": "zhwiki-ns0-titles.txt"
+      }
     }
   ]
 }
