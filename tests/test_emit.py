@@ -31,4 +31,6 @@ def test_emit_writes_packs(tmp_path: Path) -> None:
     assert counts["base"] == 1
     schema = (out / "umate_hans.schema.yaml").read_text(encoding="utf-8")
     assert "translator/packs" in schema or "packs:" in schema
+    assert "aosp_en" in schema
+    assert "umate_en" not in schema
     store.close()

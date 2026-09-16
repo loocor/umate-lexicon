@@ -24,6 +24,12 @@ def test_fixture_pipeline_passes_gold(tmp_path: Path) -> None:
     assert bank is not None
     walk = store.get("行走", "xing zou")
     assert walk is not None
+    model = store.get("大模型", "da mo xing")
+    assert model is not None
+    assert model.status == "gold"
+    brand = store.get("umate", "umate")
+    assert brand is not None
+    assert brand.status == "gold"
     store.close()
 
 

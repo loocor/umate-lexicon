@@ -31,7 +31,7 @@ def run_fixture_pipeline(
     store = LemmaStore(store_path or default_store_path())
     with store.deferred_commit():
         stats = {
-            "gold": ingest_gold(store, root / "gold" / "readings.tsv"),
+            "gold": _ingest_authored_gold(store),
             "chars": ingest_chars(store, root / "fixtures" / "chars.tsv"),
             "unihan": ingest_unihan(store, root / "fixtures" / "unihan.txt"),
             "cedict": ingest_cedict(store, root / "fixtures" / "cedict.txt"),
@@ -52,10 +52,19 @@ def run_locked_pipeline(
     store = LemmaStore(store_path or default_store_path())
     stats: dict[str, int] = {}
     with store.deferred_commit():
-        stats["gold"] = ingest_gold(store, data_dir() / "gold" / "readings.tsv")
+        stats["gold"] = _ingest_authored_gold(store)
         for source in lock.sources:
             stats[source.id] = _ingest_pinned(store, source, ready[source.id])
     return _finish(store, stats, out_dir)
+
+
+def _ingest_authored_gold(store: LemmaStore) -> int:
+    gold_dir = data_dir() / "gold"
+    count = ingest_gold(store, gold_dir / "readings.tsv")
+    product = gold_dir / "product-terms.tsv"
+    if product.is_file():
+        count += ingest_gold(store, product)
+    return count
 
 
 def _ingest_pinned(store: LemmaStore, source: PinnedSource, path: Path) -> int:

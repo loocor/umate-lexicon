@@ -104,7 +104,7 @@ schema:
 engine:
   translators:
     - script_translator
-    - table_translator@umate_en
+    - table_translator@aosp_en
 
 translator:
   dictionary: umate_hans

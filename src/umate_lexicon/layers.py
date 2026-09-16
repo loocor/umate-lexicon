@@ -48,6 +48,8 @@ def assign_layer(lemma: Lemma) -> str | None:
     if lemma.entity_type == "event" or "event" in lemma.categories:
         return "events"
     n = han_len(lemma.surface)
+    if n == 0 and lemma.status == "gold":
+        return "brands"
     if n == 1:
         return "chars"
     if n in {2, 3} and lemma.status in {"gold", "auto"}:
