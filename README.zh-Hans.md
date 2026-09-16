@@ -41,9 +41,9 @@ LLM 只做分类和注音抽检，结构化 JSON，不准发明词条。金标�
 
 全量原料由 `data/sources.lock.json` 钉死。先 `python -m umate_lexicon fetch`，再 `pipeline`（不要 `--fixtures`）。哈希不对就失败，不会改用 fixture。
 
-官方明月词表、八股文频次、rime-emoji 可以吸收（LGPL，不是雾凇）。排序靠 essay 叠到已有 lemma 上；腾讯词向量只做覆盖，官方 dump 尚未钉死，不要抄雾凇的 `tencent.dict.yaml`。emoji 只作为可选 pack / OpenCC 映射发出，默认 schema 不挂上。
+官方明月词表、八股文频次、rime-emoji 可以吸收（LGPL，不是雾凇）。排序靠 essay 叠到已有 lemma 上；腾讯词向量只做覆盖，钉的是 ModelScope 转存的 **light 高频子集**（`tencent-light`），不是官方约 800 万全量 dump。官方下载地址目前仍返回 HTML，不要抄雾凇的 `tencent.dict.yaml`。ModelScope 卡片上的 Apache-2.0 是包装许可，词表内容仍按腾讯 AI Lab CC BY 3.0 署名。emoji 只作为可选 pack / OpenCC 映射发出，默认 schema 不挂上。
 
-字级繁简折叠、8105、维基标题、拉丁品牌金标已经进 locked pipeline。维基补了同日 `page`/`categorylinks` 做重定向排重和类型记账；wiki-only 仍只进 bulk，条目长度不当词频。腾讯官方 dump 仍是 HTML，未钉哈希。覆盖盘点见 [docs/zh/inventory.md](docs/zh/inventory.md)。
+字级繁简折叠、8105、维基标题、拉丁品牌金标已经进 locked pipeline。维基补了同日 `page`/`categorylinks` 做重定向排重和类型记账；wiki-only 仍只进 bulk，条目长度不当词频。覆盖盘点见 [docs/zh/inventory.md](docs/zh/inventory.md)。CI 继续走 fixture；本地 `fetch` 才会拉约 111MB 的 light `.bin`。
 
 
 ## 和 VoiMate 的边界

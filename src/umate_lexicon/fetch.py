@@ -16,6 +16,7 @@ from umate_lexicon.sources import (
     sha256_file,
     verify_artifact,
 )
+from umate_lexicon.word2vec import write_vocab
 
 USER_AGENT = "umate-lexicon/0.1 (+https://github.com/loocor/umate-lexicon)"
 
@@ -93,5 +94,8 @@ def _extract(source: PinnedSource, downloads_dir: Path) -> Path:
                     f"zip member {member!r} not in {artifact.name} for {source.id}"
                 )
             ingest_path.write_bytes(archive.read(member))
+        return ingest_path
+    if source.extract.kind == "word2vec-vocab":
+        write_vocab(artifact, ingest_path)
         return ingest_path
     raise SourceLockError(f"unknown extract kind {source.extract.kind!r} for {source.id}")

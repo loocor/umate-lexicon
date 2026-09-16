@@ -46,7 +46,7 @@ class SourceLock:
 
 
 ALLOWED_INGEST = frozenset({"unihan", "t2s", "tgh", "cedict", "thuocl", "luna", "essay", "emoji", "tencent", "wiki", "wiki_page", "wiki_linktarget", "wiki_category"})
-ALLOWED_EXTRACT = frozenset({"gzip", "zip"})
+ALLOWED_EXTRACT = frozenset({"gzip", "zip", "word2vec-vocab"})
 
 
 def default_lock_path() -> Path:

@@ -16,6 +16,9 @@ here unless a fixture is a short original sample):
 - CC-CEDICT — Creative Commons Attribution-ShareAlike
 - THUOCL — MIT
 - Tencent AI Lab Chinese embedding vocabulary — CC BY 3.0
+  (pinned coverage is the ModelScope light high-frequency subset from
+  lili666/text2vec-word2vec-tencent-chinese, not the official ~8M dump.
+  The ModelScope card's Apache-2.0 license is packaging only.)
 - Official Rime luna_pinyin / essay / rime-emoji — LGPL-3.0
 - Wikimedia dumps — CC BY-SA
 
