@@ -111,7 +111,7 @@ PYTHONPATH=src python -m umate_lexicon pipeline
 银行/`yin hang`, 行走/`xing zou` are missing or wrong.
 
 Coverage after a locked emit is recorded in [docs/zh/inventory.md](docs/zh/inventory.md).
-Do not treat row counts as “done”; tencent, Wikimedia, and 8105 are still missing.
+8105, zhwiki titles, and authored brand/event packs are in. Tencent still has no real dump to pin.
 
 ## LLM role
 

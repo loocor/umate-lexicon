@@ -15,6 +15,8 @@ files and hash mismatches. It does not fall back to fixtures.
 | `luna` | official `luna_pinyin.dict.yaml` | `lgpl-rime-luna` | spaced plain pinyin |
 | `essay` | official `essay.txt` frequency | `lgpl-rime-essay` | overlay / unique compose |
 | `emoji` | official `opencc/emoji_word.txt` | `lgpl-rime-emoji` | compose trigger, optional pack |
+| `tgh` | Unihan `kTGH` lines | `unicode` | flags 8105 chars |
+| `wiki` | zhwiki ns0 titles | `cc-by-sa-wikimedia` | unique compose, bulk |
 | `tencent` | embedding vocab (first column) | `cc-by-3.0-tencent` | unique compose, fixture only |
 
 Current pins:
@@ -28,12 +30,15 @@ Current pins:
   `e9b1a374a6ea015fca5bdd04318924b4483ac35a`
 - Official Rime `rime-emoji` `opencc/emoji_word.txt` at
   `d1dbb424124fc50452a179300c7f287dbcc0db64`
+- Unihan `kTGH` from the same 17.0.0 zip (`unihan-tgh`)
+- Chinese Wikipedia ns0 titles `zhwiki-20260901-all-titles-in-ns0.gz`
 
 Essay is the ranking source (`domain_freq.essay`). Luna is coverage plus
 official readings. Ingest folds Traditional surfaces to Hans with Unihan
 `kSimplifiedVariant` (`ingest: t2s`, lock id `unihan-variants`) so essay
-`銀行` overlays `银行`. The fold is character-level only; leftover luna
-readings on the simplified surface still share the essay mass.
+`銀行` overlays `银行`. Frequency overlay and compose prefer trusted
+readings (gold / cedict / unihan / chars). Leftover luna-only readings
+are flagged `untrusted_reading` and are not emitted.
 
 Tencent AI Lab embeddings are **coverage**, not frequency. The historic
 tar.gz URL currently returns a 22KB HTML page, not the 6GB+ corpus. Do

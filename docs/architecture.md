@@ -8,8 +8,8 @@ data/fixtures         tiny original samples for tests
 data/gold             readings, polyphones, eval sentences
         │
         ▼
-   ingest adapters    cedict / thuocl / chars / unihan / t2s / luna / essay / emoji / tencent
-        │             t2s folds luna/essay/emoji/tencent to Hans; clean-room gate first
+   ingest adapters    cedict / thuocl / chars / unihan / t2s / tgh / luna / essay / emoji / tencent / wiki
+        │             t2s folds luna/essay/emoji/tencent/wiki to Hans; clean-room gate first
         ▼
    SQLite store       lemmas + lemma_sources
         │
