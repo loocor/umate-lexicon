@@ -43,7 +43,7 @@ Lock 顺序：`tencent-light` 在全部 zhwiki dump **之后**。Tencent 只 ove
 
 ## Locked ingest 跑了什么
 
-`scripts/validate-tencent-light.py` 于 2026-09-16 跑完。`run_locked_pipeline` 只吃 hash 对得上的 dump；对不上的跳过并记名，不回退 fixture，不改 lock。
+`scripts/validate-tencent-light.py` 于 2026-09-16 跑完。`run_locked_pipeline` 只吃 hash 对得上的 dump；对不上的跳过并记名，不回退 fixture，不改 lock。第二次独立跑数（同一 lock 子集、同样跳过 cedict）结果一致。
 
 本环境：
 
