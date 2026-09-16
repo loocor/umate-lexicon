@@ -17,6 +17,9 @@ files and hash mismatches. It does not fall back to fixtures.
 | `emoji` | official `opencc/emoji_word.txt` | `lgpl-rime-emoji` | compose trigger, optional pack |
 | `tgh` | Unihan `kTGH` lines | `unicode` | flags 8105 chars |
 | `wiki` | zhwiki ns0 titles | `cc-by-sa-wikimedia` | unique compose, bulk |
+| `wiki_page` | zhwiki `page` SQL | `cc-by-sa-wikimedia` | reject wiki-only redirects |
+| `wiki_linktarget` | zhwiki `linktarget` SQL | `cc-by-sa-wikimedia` | category titles |
+| `wiki_category` | zhwiki `categorylinks` SQL | `cc-by-sa-wikimedia` | type overlay, still bulk |
 | `tencent` | embedding vocab (first column) | `cc-by-3.0-tencent` | unique compose, fixture only |
 
 Current pins:
@@ -32,6 +35,9 @@ Current pins:
   `d1dbb424124fc50452a179300c7f287dbcc0db64`
 - Unihan `kTGH` from the same 17.0.0 zip (`unihan-tgh`)
 - Chinese Wikipedia ns0 titles `zhwiki-20260901-all-titles-in-ns0.gz`
+- Wikipedia `page` / `categorylinks` / `linktarget` dumps, same date, for
+  redirect 排重 and entity typing. Wiki-only lemmas stay in bulk even
+  when typed. Do not copy `page_len` or edit counts into `domain_freq`.
 
 Essay is the ranking source (`domain_freq.essay`). Luna is coverage plus
 official readings. Ingest folds Traditional surfaces to Hans with Unihan

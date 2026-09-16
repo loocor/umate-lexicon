@@ -48,9 +48,17 @@ def fetch_one(source: PinnedSource, downloads_dir: Path) -> str:
         status = "downloaded"
     verify_artifact(source, downloads_dir)
     ingest_path = _extract(source, downloads_dir)
-    preview = ingest_path.read_text(encoding="utf-8-sig", errors="replace")[:4000]
+    preview = _preview_text(ingest_path)
     assert_ingest_allowed(ingest_path, preview)
     return status
+
+
+def _preview_text(path: Path, limit: int = 4000) -> str:
+    if path.name.endswith(".gz"):
+        with gzip.open(path, "rt", encoding="utf-8", errors="replace") as handle:
+            return handle.read(limit)
+    with path.open("r", encoding="utf-8-sig", errors="replace") as handle:
+        return handle.read(limit)
 
 
 def _download(url: str, dest: Path) -> None:

@@ -25,6 +25,10 @@ def han_len(surface: str) -> int:
     return len(_HAN.findall(surface))
 
 
+def is_wiki_only(lemma: Lemma) -> bool:
+    return {ref.source_id for ref in lemma.sources} == {"wiki"}
+
+
 def emit_weight(lemma: Lemma) -> int:
     total = sum(lemma.domain_freq.values()) or lemma.weight
     return max(1, int(round(100 * math.log1p(total))))
@@ -39,6 +43,8 @@ def assign_layer(lemma: Lemma) -> str | None:
         return "emoji"
     if "correction" in lemma.flags:
         return "corrections"
+    if is_wiki_only(lemma):
+        return "bulk"
     if lemma.entity_type == "person" or "person" in lemma.categories:
         return "names"
     if lemma.entity_type == "place" or "place" in lemma.categories:
@@ -52,7 +58,6 @@ def assign_layer(lemma: Lemma) -> str | None:
     if lemma.entity_type == "event" or "event" in lemma.categories:
         return "events"
     n = han_len(lemma.surface)
-    wiki_only = {ref.source_id for ref in lemma.sources} == {"wiki"}
     if n == 0:
         if lemma.status == "gold":
             return "brands"
@@ -62,14 +67,10 @@ def assign_layer(lemma: Lemma) -> str | None:
             return "chars"
         return None
     if n in {2, 3} and lemma.status in {"gold", "auto"}:
-        if wiki_only:
-            return "bulk"
         return "base"
     if lemma.status == "gold" and n >= 4:
         return "ext"
     if n == 4:
-        if wiki_only:
-            return "bulk"
         return "ext"
     if "polyphone" in lemma.flags and lemma.status != "gold":
         return None

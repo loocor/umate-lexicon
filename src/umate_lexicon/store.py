@@ -6,7 +6,24 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Iterator
 
+from dataclasses import dataclass
+
 from umate_lexicon.lemma import Lemma, SourceRef
+
+
+@dataclass(frozen=True)
+class WikiPage:
+    page_id: int
+    namespace: int
+    title: str
+    is_redirect: bool
+
+
+@dataclass(frozen=True)
+class WikiLinkTarget:
+    lt_id: int
+    namespace: int
+    title: str
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS lemmas (
@@ -29,6 +46,18 @@ CREATE TABLE IF NOT EXISTS lemma_sources (
     license TEXT NOT NULL,
     locator TEXT NOT NULL,
     PRIMARY KEY (surface, pinyin_plain, source_id)
+);
+CREATE TABLE IF NOT EXISTS wiki_pages (
+    page_id INTEGER PRIMARY KEY,
+    namespace INTEGER NOT NULL,
+    title TEXT NOT NULL,
+    is_redirect INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS wiki_pages_title ON wiki_pages(title);
+CREATE TABLE IF NOT EXISTS wiki_linktargets (
+    lt_id INTEGER PRIMARY KEY,
+    namespace INTEGER NOT NULL,
+    title TEXT NOT NULL
 );
 """
 
@@ -148,6 +177,107 @@ class LemmaStore:
     def count(self) -> int:
         row = self._conn.execute("SELECT COUNT(*) AS n FROM lemmas").fetchone()
         return int(row["n"])
+
+    def surfaces(self) -> set[str]:
+        rows = self._conn.execute("SELECT DISTINCT surface FROM lemmas").fetchall()
+        return {row[0] for row in rows}
+
+    def iter_lemmas(self) -> Iterator[Lemma]:
+        sources = self._sources_by_key()
+        rows = self._conn.execute("SELECT * FROM lemmas")
+        for row in rows:
+            yield self._lemma_from_row(row, sources.get((row["surface"], row["pinyin_plain"]), []))
+
+    def iter_wiki_only_guessed(self) -> Iterator[Lemma]:
+        rows = self._conn.execute(
+            """
+            SELECT * FROM lemmas l
+            WHERE l.entity_type IN ('place', 'org')
+              AND EXISTS (
+                SELECT 1 FROM lemma_sources s
+                WHERE s.surface = l.surface
+                  AND s.pinyin_plain = l.pinyin_plain
+                  AND s.source_id = 'wiki'
+              )
+              AND NOT EXISTS (
+                SELECT 1 FROM lemma_sources s
+                WHERE s.surface = l.surface
+                  AND s.pinyin_plain = l.pinyin_plain
+                  AND s.source_id != 'wiki'
+              )
+            """
+        )
+        for row in rows:
+            yield self._lemma_from_row(row)
+
+    def iter_flagged(self, flag: str) -> Iterator[Lemma]:
+        rows = self._conn.execute(
+            "SELECT * FROM lemmas WHERE flags LIKE ?",
+            (f"%{flag}%",),
+        )
+        for row in rows:
+            lemma = self._lemma_from_row(row)
+            if flag in lemma.flags:
+                yield lemma
+
+    def reset_wiki_pages(self) -> None:
+        self._conn.execute("DELETE FROM wiki_pages")
+        if self._autocommit:
+            self._conn.commit()
+
+    def add_wiki_pages(self, rows: list[tuple[int, int, str, int]]) -> None:
+        self._conn.executemany(
+            """
+            INSERT OR REPLACE INTO wiki_pages (page_id, namespace, title, is_redirect)
+            VALUES (?, ?, ?, ?)
+            """,
+            rows,
+        )
+        if self._autocommit:
+            self._conn.commit()
+
+    def get_wiki_page(self, page_id: int) -> WikiPage | None:
+        row = self._conn.execute(
+            "SELECT page_id, namespace, title, is_redirect FROM wiki_pages WHERE page_id = ?",
+            (page_id,),
+        ).fetchone()
+        if row is None:
+            return None
+        return WikiPage(
+            page_id=int(row["page_id"]),
+            namespace=int(row["namespace"]),
+            title=row["title"],
+            is_redirect=bool(row["is_redirect"]),
+        )
+
+    def reset_wiki_linktargets(self) -> None:
+        self._conn.execute("DELETE FROM wiki_linktargets")
+        if self._autocommit:
+            self._conn.commit()
+
+    def add_wiki_linktargets(self, rows: list[tuple[int, int, str]]) -> None:
+        self._conn.executemany(
+            """
+            INSERT OR REPLACE INTO wiki_linktargets (lt_id, namespace, title)
+            VALUES (?, ?, ?)
+            """,
+            rows,
+        )
+        if self._autocommit:
+            self._conn.commit()
+
+    def get_wiki_linktarget(self, lt_id: int) -> WikiLinkTarget | None:
+        row = self._conn.execute(
+            "SELECT lt_id, namespace, title FROM wiki_linktargets WHERE lt_id = ?",
+            (lt_id,),
+        ).fetchone()
+        if row is None:
+            return None
+        return WikiLinkTarget(
+            lt_id=int(row["lt_id"]),
+            namespace=int(row["namespace"]),
+            title=row["title"],
+        )
 
     def _lemma_from_row(self, row: sqlite3.Row, sources: list[SourceRef] | None = None) -> Lemma:
         if sources is None:

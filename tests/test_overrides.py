@@ -61,3 +61,27 @@ def test_gold_five_char_term_stays_in_ext() -> None:
         flags=["gold"],
     )
     assert assign_layer(lemma) == "ext"
+
+
+def test_wiki_only_false_place_stays_bulk() -> None:
+    lemma = Lemma(
+        surface="一剑镇神州",
+        pinyin_plain="yi jian zhen shen zhou",
+        status="auto",
+        entity_type="place",
+        categories=["place"],
+        sources=[SourceRef("wiki", "cc-by-sa-wikimedia", "wiki")],
+    )
+    assert assign_layer(lemma) == "bulk"
+
+
+def test_wiki_only_town_stays_bulk() -> None:
+    lemma = Lemma(
+        surface="一亩泉镇",
+        pinyin_plain="yi mu quan zhen",
+        status="auto",
+        entity_type="place",
+        categories=["place"],
+        sources=[SourceRef("wiki", "cc-by-sa-wikimedia", "wiki")],
+    )
+    assert assign_layer(lemma) == "bulk"

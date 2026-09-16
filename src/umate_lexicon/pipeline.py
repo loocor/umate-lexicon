@@ -18,7 +18,12 @@ from umate_lexicon.ingest.tencent import ingest_tencent
 from umate_lexicon.ingest.tgh import ingest_tgh
 from umate_lexicon.ingest.thuocl import ingest_thuocl
 from umate_lexicon.ingest.unihan import ingest_unihan
-from umate_lexicon.ingest.wiki import ingest_wiki
+from umate_lexicon.ingest.wiki import (
+    ingest_wiki,
+    ingest_wiki_category,
+    ingest_wiki_linktarget,
+    ingest_wiki_page,
+)
 from umate_lexicon.paths import data_dir, default_store_path
 from umate_lexicon.sources import (
     PinnedSource,
@@ -54,6 +59,9 @@ def run_fixture_pipeline(
             "emoji": ingest_emoji(store, root / "fixtures" / "emoji_word.txt", simplify=simplify),
             "tencent": ingest_tencent(store, root / "fixtures" / "tencent.txt", simplify=simplify),
             "wiki": ingest_wiki(store, root / "fixtures" / "wiki-titles.txt", simplify=simplify),
+            "wiki_page": ingest_wiki_page(store, root / "fixtures" / "wiki-page.sql", simplify=simplify),
+            "wiki_linktarget": ingest_wiki_linktarget(store, root / "fixtures" / "wiki-linktarget.sql"),
+            "wiki_category": ingest_wiki_category(store, root / "fixtures" / "wiki-categorylinks.sql"),
         }
     return _finish(store, stats, out_dir)
 
@@ -127,6 +135,12 @@ def _ingest_pinned(
         return ingest_tencent(store, path, locator=locator, simplify=simplify)
     if source.ingest == "wiki":
         return ingest_wiki(store, path, locator=locator, simplify=simplify)
+    if source.ingest == "wiki_page":
+        return ingest_wiki_page(store, path, locator=locator, simplify=simplify)
+    if source.ingest == "wiki_linktarget":
+        return ingest_wiki_linktarget(store, path, locator=locator, simplify=simplify)
+    if source.ingest == "wiki_category":
+        return ingest_wiki_category(store, path, locator=locator, simplify=simplify)
     raise SourceLockError(f"unknown ingest kind {source.ingest!r} for {source.id}")
 
 

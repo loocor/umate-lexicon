@@ -8,7 +8,12 @@ from umate_lexicon.ingest.tencent import ingest_tencent
 from umate_lexicon.ingest.tgh import ingest_tgh
 from umate_lexicon.ingest.thuocl import ingest_thuocl
 from umate_lexicon.ingest.unihan import ingest_unihan
-from umate_lexicon.ingest.wiki import ingest_wiki
+from umate_lexicon.ingest.wiki import (
+    ingest_wiki,
+    ingest_wiki_category,
+    ingest_wiki_linktarget,
+    ingest_wiki_page,
+)
 
 __all__ = [
     "ingest_cedict",
@@ -22,4 +27,7 @@ __all__ = [
     "ingest_thuocl",
     "ingest_unihan",
     "ingest_wiki",
+    "ingest_wiki_category",
+    "ingest_wiki_linktarget",
+    "ingest_wiki_page",
 ]

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections import Counter
 
-from umate_lexicon.layers import assign_layer, emit_weight, han_len
+from umate_lexicon.layers import assign_layer, emit_weight, han_len, is_wiki_only
 from umate_lexicon.store import LemmaStore
 
 PROBES: dict[str, tuple[str, ...]] = {
@@ -38,12 +38,15 @@ def summarize_store(store: LemmaStore) -> dict[str, object]:
     sources: Counter[str] = Counter()
     han_buckets: Counter[str] = Counter()
     status: Counter[str] = Counter()
+    wiki_entity: Counter[str] = Counter()
     surfaces: set[str] = set()
     for lemma in store.all_lemmas():
         layer = assign_layer(lemma) or "dropped"
         layers[layer] += 1
         status[lemma.status] += 1
         surfaces.add(lemma.surface)
+        if is_wiki_only(lemma):
+            wiki_entity[lemma.entity_type or "none"] += 1
         n = han_len(lemma.surface)
         if n == 0:
             han_buckets["latin_or_other"] += 1
@@ -91,6 +94,7 @@ def summarize_store(store: LemmaStore) -> dict[str, object]:
         "han": dict(han_buckets),
         "licenses": dict(licenses),
         "sources": dict(sources),
+        "wiki_entity": dict(wiki_entity),
         "probes": probes,
     }
 
@@ -105,6 +109,11 @@ def render_summary(summary: dict[str, object]) -> str:
     assert isinstance(layers, dict)
     for key, value in sorted(layers.items(), key=lambda item: (-item[1], item[0])):
         lines.append(f"{key}\t{value}")
+    wiki_entity = summary.get("wiki_entity", {})
+    if isinstance(wiki_entity, dict) and wiki_entity:
+        lines.append("wiki_entity\tcount")
+        for key, value in sorted(wiki_entity.items(), key=lambda item: (-item[1], item[0])):
+            lines.append(f"{key}\t{value}")
     lines.append("source\tcount")
     sources = summary["sources"]
     assert isinstance(sources, dict)

@@ -48,7 +48,7 @@ Status:
 | base | 2–3 Han chars, status gold/auto | core |
 | ext | 4 Han chars, curated | pack |
 | names / places / brands / orgs / events | `entity_type` | packs |
-| bulk | auto, no `polyphone` flag | pack |
+| bulk | auto, no `polyphone` flag; **wiki-only always bulk** | pack |
 | corrections | `correction` flag | pack |
 | mixed | `mixed_latin` flag | pack or secondary translator |
 

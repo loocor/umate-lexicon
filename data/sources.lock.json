@@ -195,6 +195,33 @@
         "kind": "gzip",
         "output": "zhwiki-ns0-titles.txt"
       }
+    },
+    {
+      "id": "zhwiki-page",
+      "license": "cc-by-sa-wikimedia",
+      "homepage": "https://dumps.wikimedia.org/zhwiki/",
+      "url": "https://dumps.wikimedia.org/zhwiki/20260901/zhwiki-20260901-page.sql.gz",
+      "sha256": "236fad67ffad5c997ad7d8ca61683a31fb683125cb2f4cee7da33bf5e081a74d",
+      "filename": "zhwiki-20260901-page.sql.gz",
+      "ingest": "wiki_page"
+    },
+    {
+      "id": "zhwiki-linktarget",
+      "license": "cc-by-sa-wikimedia",
+      "homepage": "https://dumps.wikimedia.org/zhwiki/",
+      "url": "https://dumps.wikimedia.org/zhwiki/20260901/zhwiki-20260901-linktarget.sql.gz",
+      "sha256": "7cf9fa3d534bc45c04daf43985c84640e39633dc242fcbb6cdc88ec23e43af9e",
+      "filename": "zhwiki-20260901-linktarget.sql.gz",
+      "ingest": "wiki_linktarget"
+    },
+    {
+      "id": "zhwiki-categorylinks",
+      "license": "cc-by-sa-wikimedia",
+      "homepage": "https://dumps.wikimedia.org/zhwiki/",
+      "url": "https://dumps.wikimedia.org/zhwiki/20260901/zhwiki-20260901-categorylinks.sql.gz",
+      "sha256": "6d323c1c88076486dfc3cda74d0c25c82da90653d393e840a8498950d035d1d5",
+      "filename": "zhwiki-20260901-categorylinks.sql.gz",
+      "ingest": "wiki_category"
     }
   ]
 }

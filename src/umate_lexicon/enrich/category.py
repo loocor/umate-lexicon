@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import re
 
-from umate_lexicon.layers import han_len
+from umate_lexicon.layers import han_len, is_wiki_only
 from umate_lexicon.lemma import Lemma
 
 _PLACE_SUFFIX = re.compile(r"(市|县|区|镇|乡|村|州|省|盟|旗)$")
@@ -26,6 +26,11 @@ def classify(lemma: Lemma) -> Lemma:
         if "brand" not in categories:
             categories.append("brand")
         entity = entity or "brand"
+    if is_wiki_only(lemma):
+        lemma.flags = flags
+        lemma.categories = categories
+        lemma.entity_type = entity
+        return lemma
     if _has_extra_suffix(lemma.surface, _PLACE_SUFFIX):
         if "place" not in categories:
             categories.append("place")
