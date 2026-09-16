@@ -17,7 +17,7 @@ from umate_lexicon.sources import (
     verify_artifact,
 )
 
-USER_AGENT = "umate-lexicon/0.1 (+https://github.com/loocor/Lexicon)"
+USER_AGENT = "umate-lexicon/0.1 (+https://github.com/loocor/umate-lexicon)"
 
 
 def fetch_locked_sources(
