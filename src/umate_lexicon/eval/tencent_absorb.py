@@ -22,6 +22,9 @@ from umate_lexicon.store import LemmaStore
 
 SimplifyFn = Callable[[str], str]
 
+# These probes verify membership in the extracted light vocabulary, not in the
+# final store. The store can legitimately contain the absent probes through
+# other sources such as cedict or essay.
 PRESENT_PROBES = ("微信", "人工智能", "银行卡")
 ABSENT_PROBES = ("元宇宙", "新冠病毒", "yyds")
 
@@ -130,13 +133,18 @@ def measure_tencent_absorb(
     stats.layers_touched = dict(layers)
     stats.tencent_only_layers = dict(only_layers)
     stats.tencent_freq_values = {int(key): count for key, count in freqs.items()}
-    stats.probes_present = {name: _surface_present(store, name) for name in PRESENT_PROBES}
-    stats.probes_absent = {name: not _surface_present(store, name) for name in ABSENT_PROBES}
+    stats.probes_present = {
+        name: name in seen and _has_tencent_source(store, name) for name in PRESENT_PROBES
+    }
+    stats.probes_absent = {name: name not in seen for name in ABSENT_PROBES}
     return stats
 
 
-def _surface_present(store: LemmaStore, surface: str) -> bool:
-    return any(item.status != "rejected" for item in store.readings_for(surface))
+def _has_tencent_source(store: LemmaStore, surface: str) -> bool:
+    return any(
+        item.status != "rejected" and any(ref.source_id == "tencent" for ref in item.sources)
+        for item in store.readings_for(surface)
+    )
 
 
 def render_tencent_absorb(stats: TencentAbsorbStats) -> str:

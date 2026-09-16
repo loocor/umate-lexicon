@@ -193,3 +193,31 @@ def test_measure_splits_curated_overlay_from_wiki_overlap(tmp_path: Path) -> Non
     assert "人工智能" in stats.upserted_surface_set
     assert stats.overlaid_surfaces == stats.overlaid_curated_surfaces + stats.wiki_overlap_surfaces
     store.close()
+
+
+def test_probes_measure_light_vocab_not_store_presence(tmp_path: Path) -> None:
+    store = LemmaStore(tmp_path / "lemmas.sqlite")
+    store.upsert(
+        Lemma(
+            surface="微信",
+            pinyin_plain="wei xin",
+            status="auto",
+            domain_freq={"essay": 10},
+            sources=[SourceRef("essay", "lgpl-rime-essay", "essay.txt")],
+        )
+    )
+    store.upsert(
+        Lemma(
+            surface="元宇宙",
+            pinyin_plain="yuan yu zhou",
+            status="auto",
+            domain_freq={"essay": 10},
+            sources=[SourceRef("essay", "lgpl-rime-essay", "essay.txt")],
+        )
+    )
+    vocab = tmp_path / "tencent-light-vocab.txt"
+    vocab.write_text("微信\n", encoding="utf-8")
+    stats = measure_tencent_absorb(store, vocab)
+    assert stats.probes_present["微信"] is False
+    assert stats.probes_absent["元宇宙"] is True
+    store.close()
