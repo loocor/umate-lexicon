@@ -110,6 +110,9 @@ PYTHONPATH=src python -m umate_lexicon pipeline
 `eval` fails the build if gold pairs such as 重庆/`chong qing`,
 银行/`yin hang`, 行走/`xing zou` are missing or wrong.
 
+Coverage after a locked emit is recorded in [docs/zh/inventory.md](docs/zh/inventory.md).
+Do not treat row counts as “done”; tencent, Wikimedia, and 8105 are still missing.
+
 ## LLM role
 
 Large language models may classify categories or flag likely-wrong

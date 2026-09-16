@@ -30,9 +30,10 @@ Current pins:
   `d1dbb424124fc50452a179300c7f287dbcc0db64`
 
 Essay is the ranking source (`domain_freq.essay`). Luna is coverage plus
-official readings. Surfaces stay as upstream Traditional; overlay is
-exact-surface, so 微信 matches and 銀行 does not rewrite 银行 until a
-later t2s ingest step.
+official readings. Ingest folds Traditional surfaces to Hans with Unihan
+`kSimplifiedVariant` (`ingest: t2s`, lock id `unihan-variants`) so essay
+`銀行` overlays `银行`. The fold is character-level only; leftover luna
+readings on the simplified surface still share the essay mass.
 
 Tencent AI Lab embeddings are **coverage**, not frequency. The historic
 tar.gz URL currently returns a 22KB HTML page, not the 6GB+ corpus. Do

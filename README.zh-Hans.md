@@ -43,6 +43,8 @@ LLM 只做分类和注音抽检，结构化 JSON，不准发明词条。金标�
 
 官方明月词表、八股文频次、rime-emoji 可以吸收（LGPL，不是雾凇）。排序靠 essay 叠到已有 lemma 上；腾讯词向量只做覆盖，官方 dump 尚未钉死，不要抄雾凇的 `tencent.dict.yaml`。emoji 只作为可选 pack / OpenCC 映射发出，默认 schema 不挂上。
 
+字级繁简折叠已经进 locked pipeline：essay 的 `銀行` 会叠到 `银行`。覆盖盘点见 [docs/zh/inventory.md](docs/zh/inventory.md)。还没到可以停手堆源的程度。
+
 
 ## 和 VoiMate 的边界
 

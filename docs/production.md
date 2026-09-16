@@ -2,7 +2,7 @@
 
 1. Pin dump URLs and sha256 in `data/sources.lock.json`.
 2. `python -m umate_lexicon fetch` then `verify-sources`.
-3. Ingest in lock order after gold: Unihan, CC-CEDICT, THUOCL, official luna, essay, emoji.
+3. Ingest in lock order after gold: Unihan readings, Unihan variants (t2s), CC-CEDICT, THUOCL, official luna, essay, emoji. Luna/essay/emoji surfaces are simplified before overlay.
 4. Enrich polyphones; anything in the closed set without gold/cedict
    stays `review`.
 5. Emit. Run `eval`. Fail the release if gold readings regress.
