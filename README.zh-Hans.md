@@ -41,6 +41,9 @@ LLM 只做分类和注音抽检，结构化 JSON，不准发明词条。金标�
 
 全量原料由 `data/sources.lock.json` 钉死。先 `python -m umate_lexicon fetch`，再 `pipeline`（不要 `--fixtures`）。哈希不对就失败，不会改用 fixture。
 
+官方明月词表、八股文频次、rime-emoji 可以吸收（LGPL，不是雾凇）。排序靠 essay 叠到已有 lemma 上；腾讯词向量只做覆盖，官方 dump 尚未钉死，不要抄雾凇的 `tencent.dict.yaml`。emoji 只作为可选 pack / OpenCC 映射发出，默认 schema 不挂上。
+
+
 ## 和 VoiMate 的边界
 
 键盘默认包：核心 + ext + 人名/品牌瘦包。大覆盖和时效 pack 可卸。Voice Ledger 仍是权威账本；确认过的句子以后可以 *投射* 成个人 pack，ASR 不能直接改 Rime User DB。

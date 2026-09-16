@@ -79,7 +79,7 @@ translator/packs:
   umate_bulk                  large coverage, no unresolved polyphones
   umate_corrections           common typos / wrong pinyin
 secondary translators:
-  umate_en                    English (already a uMate table)
+  aosp_en                     English (AOSP table identity)
   umate_cn_en                 mixed phrases
 ```
 

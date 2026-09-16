@@ -8,7 +8,7 @@ data/fixtures         tiny original samples for tests
 data/gold             readings, polyphones, eval sentences
         │
         ▼
-   ingest adapters    cedict / thuocl / chars / unihan
+   ingest adapters    cedict / thuocl / chars / unihan / luna / essay / emoji / tencent
         │             clean-room gate first
         ▼
    SQLite store       lemmas + lemma_sources

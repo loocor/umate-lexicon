@@ -9,7 +9,8 @@ rime-wanxiang, melt_eng, or any commercial IME dictionary.
   base / ext / bulk), Rime `import_tables`, `translator/packs`,
   `(surface, pinyin)` as a key, log-compressed weights.
 - Ingesting **upstream dumps under their own licenses**: Unihan,
-  CC-CEDICT, THUOCL, Tencent embedding word lists (CC BY 3.0), Wikimedia
+  CC-CEDICT, THUOCL, official Rime luna_pinyin / essay / rime-emoji
+  (LGPL-3.0), Tencent embedding word lists (CC BY 3.0), Wikimedia
   dumps, the Table of General Standard Chinese Characters.
 - Independently authored gold readings, eval sentences, and schema files.
 - Comparing **behavior** on a public typing test set (first-candidate
