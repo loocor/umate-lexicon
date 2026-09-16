@@ -71,16 +71,25 @@ def run_locked_pipeline(
     out_dir: Path | None = None,
     lock_path: Path | None = None,
     downloads_dir: Path | None = None,
+    skip_ids: set[str] | None = None,
 ) -> dict[str, int]:
     lock = load_lock(lock_path)
     dest = downloads_dir or default_downloads_dir()
-    ready = {source.id: verify_ingest_file(source, dest) for source in lock.sources}
+    skip = frozenset(skip_ids or ())
+    ready = {
+        source.id: verify_ingest_file(source, dest)
+        for source in lock.sources
+        if source.id not in skip
+    }
     store = LemmaStore(store_path or default_store_path())
     simplify = _simplifier_from_lock(lock.sources, ready)
     stats: dict[str, int] = {}
     with store.deferred_commit():
         stats["gold"] = _ingest_authored_gold(store)
         for source in lock.sources:
+            if source.id in skip:
+                stats[f"skipped_{source.id}"] = 0
+                continue
             stats[source.id] = _ingest_pinned(store, source, ready[source.id], simplify=simplify)
     return _finish(store, stats, out_dir)
 
@@ -103,7 +112,7 @@ def _ingest_authored_gold(store: LemmaStore) -> int:
 
 def _simplifier_from_lock(sources: tuple[PinnedSource, ...], ready: dict[str, Path]) -> SimplifyFn:
     for source in sources:
-        if source.ingest == "t2s":
+        if source.ingest == "t2s" and source.id in ready:
             return make_simplifier(load_unihan_simplified(ready[source.id]))
     return make_simplifier(None)
 

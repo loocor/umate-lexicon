@@ -48,7 +48,7 @@ Status:
 | base | 2–3 Han chars, status gold/auto | core |
 | ext | 4 Han chars, curated | pack |
 | names / places / brands / orgs / events | `entity_type` | packs |
-| bulk | auto, no `polyphone` flag; **wiki-only always bulk** | pack |
+| bulk | auto, no `polyphone` flag; **coverage-only (wiki and/or tencent) always bulk** | pack |
 | corrections | `correction` flag | pack |
 | mixed | `mixed_latin` flag | pack or secondary translator |
 
@@ -58,5 +58,8 @@ to the first matching layer only.
 ## Weight
 
 Raw counts live in `domain_freq`. Emitted weight is
-`round(100 * log1p(total))` so files stay short, same idea as large
-community tables without copying them.
+`round(100 * log1p(ranking))` so files stay short, same idea as large
+community tables without copying them. Coverage placeholders
+(`domain_freq.tencent`, `domain_freq.wiki`) are stored but excluded
+from ranking so essay remains the sort key. Tencent vocab lines are
+`freq=1`; vectors never enter the store.

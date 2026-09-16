@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from umate_lexicon.eval.gold import evaluate_store
+from umate_lexicon.layers import assign_layer
 from umate_lexicon.pipeline import run_fixture_pipeline
 from umate_lexicon.store import LemmaStore
 
@@ -36,6 +37,13 @@ def test_fixture_pipeline_passes_gold(tmp_path: Path) -> None:
     assert weixin is not None
     assert weixin.status == "gold"
     assert weixin.domain_freq.get("essay") == 31877
+    assert weixin.domain_freq.get("tencent") == 100
+    assert assign_layer(weixin) == "base"
+    ai = store.get("人工智能", "ren gong zhi neng")
+    assert ai is not None
+    assert {ref.source_id for ref in ai.sources} == {"tencent"}
+    assert ai.domain_freq["tencent"] == 1
+    assert assign_layer(ai) == "bulk"
     laugh = store.get("😂", "ha ha")
     assert laugh is not None
     assert (out_dir / "opencc" / "emoji_word.txt").exists()

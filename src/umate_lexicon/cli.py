@@ -22,6 +22,7 @@ from umate_lexicon.ingest.wiki import (
     ingest_wiki_linktarget,
     ingest_wiki_page,
 )
+from umate_lexicon.eval.tencent_absorb import measure_tencent_absorb, render_tencent_absorb
 from umate_lexicon.inventory import render_summary, summarize_store
 from umate_lexicon.paths import default_store_path
 from umate_lexicon.pipeline import run_fixture_pipeline, run_locked_pipeline
@@ -54,6 +55,8 @@ def main(argv: list[str] | None = None) -> int:
     sub.add_parser("fetch", help="download and extract pinned dumps")
     sub.add_parser("verify-sources", help="check pinned dumps without ingesting")
     sub.add_parser("inventory", help="summarize lemma coverage")
+    absorb = sub.add_parser("tencent-absorb", help="measure tencent-light absorb against the store")
+    absorb.add_argument("vocab", type=Path, help="extracted tencent-light-vocab.txt")
 
     args = parser.parse_args(argv)
     store_path = args.store or default_store_path()
@@ -121,6 +124,11 @@ def main(argv: list[str] | None = None) -> int:
     if args.cmd == "inventory":
         summary = summarize_store(store)
         print(render_summary(summary), end="")
+        store.close()
+        return 0
+    if args.cmd == "tencent-absorb":
+        stats = measure_tencent_absorb(store, args.vocab)
+        print(render_tencent_absorb(stats), end="")
         store.close()
         return 0
     if args.cmd == "status":
