@@ -10,6 +10,14 @@ from umate_lexicon.t2s import SimplifyFn
 
 LICENSE_ID = "cc-by-3.0-tencent"
 
+OVERLAY = "overlay"
+UPSERT = "upsert"
+SKIP_EMPTY = "skip_empty"
+SKIP_NON_HAN = "skip_non_han_without_gold"
+SKIP_LENGTH_1 = "skip_length_1"
+SKIP_LENGTH_GT4 = "skip_length_gt4"
+SKIP_COMPOSE = "skip_compose"
+
 
 def ingest_tencent(
     store: LemmaStore,
@@ -30,36 +38,19 @@ def ingest_tencent(
         surface, freq = parsed
         if simplify is not None:
             surface = simplify(surface)
-        if not surface:
+        action = classify_tencent_surface(store, surface)
+        if action == OVERLAY:
+            count += overlay_domain_freq(
+                store,
+                surface,
+                domain="tencent",
+                freq=freq,
+                source_id="tencent",
+                license_id=LICENSE_ID,
+                locator=source,
+            )
             continue
-        if not is_han_only(surface):
-            existing = store.readings_for(surface)
-            if any(item.status == "gold" for item in existing):
-                count += overlay_domain_freq(
-                    store,
-                    surface,
-                    domain="tencent",
-                    freq=freq,
-                    source_id="tencent",
-                    license_id=LICENSE_ID,
-                    locator=source,
-                )
-            continue
-        if len(surface) == 1:
-            continue
-        overlaid = overlay_domain_freq(
-            store,
-            surface,
-            domain="tencent",
-            freq=freq,
-            source_id="tencent",
-            license_id=LICENSE_ID,
-            locator=source,
-        )
-        if overlaid:
-            count += overlaid
-            continue
-        if len(surface) > 4:
+        if action != UPSERT:
             continue
         pinyin = compose_pinyin(store, surface)
         if pinyin is None:
@@ -76,6 +67,25 @@ def ingest_tencent(
         )
         count += 1
     return count
+
+
+def classify_tencent_surface(store: LemmaStore, surface: str) -> str:
+    if not surface:
+        return SKIP_EMPTY
+    if not is_han_only(surface):
+        existing = store.readings_for(surface)
+        if any(item.status == "gold" for item in existing):
+            return OVERLAY
+        return SKIP_NON_HAN
+    if len(surface) == 1:
+        return SKIP_LENGTH_1
+    if any(item.status != "rejected" for item in store.readings_for(surface)):
+        return OVERLAY
+    if len(surface) > 4:
+        return SKIP_LENGTH_GT4
+    if compose_pinyin(store, surface) is None:
+        return SKIP_COMPOSE
+    return UPSERT
 
 
 def parse_tencent_line(line: str) -> tuple[str, int] | None:

@@ -20,7 +20,7 @@ files and hash mismatches. It does not fall back to fixtures.
 | `wiki_page` | zhwiki `page` SQL | `cc-by-sa-wikimedia` | reject wiki-only redirects |
 | `wiki_linktarget` | zhwiki `linktarget` SQL | `cc-by-sa-wikimedia` | category titles |
 | `wiki_category` | zhwiki `categorylinks` SQL | `cc-by-sa-wikimedia` | type overlay, still bulk |
-| `tencent` | embedding vocab (first column) | `cc-by-3.0-tencent` | unique compose, coverage only |
+| `tencent` | embedding vocab (first column) | `cc-by-3.0-tencent` | unique compose, coverage only, bulk if tencent-only |
 
 Current pins:
 
@@ -54,7 +54,11 @@ are flagged `untrusted_reading` and are not emitted.
 
 Tencent AI Lab embeddings are **coverage**, not frequency. The binary
 has no counts; ingest treats vocab lines as `freq=1` / unique compose
-and never invents essay-like weights. Fetch downloads the ModelScope
+and never invents essay-like weights. Overlay stamps `domain_freq.tencent=1`
+on existing lemmas; emit ranking ignores that placeholder so essay
+stays the sort key. Tencent-only unique-compose lemmas stay in **bulk**
+(not base/ext). Lock order puts `tencent-light` after the wiki dumps
+so overlay cannot steal wiki identity. Fetch downloads the ModelScope
 resolve URL (CDN `auth_key` redirects are ephemeral; the resolve URL
 plus content sha256 are the pin). `extract.kind = word2vec-vocab`
 writes a first-column word list only — vectors never enter the store.
