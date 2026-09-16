@@ -99,6 +99,23 @@ def test_tencent_only_bank_suffix_is_not_promoted_to_orgs() -> None:
     assert assign_layer(lemma) == "bulk"
 
 
+def test_curated_bank_with_tencent_overlay_stays_orgs() -> None:
+    lemma = classify(
+        Lemma(
+            surface="建设银行",
+            pinyin_plain="jian she yin hang",
+            status="auto",
+            domain_freq={"thuocl": 8, "tencent": 1},
+            sources=[
+                SourceRef("thuocl", "mit-thuocl", "THUOCL_caijing.txt"),
+                SourceRef("tencent", "cc-by-3.0-tencent", "tencent-light"),
+            ],
+        )
+    )
+    assert lemma.entity_type == "org"
+    assert assign_layer(lemma) == "orgs"
+
+
 def test_tencent_t2s_overlays_simplified_surface(tmp_path: Path) -> None:
     store = LemmaStore(tmp_path / "lemmas.sqlite")
     simplify = make_simplifier(load_unihan_simplified(data_dir() / "fixtures" / "unihan-variants.txt"))
@@ -150,4 +167,29 @@ def test_measure_tencent_absorb_counts_gates(tmp_path: Path) -> None:
     assert weixin is not None
     assert weixin.domain_freq["tencent"] == 1
     assert assign_layer(weixin) == "base"
+    store.close()
+
+
+def test_measure_splits_curated_overlay_from_wiki_overlap(tmp_path: Path) -> None:
+    store = LemmaStore(tmp_path / "lemmas.sqlite")
+    ingest_gold(store, data_dir() / "gold" / "product-terms.tsv")
+    ingest_chars(store, data_dir() / "fixtures" / "chars.tsv")
+    ingest_gold(store, data_dir() / "gold" / "readings.tsv")
+    store.upsert(
+        Lemma(
+            surface="开心",
+            pinyin_plain="kai xin",
+            status="auto",
+            domain_freq={"wiki": 1},
+            sources=[SourceRef("wiki", "cc-by-sa-wikimedia", "wiki-titles")],
+        )
+    )
+    vocab = tmp_path / "tencent-light-vocab.txt"
+    vocab.write_text("微信\n开心\n人工智能\n", encoding="utf-8")
+    ingest_tencent(store, vocab)
+    stats = measure_tencent_absorb(store, vocab)
+    assert "微信" in stats.overlaid_curated_surface_set
+    assert "开心" in stats.wiki_overlap_surface_set
+    assert "人工智能" in stats.upserted_surface_set
+    assert stats.overlaid_surfaces == stats.overlaid_curated_surfaces + stats.wiki_overlap_surfaces
     store.close()

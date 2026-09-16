@@ -10,6 +10,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from umate_lexicon.eval.tencent_absorb import measure_tencent_absorb, render_tencent_absorb
+from umate_lexicon.fetch import fetch_one
 from umate_lexicon.pipeline import run_locked_pipeline
 from umate_lexicon.sources import (
     SourceLockError,
@@ -24,12 +25,17 @@ from umate_lexicon.store import LemmaStore
 def main() -> int:
     lock = load_lock(default_lock_path())
     dest = default_downloads_dir()
+    dest.mkdir(parents=True, exist_ok=True)
     skip: set[str] = set()
     ready: list[str] = []
     for source in lock.sources:
         try:
+            fetch_one(source, dest)
             verify_ingest_file(source, dest)
         except SourceLockError as exc:
+            print(f"skip\t{source.id}\t{exc}")
+            skip.add(source.id)
+        except OSError as exc:
             print(f"skip\t{source.id}\t{exc}")
             skip.add(source.id)
         else:

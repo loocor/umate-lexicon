@@ -17,7 +17,7 @@ from umate_lexicon.ingest.tencent import (
     classify_tencent_surface,
     parse_tencent_line,
 )
-from umate_lexicon.layers import assign_layer, is_coverage_only
+from umate_lexicon.layers import COVERAGE_SOURCE_IDS, assign_layer, is_coverage_only
 from umate_lexicon.store import LemmaStore
 
 SimplifyFn = Callable[[str], str]
@@ -30,6 +30,8 @@ ABSENT_PROBES = ("元宇宙", "新冠病毒", "yyds")
 class TencentAbsorbStats:
     surfaces: int = 0
     overlaid_surfaces: int = 0
+    overlaid_curated_surfaces: int = 0
+    wiki_overlap_surfaces: int = 0
     upserted_surfaces: int = 0
     skipped_non_han_without_gold: int = 0
     skipped_length_1: int = 0
@@ -37,6 +39,8 @@ class TencentAbsorbStats:
     skipped_compose: int = 0
     skipped_empty: int = 0
     overlaid_surface_set: set[str] = field(default_factory=set)
+    overlaid_curated_surface_set: set[str] = field(default_factory=set)
+    wiki_overlap_surface_set: set[str] = field(default_factory=set)
     upserted_surface_set: set[str] = field(default_factory=set)
     tencent_lemmas: int = 0
     tencent_only_lemmas: int = 0
@@ -74,10 +78,20 @@ def measure_tencent_absorb(
             item for item in lemmas if any(ref.source_id == "tencent" for ref in item.sources)
         ]
         if tencent_lemmas:
-            if all({ref.source_id for ref in item.sources} == {"tencent"} for item in tencent_lemmas):
+            source_ids = {
+                ref.source_id for item in tencent_lemmas for ref in item.sources
+            }
+            if source_ids == {"tencent"}:
                 stats.upserted_surfaces += 1
                 stats.upserted_surface_set.add(surface)
+            elif source_ids <= COVERAGE_SOURCE_IDS:
+                stats.wiki_overlap_surfaces += 1
+                stats.wiki_overlap_surface_set.add(surface)
+                stats.overlaid_surfaces += 1
+                stats.overlaid_surface_set.add(surface)
             else:
+                stats.overlaid_curated_surfaces += 1
+                stats.overlaid_curated_surface_set.add(surface)
                 stats.overlaid_surfaces += 1
                 stats.overlaid_surface_set.add(surface)
             continue
@@ -129,6 +143,8 @@ def render_tencent_absorb(stats: TencentAbsorbStats) -> str:
     lines = [
         f"surfaces\t{stats.surfaces}",
         f"overlaid_surfaces\t{stats.overlaid_surfaces}",
+        f"overlaid_curated_surfaces\t{stats.overlaid_curated_surfaces}",
+        f"wiki_overlap_surfaces\t{stats.wiki_overlap_surfaces}",
         f"upserted_surfaces\t{stats.upserted_surfaces}",
         f"skipped_non_han_without_gold\t{stats.skipped_non_han_without_gold}",
         f"skipped_length_1\t{stats.skipped_length_1}",
