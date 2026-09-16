@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-from collections.abc import BinaryIO, Iterator
+from collections.abc import Iterator
 from pathlib import Path
+from typing import BinaryIO
 
 FLOAT32_BYTES = 4
 
