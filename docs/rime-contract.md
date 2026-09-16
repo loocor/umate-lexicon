@@ -40,5 +40,8 @@ This repo emits **source YAML**. Binary compilation is a Host job in
 VoiMate (`table.bin`, `prism.bin`, `reverse.bin`). The keyboard extension
 must not run `start_maintenance`.
 
-Alphabet digits and `A`–`Z` belong in the core dict body so mixed input
-can form syllables, matching Rime practice without copying a recipe.
+Alphabet digits belong in the core dict body. `A`–`Z` syllable rows are
+emitted here for a *future* mixed-input schema only. VoiMate QWERTY
+`luna_pinyin` must not import those rows yet: Shift-letter still starts
+Chinese composing. The English table identity is `aosp_en`, not a
+handmade `umate_en` patch.
