@@ -4,16 +4,11 @@ A **lexicon factory** for [uMate](https://github.com): licensed public
 corpora in, a versioned lemma store in the middle, Rime-digestible
 layered dictionaries out.
 
-This repository is a **sibling of VoiMate**, not a package inside it.
-Intended path: `/Volumes/External/GitHub/umate-lexicon`.
+This repository is nested under the VoiMate working tree for local
+work, but remains an **independent git repo**, not a VoiMate package
+or submodule. Canonical path: `/Volumes/External/GitHub/VoiMate/Lexicon`.
 VoiMate remains the product (keyboard, voice ledger, Host). This repo
 produces the Chinese word data the keyboard will eventually mmap.
-
-If this tree is still under `/tmp/umate-lexicon`, place it with:
-
-```sh
-/tmp/umate-lexicon/scripts/place-next-to-voimate.sh
-```
 
 ## Why this repo exists
 
@@ -96,20 +91,20 @@ optional so the iOS Keyboard Extension can mmap without compiling.
 Python 3.12+. No required third-party packages for the core factory.
 
 ```sh
-cd umate-lexicon
+cd Lexicon
 PYTHONPATH=src python -m pytest
 PYTHONPATH=src python -m umate_lexicon pipeline --fixtures
 ```
 
 Fixtures ship in `data/fixtures/` (short original samples, not community
-recipes). Full dumps belong in `data/sources/downloads/` (gitignored)
-and must be fetched by documented scripts, never from rime-ice.
+recipes). Full dumps are pinned in `data/sources.lock.json` and fetched
+into `data/sources/downloads/` (gitignored). Hash mismatch is a hard
+failure. Never fetch rime-ice.
 
 ```sh
-PYTHONPATH=src python -m umate_lexicon ingest cedict path/to/cedict_ts.u8
-PYTHONPATH=src python -m umate_lexicon ingest thuocl path/to/THUOCL_IT.txt
-PYTHONPATH=src python -m umate_lexicon emit --out dist/rime
-PYTHONPATH=src python -m umate_lexicon eval
+PYTHONPATH=src python -m umate_lexicon fetch
+PYTHONPATH=src python -m umate_lexicon verify-sources
+PYTHONPATH=src python -m umate_lexicon pipeline
 ```
 
 `eval` fails the build if gold pairs such as 重庆/`chong qing`,

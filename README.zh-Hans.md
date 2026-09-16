@@ -2,7 +2,7 @@
 
 uMate 的 **词库工厂**：许可清楚的公开素材进去，版本化的 Lemma 库在中间，Rime 能消化的分层码表出来。
 
-本仓库是 **VoiMate 的兄弟项目**，不是键盘仓库里的一个包。VoiMate 继续做产品（键盘、语音账本、Host）。这里只生产中文词数据。
+本仓库为了本地一起推进，放在 VoiMate 工作树目录下，但 **仍是独立 git 仓库**，不是键盘仓库里的包或 submodule。路径：`/Volumes/External/GitHub/VoiMate/Lexicon`。VoiMate 继续做产品（键盘、语音账本、Host）。这里只生产中文词数据。
 
 ## 原委
 
@@ -38,6 +38,8 @@ YAML 不是真相。真相是 Lemma：主键 `(词, 无调拼音)`。多音字�
 ```
 
 LLM 只做分类和注音抽检，结构化 JSON，不准发明词条。金标测试拥有拼音：重庆不是 `zhong qing`。
+
+全量原料由 `data/sources.lock.json` 钉死。先 `python -m umate_lexicon fetch`，再 `pipeline`（不要 `--fixtures`）。哈希不对就失败，不会改用 fixture。
 
 ## 和 VoiMate 的边界
 

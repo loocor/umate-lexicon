@@ -5,13 +5,15 @@ from pathlib import Path
 
 from umate_lexicon.emit.rime import emit_rime
 from umate_lexicon.eval.gold import evaluate_store
+from umate_lexicon.fetch import fetch_locked_sources
 from umate_lexicon.ingest.cedict import ingest_cedict
 from umate_lexicon.ingest.chars import ingest_chars
 from umate_lexicon.ingest.gold import ingest_gold
 from umate_lexicon.ingest.thuocl import ingest_thuocl
 from umate_lexicon.ingest.unihan import ingest_unihan
 from umate_lexicon.paths import default_store_path
-from umate_lexicon.pipeline import run_fixture_pipeline
+from umate_lexicon.pipeline import run_fixture_pipeline, run_locked_pipeline
+from umate_lexicon.sources import default_downloads_dir, load_lock, verify_ingest_file
 from umate_lexicon.store import LemmaStore
 
 
@@ -20,8 +22,12 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--store", type=Path, default=None)
     sub = parser.add_subparsers(dest="cmd", required=True)
 
-    pipe = sub.add_parser("pipeline", help="run the fixture factory end to end")
-    pipe.add_argument("--fixtures", action="store_true")
+    pipe = sub.add_parser("pipeline", help="run the factory end to end")
+    pipe.add_argument(
+        "--fixtures",
+        action="store_true",
+        help="use short original samples instead of pinned dumps",
+    )
     pipe.add_argument("--out", type=Path, default=None)
 
     ingest = sub.add_parser("ingest")
@@ -33,14 +39,33 @@ def main(argv: list[str] | None = None) -> int:
 
     sub.add_parser("eval")
     sub.add_parser("status")
+    sub.add_parser("fetch", help="download and extract pinned dumps")
+    sub.add_parser("verify-sources", help="check pinned dumps without ingesting")
 
     args = parser.parse_args(argv)
     store_path = args.store or default_store_path()
 
     if args.cmd == "pipeline":
-        stats = run_fixture_pipeline(store_path=store_path, out_dir=args.out)
+        if args.fixtures:
+            stats = run_fixture_pipeline(store_path=store_path, out_dir=args.out)
+        else:
+            stats = run_locked_pipeline(store_path=store_path, out_dir=args.out)
         for key, value in stats.items():
             print(f"{key}\t{value}")
+        return 0
+
+    if args.cmd == "fetch":
+        results = fetch_locked_sources()
+        for key, value in results.items():
+            print(f"{key}\t{value}")
+        return 0
+
+    if args.cmd == "verify-sources":
+        lock = load_lock()
+        dest = default_downloads_dir()
+        for source in lock.sources:
+            path = verify_ingest_file(source, dest)
+            print(f"{source.id}\t{path}")
         return 0
 
     store = LemmaStore(store_path)

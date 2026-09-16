@@ -7,16 +7,18 @@ from umate_lexicon.lemma import Lemma, SourceRef
 from umate_lexicon.store import LemmaStore
 
 
-def ingest_thuocl(store: LemmaStore, path: Path, domain: str = "thuocl") -> int:
+def ingest_thuocl(store: LemmaStore, path: Path, domain: str = "thuocl", locator: str | None = None) -> int:
     text = read_ingest_text(path)
     count = 0
+    source = locator or str(path)
     for raw in text.splitlines():
         line = raw.strip()
         if not line or line.startswith("#"):
             continue
         parts = line.split("\t")
         surface = parts[0].strip()
-        df = int(parts[1]) if len(parts) > 1 and parts[1].isdigit() else 1
+        freq = parts[1].strip() if len(parts) > 1 else ""
+        df = int(freq) if freq.isdigit() else 1
         pinyin = compose_pinyin(store, surface)
         if pinyin is None:
             continue
@@ -29,7 +31,7 @@ def ingest_thuocl(store: LemmaStore, path: Path, domain: str = "thuocl") -> int:
                 categories=_categories_from_name(path.name),
                 entity_type=_entity_from_name(path.name),
                 domain_freq={domain: df},
-                sources=[SourceRef("thuocl", "mit-thuocl", str(path))],
+                sources=[SourceRef("thuocl", "mit-thuocl", source)],
             )
         )
         count += 1

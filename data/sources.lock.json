@@ -1,0 +1,132 @@
+{
+  "version": 1,
+  "note": "Pinned upstream dumps. Hash mismatch is a hard failure. Do not fetch rime-ice.",
+  "sources": [
+    {
+      "id": "unihan",
+      "license": "unicode",
+      "homepage": "https://www.unicode.org/charts/unihan.html",
+      "url": "https://www.unicode.org/Public/17.0.0/ucd/Unihan.zip",
+      "sha256": "f7a48b2b545acfaa77b2d607ae28747404ce02baefee16396c5d2d7a8ef34b5e",
+      "filename": "Unihan-17.0.0.zip",
+      "ingest": "unihan",
+      "extract": {
+        "kind": "zip",
+        "member": "Unihan_Readings.txt",
+        "output": "Unihan_Readings.txt"
+      }
+    },
+    {
+      "id": "cedict",
+      "license": "cc-by-sa-cedict",
+      "homepage": "https://www.mdbg.net/chinese/dictionary?page=cc-cedict",
+      "url": "https://www.mdbg.net/chinese/export/cedict/cedict_1_0_ts_utf-8_mdbg.txt.gz",
+      "sha256": "70fee391949cec73eaec73476e0b6058930439cb61f435579f90209a1bb70b26",
+      "filename": "cedict_1_0_ts_utf-8_mdbg.txt.gz",
+      "ingest": "cedict",
+      "extract": {
+        "kind": "gzip",
+        "output": "cedict_ts.u8"
+      }
+    },
+    {
+      "id": "thuocl-it",
+      "license": "mit-thuocl",
+      "homepage": "https://github.com/thunlp/THUOCL",
+      "url": "https://raw.githubusercontent.com/thunlp/THUOCL/a30ce79d895d01ab5132a5c74c29703ff7efb4cc/data/THUOCL_IT.txt",
+      "sha256": "e8cd42c9f5559735fa3bfb91515cbe051f991efd4a803038a1d5c0da85af3526",
+      "filename": "THUOCL_IT.txt",
+      "ingest": "thuocl"
+    },
+    {
+      "id": "thuocl-animal",
+      "license": "mit-thuocl",
+      "homepage": "https://github.com/thunlp/THUOCL",
+      "url": "https://raw.githubusercontent.com/thunlp/THUOCL/a30ce79d895d01ab5132a5c74c29703ff7efb4cc/data/THUOCL_animal.txt",
+      "sha256": "bcdc95a32fe713d4bc32957ae26174e3b464908e318e821c9abb295e90249145",
+      "filename": "THUOCL_animal.txt",
+      "ingest": "thuocl"
+    },
+    {
+      "id": "thuocl-caijing",
+      "license": "mit-thuocl",
+      "homepage": "https://github.com/thunlp/THUOCL",
+      "url": "https://raw.githubusercontent.com/thunlp/THUOCL/a30ce79d895d01ab5132a5c74c29703ff7efb4cc/data/THUOCL_caijing.txt",
+      "sha256": "68e63d2009e59c6f388eeaa789d19b6a681657de3e8e56cc3479b21cd8548542",
+      "filename": "THUOCL_caijing.txt",
+      "ingest": "thuocl"
+    },
+    {
+      "id": "thuocl-car",
+      "license": "mit-thuocl",
+      "homepage": "https://github.com/thunlp/THUOCL",
+      "url": "https://raw.githubusercontent.com/thunlp/THUOCL/a30ce79d895d01ab5132a5c74c29703ff7efb4cc/data/THUOCL_car.txt",
+      "sha256": "58ffd756b89e8574852bc72c254276a1d7fa8821342eb3cbf3be73ca33ab921c",
+      "filename": "THUOCL_car.txt",
+      "ingest": "thuocl"
+    },
+    {
+      "id": "thuocl-chengyu",
+      "license": "mit-thuocl",
+      "homepage": "https://github.com/thunlp/THUOCL",
+      "url": "https://raw.githubusercontent.com/thunlp/THUOCL/a30ce79d895d01ab5132a5c74c29703ff7efb4cc/data/THUOCL_chengyu.txt",
+      "sha256": "c339d5d6e37d4f8ecdcb82f2a02b7fdfc66796f0a5215155f2aff8a77e89a7eb",
+      "filename": "THUOCL_chengyu.txt",
+      "ingest": "thuocl"
+    },
+    {
+      "id": "thuocl-diming",
+      "license": "mit-thuocl",
+      "homepage": "https://github.com/thunlp/THUOCL",
+      "url": "https://raw.githubusercontent.com/thunlp/THUOCL/a30ce79d895d01ab5132a5c74c29703ff7efb4cc/data/THUOCL_diming.txt",
+      "sha256": "ca5574399da5750a2c36dc373f36e31a66ed1f8a4b21646df6ca44ec0b888d89",
+      "filename": "THUOCL_diming.txt",
+      "ingest": "thuocl"
+    },
+    {
+      "id": "thuocl-food",
+      "license": "mit-thuocl",
+      "homepage": "https://github.com/thunlp/THUOCL",
+      "url": "https://raw.githubusercontent.com/thunlp/THUOCL/a30ce79d895d01ab5132a5c74c29703ff7efb4cc/data/THUOCL_food.txt",
+      "sha256": "084caa96ad4f976720003e9420097ba7cb5ddbb17f9f8c8f76bc4b8e0cc777fd",
+      "filename": "THUOCL_food.txt",
+      "ingest": "thuocl"
+    },
+    {
+      "id": "thuocl-law",
+      "license": "mit-thuocl",
+      "homepage": "https://github.com/thunlp/THUOCL",
+      "url": "https://raw.githubusercontent.com/thunlp/THUOCL/a30ce79d895d01ab5132a5c74c29703ff7efb4cc/data/THUOCL_law.txt",
+      "sha256": "8ef1a5f41052ac95dedde88b167c5031a43b3e0211bf128b6125736cc76ef7b2",
+      "filename": "THUOCL_law.txt",
+      "ingest": "thuocl"
+    },
+    {
+      "id": "thuocl-lishimingren",
+      "license": "mit-thuocl",
+      "homepage": "https://github.com/thunlp/THUOCL",
+      "url": "https://raw.githubusercontent.com/thunlp/THUOCL/a30ce79d895d01ab5132a5c74c29703ff7efb4cc/data/THUOCL_lishimingren.txt",
+      "sha256": "d0e5094016e6db8c55d363dc022f48f7b1753cf6d07e216f63cf522ce8e53605",
+      "filename": "THUOCL_lishimingren.txt",
+      "ingest": "thuocl"
+    },
+    {
+      "id": "thuocl-medical",
+      "license": "mit-thuocl",
+      "homepage": "https://github.com/thunlp/THUOCL",
+      "url": "https://raw.githubusercontent.com/thunlp/THUOCL/a30ce79d895d01ab5132a5c74c29703ff7efb4cc/data/THUOCL_medical.txt",
+      "sha256": "a01f39f1677af0b6a620bbc68bf293e8e436f06248b74adb625cd61d9ad7bbcd",
+      "filename": "THUOCL_medical.txt",
+      "ingest": "thuocl"
+    },
+    {
+      "id": "thuocl-poem",
+      "license": "mit-thuocl",
+      "homepage": "https://github.com/thunlp/THUOCL",
+      "url": "https://raw.githubusercontent.com/thunlp/THUOCL/a30ce79d895d01ab5132a5c74c29703ff7efb4cc/data/THUOCL_poem.txt",
+      "sha256": "f7045571f57114a3a70d2eaaeec8f991897d536be808f93161709f1289c8108c",
+      "filename": "THUOCL_poem.txt",
+      "ingest": "thuocl"
+    }
+  ]
+}

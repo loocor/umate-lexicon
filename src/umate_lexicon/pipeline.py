@@ -12,6 +12,13 @@ from umate_lexicon.ingest.gold import ingest_gold
 from umate_lexicon.ingest.thuocl import ingest_thuocl
 from umate_lexicon.ingest.unihan import ingest_unihan
 from umate_lexicon.paths import data_dir, default_store_path
+from umate_lexicon.sources import (
+    PinnedSource,
+    SourceLockError,
+    default_downloads_dir,
+    load_lock,
+    verify_ingest_file,
+)
 from umate_lexicon.store import LemmaStore
 from umate_lexicon.verify.rules import apply_rules
 
@@ -22,17 +29,52 @@ def run_fixture_pipeline(
 ) -> dict[str, int]:
     root = data_dir()
     store = LemmaStore(store_path or default_store_path())
-    stats = {
-        "gold": ingest_gold(store, root / "gold" / "readings.tsv"),
-        "chars": ingest_chars(store, root / "fixtures" / "chars.tsv"),
-        "unihan": ingest_unihan(store, root / "fixtures" / "unihan.txt"),
-        "cedict": ingest_cedict(store, root / "fixtures" / "cedict.txt"),
-        "thuocl": ingest_thuocl(store, root / "fixtures" / "thuocl.txt"),
-    }
-    for lemma in store.all_lemmas():
-        store.save(classify(lemma))
-    stats["polyphone"] = apply_polyphone_flags(store)
-    stats["rejected"] = apply_rules(store)
+    with store.deferred_commit():
+        stats = {
+            "gold": ingest_gold(store, root / "gold" / "readings.tsv"),
+            "chars": ingest_chars(store, root / "fixtures" / "chars.tsv"),
+            "unihan": ingest_unihan(store, root / "fixtures" / "unihan.txt"),
+            "cedict": ingest_cedict(store, root / "fixtures" / "cedict.txt"),
+            "thuocl": ingest_thuocl(store, root / "fixtures" / "thuocl.txt"),
+        }
+    return _finish(store, stats, out_dir)
+
+
+def run_locked_pipeline(
+    store_path: Path | None = None,
+    out_dir: Path | None = None,
+    lock_path: Path | None = None,
+    downloads_dir: Path | None = None,
+) -> dict[str, int]:
+    lock = load_lock(lock_path)
+    dest = downloads_dir or default_downloads_dir()
+    ready = {source.id: verify_ingest_file(source, dest) for source in lock.sources}
+    store = LemmaStore(store_path or default_store_path())
+    stats: dict[str, int] = {}
+    with store.deferred_commit():
+        stats["gold"] = ingest_gold(store, data_dir() / "gold" / "readings.tsv")
+        for source in lock.sources:
+            stats[source.id] = _ingest_pinned(store, source, ready[source.id])
+    return _finish(store, stats, out_dir)
+
+
+def _ingest_pinned(store: LemmaStore, source: PinnedSource, path: Path) -> int:
+    locator = f"{source.id}:{source.filename}"
+    if source.ingest == "unihan":
+        return ingest_unihan(store, path, locator=locator)
+    if source.ingest == "cedict":
+        return ingest_cedict(store, path, locator=locator)
+    if source.ingest == "thuocl":
+        return ingest_thuocl(store, path, locator=locator)
+    raise SourceLockError(f"unknown ingest kind {source.ingest!r} for {source.id}")
+
+
+def _finish(store: LemmaStore, stats: dict[str, int], out_dir: Path | None) -> dict[str, int]:
+    with store.deferred_commit():
+        for lemma in store.all_lemmas():
+            store.save(classify(lemma))
+        stats["polyphone"] = apply_polyphone_flags(store)
+        stats["rejected"] = apply_rules(store)
     emit_dir = out_dir or (Path(__file__).resolve().parents[2] / "dist" / "rime")
     stats.update({f"emit_{k}": v for k, v in emit_rime(store, emit_dir).items()})
     stats["lemmas"] = store.count()

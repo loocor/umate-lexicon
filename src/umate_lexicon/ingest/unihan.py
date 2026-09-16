@@ -10,9 +10,10 @@ from umate_lexicon.store import LemmaStore
 _LINE = re.compile(r"^U\+([0-9A-F]+)\tkMandarin\t(.+)$")
 
 
-def ingest_unihan(store: LemmaStore, path: Path) -> int:
+def ingest_unihan(store: LemmaStore, path: Path, locator: str | None = None) -> int:
     text = read_ingest_text(path)
     count = 0
+    source = locator or str(path)
     for raw in text.splitlines():
         match = _LINE.match(raw.strip())
         if match is None:
@@ -31,7 +32,7 @@ def ingest_unihan(store: LemmaStore, path: Path) -> int:
                     weight=1,
                     status="auto",
                     domain_freq={"unihan": 1},
-                    sources=[SourceRef("unihan", "unicode", str(path))],
+                    sources=[SourceRef("unihan", "unicode", source)],
                 )
             )
             count += 1

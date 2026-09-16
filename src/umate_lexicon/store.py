@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import json
 import sqlite3
+from contextlib import contextmanager
 from pathlib import Path
+from typing import Iterator
 
 from umate_lexicon.lemma import Lemma, SourceRef
 
@@ -38,6 +40,7 @@ class LemmaStore:
         self._conn = sqlite3.connect(path)
         self._conn.row_factory = sqlite3.Row
         self._conn.executescript(SCHEMA)
+        self._autocommit = True
 
     def close(self) -> None:
         self._conn.close()
@@ -90,7 +93,21 @@ class LemmaStore:
                 """,
                 (merged.surface, merged.pinyin_plain, ref.source_id, ref.license, ref.locator),
             )
-        self._conn.commit()
+        if self._autocommit:
+            self._conn.commit()
+
+    @contextmanager
+    def deferred_commit(self) -> Iterator[None]:
+        previous = self._autocommit
+        self._autocommit = False
+        try:
+            yield
+            self._conn.commit()
+        except Exception:
+            self._conn.rollback()
+            raise
+        finally:
+            self._autocommit = previous
 
     def get(self, surface: str, pinyin_plain: str) -> Lemma | None:
         row = self._conn.execute(
@@ -112,21 +129,35 @@ class LemmaStore:
         return [lemma.pinyin_plain for lemma in self.readings_for(char) if len(char) == 1]
 
     def all_lemmas(self) -> list[Lemma]:
+        sources = self._sources_by_key()
         rows = self._conn.execute("SELECT * FROM lemmas ORDER BY surface, pinyin_plain").fetchall()
-        return [self._lemma_from_row(row) for row in rows]
+        return [self._lemma_from_row(row, sources.get((row["surface"], row["pinyin_plain"]), [])) for row in rows]
+
+    def _sources_by_key(self) -> dict[tuple[str, str], list[SourceRef]]:
+        mapping: dict[tuple[str, str], list[SourceRef]] = {}
+        rows = self._conn.execute(
+            "SELECT surface, pinyin_plain, source_id, license, locator FROM lemma_sources"
+        ).fetchall()
+        for item in rows:
+            key = (item["surface"], item["pinyin_plain"])
+            mapping.setdefault(key, []).append(
+                SourceRef(source_id=item["source_id"], license=item["license"], locator=item["locator"])
+            )
+        return mapping
 
     def count(self) -> int:
         row = self._conn.execute("SELECT COUNT(*) AS n FROM lemmas").fetchone()
         return int(row["n"])
 
-    def _lemma_from_row(self, row: sqlite3.Row) -> Lemma:
-        sources = [
-            SourceRef(source_id=item["source_id"], license=item["license"], locator=item["locator"])
-            for item in self._conn.execute(
-                "SELECT source_id, license, locator FROM lemma_sources WHERE surface = ? AND pinyin_plain = ?",
-                (row["surface"], row["pinyin_plain"]),
-            )
-        ]
+    def _lemma_from_row(self, row: sqlite3.Row, sources: list[SourceRef] | None = None) -> Lemma:
+        if sources is None:
+            sources = [
+                SourceRef(source_id=item["source_id"], license=item["license"], locator=item["locator"])
+                for item in self._conn.execute(
+                    "SELECT source_id, license, locator FROM lemma_sources WHERE surface = ? AND pinyin_plain = ?",
+                    (row["surface"], row["pinyin_plain"]),
+                )
+            ]
         return Lemma(
             surface=row["surface"],
             pinyin_plain=row["pinyin_plain"],

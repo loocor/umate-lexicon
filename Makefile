@@ -1,13 +1,22 @@
 PYTHON ?= python3
 export PYTHONPATH := src
 
-.PHONY: test pipeline eval emit
+.PHONY: test pipeline fetch verify-sources pipeline-locked eval emit
 
 test:
 	$(PYTHON) -m pytest
 
 pipeline:
 	$(PYTHON) -m umate_lexicon pipeline --fixtures
+
+fetch:
+	$(PYTHON) -m umate_lexicon fetch
+
+verify-sources:
+	$(PYTHON) -m umate_lexicon verify-sources
+
+pipeline-locked:
+	$(PYTHON) -m umate_lexicon pipeline
 
 eval:
 	$(PYTHON) -m umate_lexicon eval
