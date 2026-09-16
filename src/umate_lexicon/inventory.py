@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections import Counter
 
-from umate_lexicon.layers import assign_layer, emit_weight, han_len, is_wiki_only
+from umate_lexicon.layers import assign_layer, emit_weight, han_len, is_coverage_only, is_wiki_only
 from umate_lexicon.store import LemmaStore
 
 PROBES: dict[str, tuple[str, ...]] = {
@@ -39,6 +39,7 @@ def summarize_store(store: LemmaStore) -> dict[str, object]:
     han_buckets: Counter[str] = Counter()
     status: Counter[str] = Counter()
     wiki_entity: Counter[str] = Counter()
+    tencent_only: Counter[str] = Counter()
     surfaces: set[str] = set()
     for lemma in store.all_lemmas():
         layer = assign_layer(lemma) or "dropped"
@@ -47,6 +48,8 @@ def summarize_store(store: LemmaStore) -> dict[str, object]:
         surfaces.add(lemma.surface)
         if is_wiki_only(lemma):
             wiki_entity[lemma.entity_type or "none"] += 1
+        if is_coverage_only(lemma) and {ref.source_id for ref in lemma.sources} == {"tencent"}:
+            tencent_only[layer] += 1
         n = han_len(lemma.surface)
         if n == 0:
             han_buckets["latin_or_other"] += 1
@@ -95,6 +98,7 @@ def summarize_store(store: LemmaStore) -> dict[str, object]:
         "licenses": dict(licenses),
         "sources": dict(sources),
         "wiki_entity": dict(wiki_entity),
+        "tencent_only_layers": dict(tencent_only),
         "probes": probes,
     }
 
@@ -113,6 +117,11 @@ def render_summary(summary: dict[str, object]) -> str:
     if isinstance(wiki_entity, dict) and wiki_entity:
         lines.append("wiki_entity\tcount")
         for key, value in sorted(wiki_entity.items(), key=lambda item: (-item[1], item[0])):
+            lines.append(f"{key}\t{value}")
+    tencent_only_layers = summary.get("tencent_only_layers", {})
+    if isinstance(tencent_only_layers, dict) and tencent_only_layers:
+        lines.append("tencent_only_layer\tcount")
+        for key, value in sorted(tencent_only_layers.items(), key=lambda item: (-item[1], item[0])):
             lines.append(f"{key}\t{value}")
     lines.append("source\tcount")
     sources = summary["sources"]

@@ -19,6 +19,8 @@ PACK_LAYERS = (
     "bulk",
     "corrections",
 )
+COVERAGE_SOURCE_IDS = frozenset({"wiki", "tencent"})
+COVERAGE_FREQ_DOMAINS = frozenset({"wiki", "tencent"})
 
 
 def han_len(surface: str) -> int:
@@ -29,8 +31,22 @@ def is_wiki_only(lemma: Lemma) -> bool:
     return {ref.source_id for ref in lemma.sources} == {"wiki"}
 
 
+def is_coverage_only(lemma: Lemma) -> bool:
+    ids = {ref.source_id for ref in lemma.sources}
+    return bool(ids) and ids <= COVERAGE_SOURCE_IDS
+
+
+def ranking_freq(lemma: Lemma) -> int:
+    ranked = sum(
+        count for domain, count in lemma.domain_freq.items() if domain not in COVERAGE_FREQ_DOMAINS
+    )
+    if ranked:
+        return ranked
+    return lemma.weight
+
+
 def emit_weight(lemma: Lemma) -> int:
-    total = sum(lemma.domain_freq.values()) or lemma.weight
+    total = ranking_freq(lemma)
     return max(1, int(round(100 * math.log1p(total))))
 
 
@@ -43,7 +59,7 @@ def assign_layer(lemma: Lemma) -> str | None:
         return "emoji"
     if "correction" in lemma.flags:
         return "corrections"
-    if is_wiki_only(lemma):
+    if is_coverage_only(lemma):
         return "bulk"
     if lemma.entity_type == "person" or "person" in lemma.categories:
         return "names"

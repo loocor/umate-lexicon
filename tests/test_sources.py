@@ -262,3 +262,48 @@ def test_locked_pipeline_uses_verified_dumps(tmp_path: Path) -> None:
     hello = store.get("你好", "ni hao")
     assert hello is not None
     store.close()
+
+
+def test_locked_pipeline_can_skip_unverified_source(tmp_path: Path) -> None:
+    downloads = tmp_path / "downloads"
+    downloads.mkdir()
+    unihan = "U+4F60\tkMandarin\tNǏ\nU+597D\tkMandarin\tHǍO\n"
+    cedict = "你好 你好 [ni3 hao3] /hello/\n重慶 重庆 [chong2 qing4] /Chongqing/\n"
+    sources = [
+        {
+            "id": "unihan",
+            "license": "unicode",
+            "url": "https://example.invalid/unihan.txt",
+            "sha256": _write(downloads / "unihan.txt", unihan),
+            "filename": "unihan.txt",
+            "ingest": "unihan",
+        },
+        {
+            "id": "cedict",
+            "license": "cc-by-sa-cedict",
+            "url": "https://example.invalid/cedict.txt",
+            "sha256": _write(downloads / "cedict.txt", cedict),
+            "filename": "cedict.txt",
+            "ingest": "cedict",
+        },
+        {
+            "id": "emoji",
+            "license": "lgpl-rime-emoji",
+            "url": "https://example.invalid/emoji_word.txt",
+            "sha256": "cd" * 32,
+            "filename": "emoji_word.txt",
+            "ingest": "emoji",
+        },
+    ]
+    lock_path = _lock(tmp_path, sources)
+    stats = run_locked_pipeline(
+        store_path=tmp_path / "lemmas.sqlite",
+        out_dir=tmp_path / "rime",
+        lock_path=lock_path,
+        downloads_dir=downloads,
+        skip_ids={"emoji"},
+    )
+    assert stats["eval_failures"] == 0
+    assert stats["skipped_emoji"] == 0
+    assert "emoji" not in stats
+    assert stats["cedict"] >= 1
