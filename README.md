@@ -78,9 +78,10 @@ translator/packs:
   umate_events                dated events (droppable)
   umate_bulk                  large coverage, no unresolved polyphones
   umate_corrections           common typos / wrong pinyin
-secondary translators:
-  aosp_en                     English (AOSP table identity)
-  umate_cn_en                 mixed phrases
+secondary translators / sidecars:
+  aosp_en                     English Rime table (AOSP LatinIME, Apache-2.0)
+  en_us_unigrams.tsv          Swift EnglishLexicon truncation (~20k)
+  umate_cn_en                 mixed phrases (planned)
 ```
 
 Keyboard default SKU: core + ext + names/brands. Bulk and events stay

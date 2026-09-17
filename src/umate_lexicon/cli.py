@@ -51,6 +51,13 @@ def main(argv: list[str] | None = None) -> int:
     emit = sub.add_parser("emit")
     emit.add_argument("--out", type=Path, required=True)
 
+    aosp = sub.add_parser("emit-aosp", help="emit aosp_en.dict.yaml + en_us_unigrams.tsv")
+    aosp.add_argument("--csv", type=Path, required=True, help="AOSP LatinIME wordlist CSV")
+    aosp.add_argument("--out", type=Path, required=True)
+    aosp.add_argument("--min-length", type=int, default=4)
+    aosp.add_argument("--unigram-limit", type=int, default=20_000)
+    aosp.add_argument("--snapshot-note", default="snapshot from Lexicon emit")
+
     sub.add_parser("eval")
     sub.add_parser("status")
     sub.add_parser("fetch", help="download and extract pinned dumps")
@@ -86,6 +93,20 @@ def main(argv: list[str] | None = None) -> int:
         for source in lock.sources:
             path = verify_ingest_file(source, dest)
             print(f"{source.id}\t{path}")
+        return 0
+
+    if args.cmd == "emit-aosp":
+        from umate_lexicon.emit.aosp_en import emit_aosp_en
+
+        counts = emit_aosp_en(
+            args.csv,
+            args.out,
+            min_length=args.min_length,
+            unigram_limit=args.unigram_limit,
+            snapshot_note=args.snapshot_note,
+        )
+        for key, value in counts.items():
+            print(f"{key}\t{value}")
         return 0
 
     store = LemmaStore(store_path)

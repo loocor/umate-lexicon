@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+import unicodedata
 
 _TONE_VOWELS = {
     "a": "āáǎàa",
@@ -134,3 +135,73 @@ def normalize_plain_pinyin(code: str) -> str:
 def looks_like_pinyin(code: str) -> bool:
     parts = normalize_plain_pinyin(code).split()
     return bool(parts) and all(part in PINYIN_SYLLABLES for part in parts)
+
+
+# Single-letter syllables other than a/o/e occupy the Rime prism and
+# break QWERTY 简拼 (abbrev). Erhua must be attached (`hui r` → `huir`).
+_ALLOWED_SINGLE = frozenset({"a", "o", "e"})
+_SEP_RE = re.compile(r"[·•・,，、/;；]+")
+_NON_CODE_RE = re.compile(r"[^a-zA-Z0-9 ]+")
+_WS_RE = re.compile(r"\s+")
+
+
+def sanitize_emit_code(code: str) -> str | None:
+    """Return a Rime-safe plain code, or None if the row must be dropped.
+
+    VoiMate Host compile assumes emit codes are already a–z / digits /
+    spaces only. Keep this the single source of truth so the keyboard
+    sync script does not rewrite lemma rows.
+    """
+    text = unicodedata.normalize("NFKD", code)
+    text = "".join(ch for ch in text if not unicodedata.combining(ch))
+    text = _SEP_RE.sub(" ", text)
+    text = _NON_CODE_RE.sub("", text)
+    text = _WS_RE.sub(" ", text).strip().lower()
+    if not text:
+        return None
+    toks = text.split()
+    merged: list[str] = []
+    for token in toks:
+        if token == "r" and merged and re.fullmatch(r"[a-z]+", merged[-1]):
+            merged[-1] = merged[-1] + "r"
+        else:
+            merged.append(token)
+    toks = merged
+    collapsed: list[str] = []
+    run: list[str] = []
+
+    def flush() -> None:
+        nonlocal run
+        if run:
+            collapsed.append("".join(run))
+            run = []
+
+    for token in toks:
+        if re.fullmatch(r"[a-z]", token):
+            run.append(token)
+        else:
+            flush()
+            collapsed.append(token)
+    flush()
+    toks = collapsed
+    fixed: list[str] = []
+    index = 0
+    while index < len(toks):
+        token = toks[index]
+        if re.fullmatch(r"[a-z]", token) and token not in _ALLOWED_SINGLE:
+            if fixed and re.fullmatch(r"[a-z0-9]+", fixed[-1]):
+                fixed[-1] = fixed[-1] + token
+            elif index + 1 < len(toks) and re.fullmatch(r"[a-z0-9]+", toks[index + 1]):
+                toks[index + 1] = token + toks[index + 1]
+            else:
+                return None
+        else:
+            fixed.append(token)
+        index += 1
+    toks = fixed
+    if not toks or not all(re.fullmatch(r"[a-z0-9]+", token) for token in toks):
+        return None
+    for token in toks:
+        if len(token) == 1 and token.isalpha() and token not in _ALLOWED_SINGLE:
+            return None
+    return " ".join(toks)

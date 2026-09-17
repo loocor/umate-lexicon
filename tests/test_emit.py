@@ -25,14 +25,28 @@ def test_emit_writes_packs(tmp_path: Path) -> None:
             sources=[SourceRef("gold", "umate-gold", "test")],
         )
     )
+    store.upsert(
+        Lemma(
+            surface="一会儿",
+            pinyin_plain="yi hui r",
+            weight=5,
+            status="auto",
+            sources=[SourceRef("essay", "lgpl-rime-essay", "test")],
+        )
+    )
     out = tmp_path / "rime"
     counts = emit_rime(store, out)
     assert counts["chars"] == 1
-    assert counts["base"] == 1
+    assert counts["base"] == 2
+    assert counts["codes_sanitized"] >= 1
+    body = (out / "umate_base.dict.yaml").read_text(encoding="utf-8")
+    assert "一会儿\tyi huir\t" in body
     schema = (out / "umate_hans.schema.yaml").read_text(encoding="utf-8")
     assert "translator/packs" in schema or "packs:" in schema
     assert "aosp_en" in schema
     assert "umate_en" not in schema
+    assert (out / "aosp_en.dict.yaml").is_file()
+    assert (out / "en_us_unigrams.tsv").is_file()
     store.close()
 
 

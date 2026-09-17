@@ -27,3 +27,17 @@ def test_plain_syllable_inventory_rejects_fragments() -> None:
     assert not looks_like_pinyin("ni3")
     assert not looks_like_pinyin("zhon")
     assert not looks_like_pinyin("zho")
+
+
+def test_sanitize_emit_code_merges_erhua_and_collapses_letters() -> None:
+    from umate_lexicon.pinyin import sanitize_emit_code
+
+    assert sanitize_emit_code("yi hui r") == "yi huir"
+    assert sanitize_emit_code("q q") == "qq"
+    assert sanitize_emit_code("b zhan") == "bzhan"
+    assert sanitize_emit_code("ni hao") == "ni hao"
+    assert sanitize_emit_code("nǐ hǎo") == "ni hao"
+    assert sanitize_emit_code("fen·se") == "fen se"
+    assert sanitize_emit_code("") is None
+    # lone letter other than a/o/e cannot stand as a syllable
+    assert sanitize_emit_code("q") is None

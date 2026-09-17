@@ -42,9 +42,20 @@ must not run `start_maintenance`.
 
 Alphabet digits belong in the core dict body. `A`–`Z` syllable rows are
 emitted here for a *future* mixed-input schema only. VoiMate QWERTY
-`luna_pinyin` must not import those rows yet: Shift-letter still starts
-Chinese composing. The English table identity is `aosp_en`, not a
-handmade `umate_en` patch.
+must not import those rows yet: Shift-letter still starts Chinese
+composing.
+
+Emit codes are sanitized in this factory (`sanitize_emit_code`): a–z /
+digits / spaces only, erhua attached (`hui r` → `huir`), and lone
+letters other than `a`/`o`/`e` collapsed or dropped. VoiMate must not
+rewrite lemma rows on ingest.
+
+The English table identity is `aosp_en` (Apache-2.0 AOSP LatinIME),
+emitted beside the Chinese packs as `aosp_en.dict.yaml` plus
+`en_us_unigrams.tsv` for the Swift EnglishLexicon truncation. It is not
+a handmade `umate_en` patch. Chinese every-key paths may omit the Rime
+`table_translator@aosp_en` wiring; ownership of the wordlist still
+lives here.
 
 ## Optional emoji pack
 
