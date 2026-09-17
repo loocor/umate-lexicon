@@ -58,12 +58,15 @@ to the first matching layer only.
 
 ## Weight
 
-Raw counts live in `domain_freq`. Emitted weight is
-`round(100 * log1p(ranking))` so files stay short, same idea as large
-community tables without copying them. Coverage placeholders
-(`domain_freq.tencent`, `domain_freq.wiki`) are stored but excluded
-from ranking so essay remains the sort key. Tencent vocab lines are
-`freq=1`; vectors never enter the store.
+Raw counts live in `domain_freq`. The emitted `weight` column is the raw
+ranking frequency itself: librime compiles it as `log(weight)` and
+subtracts `log(1e8)` when a candidate is built, so the column is a
+frequency on a 1e8 scale. Do not pre-compress it -- a log here is applied
+twice and flattens the distribution until rare entries rival common ones.
+
+Coverage placeholders (`domain_freq.tencent`, `domain_freq.wiki`) are
+stored but excluded from ranking so essay remains the sort key. Tencent
+vocab lines are `freq=1`; vectors never enter the store.
 
 ## Gap triage
 

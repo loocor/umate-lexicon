@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import math
 import re
 
 from umate_lexicon.lemma import Lemma
@@ -46,8 +45,15 @@ def ranking_freq(lemma: Lemma) -> int:
 
 
 def emit_weight(lemma: Lemma) -> int:
-    total = ranking_freq(lemma)
-    return max(1, int(round(100 * math.log1p(total))))
+    """Value for the Rime `weight` column.
+
+    librime stores this column as `log(weight)` at compile time
+    (`dict_compiler.cc`) and subtracts `log(1e8)` at query time, so the
+    column is a raw frequency on a 1e8 scale -- the same scale rime-essay
+    counts already use. Compressing it here would flatten the distribution
+    and let a rare entry compete with a common one.
+    """
+    return max(1, ranking_freq(lemma))
 
 
 def assign_layer(lemma: Lemma) -> str | None:

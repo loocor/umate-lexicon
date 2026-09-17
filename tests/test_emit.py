@@ -64,3 +64,21 @@ def test_wiki_only_titles_are_not_emitted(tmp_path: Path) -> None:
     assert "一线城市" in body
     assert "秦虹街道" not in body
     store.close()
+
+
+def test_emitted_weight_is_the_raw_ranking_frequency(tmp_path: Path) -> None:
+    store = LemmaStore(tmp_path / "lemmas.sqlite")
+    store.upsert(
+        Lemma(
+            surface="粉色",
+            pinyin_plain="fen se",
+            status="auto",
+            domain_freq={"essay": 1584, "cedict": 1},
+            sources=[SourceRef("essay", "lgpl-rime-essay", "essay.txt")],
+        )
+    )
+    out = tmp_path / "rime"
+    emit_rime(store, out)
+    body = (out / "umate_base.dict.yaml").read_text(encoding="utf-8")
+    assert "粉色\tfen se\t1585" in body
+    store.close()
