@@ -12,6 +12,13 @@ class SourceLockError(ValueError):
     pass
 
 
+def is_blocked_license(license_id: str) -> bool:
+    compact = "".join(ch for ch in license_id.lower() if ch.isalnum())
+    return compact.startswith("agpl") or (
+        compact.startswith("gpl") and not compact.startswith("lgpl")
+    )
+
+
 @dataclass(frozen=True)
 class ExtractSpec:
     kind: str
@@ -91,6 +98,11 @@ def _parse_source(item: object, lock_path: Path) -> PinnedSource:
     ingest = item["ingest"]
     if ingest not in ALLOWED_INGEST:
         raise SourceLockError(f"unknown ingest kind {ingest!r} in {lock_path}")
+    license_id = str(item["license"])
+    if is_blocked_license(license_id):
+        raise SourceLockError(
+            f"blocked GPL/AGPL license {license_id!r} for source {item['id']}"
+        )
     extract_raw = item.get("extract")
     extract = None
     if extract_raw is not None:
@@ -109,7 +121,7 @@ def _parse_source(item: object, lock_path: Path) -> PinnedSource:
     homepage = item.get("homepage")
     return PinnedSource(
         id=str(item["id"]),
-        license=str(item["license"]),
+        license=license_id,
         url=str(item["url"]),
         sha256=str(item["sha256"]).lower(),
         filename=str(item["filename"]),

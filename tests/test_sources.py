@@ -103,6 +103,43 @@ def test_missing_dump_is_hard_failure(tmp_path: Path) -> None:
         verify_ingest_file(lock.sources[0], tmp_path / "downloads")
 
 
+def test_gpl_and_agpl_licenses_are_blocked(tmp_path: Path) -> None:
+    for license_id in ("gpl-3.0-only", "AGPL-3.0-or-later", "gplv3"):
+        lock_path = _lock(
+            tmp_path,
+            [
+                {
+                    "id": "blocked",
+                    "license": license_id,
+                    "url": "https://example.invalid/blocked.txt",
+                    "sha256": "0" * 64,
+                    "filename": "blocked.txt",
+                    "ingest": "cedict",
+                }
+            ],
+        )
+        with pytest.raises(SourceLockError, match="blocked GPL/AGPL license"):
+            load_lock(lock_path)
+
+
+def test_lgpl_is_not_treated_as_gpl(tmp_path: Path) -> None:
+    lock_path = _lock(
+        tmp_path,
+        [
+            {
+                "id": "essay",
+                "license": "lgpl-rime-essay",
+                "url": "https://example.invalid/essay.txt",
+                "sha256": "0" * 64,
+                "filename": "essay.txt",
+                "ingest": "essay",
+            }
+        ],
+    )
+    lock = load_lock(lock_path)
+    assert lock.sources[0].license == "lgpl-rime-essay"
+
+
 def test_unknown_ingest_kind_rejected(tmp_path: Path) -> None:
     lock_path = _lock(
         tmp_path,
