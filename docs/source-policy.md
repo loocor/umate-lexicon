@@ -27,8 +27,12 @@ A source may be pinned only if all of the following hold:
   "GPL-3.0-only" and similar all fail the lock parser. This is a
   product decision: the emitted tables are embedded in a commercial
   app, so copyleft source code licenses are out of scope entirely.
-  `is_blocked_license()` implements the check; LGPL is deliberately
-  allowed and is the license of official Rime luna / essay / emoji.
+  `is_blocked_license()` implements the check and matches anywhere in
+  the license id, so spelled-out forms (`GNU GPL v3`, `Affero GPL`,
+  `GNU General Public License v3.0`) are caught too. LGPL is
+  deliberately allowed and is the license of official Rime
+  luna / essay / emoji; `LGPL-3.0` and `Lesser General Public
+  License` are exempt from the GPL match.
 - Recipe trees: `iDvel/rime-ice`, `rime-wanxiang`, `melt_eng`, or any
   community schema / Lua / OpenCC tree. See `CLEANROOM.md`.
 - Commercial IME cell dictionaries: Sogou / QQ / Baidu `.scel` exports.

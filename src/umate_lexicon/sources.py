@@ -12,11 +12,20 @@ class SourceLockError(ValueError):
     pass
 
 
+# License ids are free text, so match substrings rather than a prefix:
+# "GNU GPL v3", "Affero GPL" and the spelled-out names must all be caught.
+_LGPL_HINTS = ("lgpl", "lessergeneralpubliclicense")
+_AGPL_HINTS = ("agpl", "affero")
+_GPL_HINTS = ("gpl", "generalpubliclicense")
+
+
 def is_blocked_license(license_id: str) -> bool:
     compact = "".join(ch for ch in license_id.lower() if ch.isalnum())
-    return compact.startswith("agpl") or (
-        compact.startswith("gpl") and not compact.startswith("lgpl")
-    )
+    if any(hint in compact for hint in _LGPL_HINTS):
+        return False
+    if any(hint in compact for hint in _AGPL_HINTS):
+        return True
+    return any(hint in compact for hint in _GPL_HINTS)
 
 
 @dataclass(frozen=True)

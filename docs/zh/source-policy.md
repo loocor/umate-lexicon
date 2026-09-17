@@ -26,8 +26,11 @@ pin、怎么记录。英文原件在 [`docs/source-policy.md`](../source-policy.
 - **GPL / AGPL，任何变体。** `gpl-*`、`gplv2`、`gplv3`、`agpl-*`、
   `GPL-3.0-only` 等等，一律在 lock 解析阶段直接失败。这是产品决策：
   发出的码表会嵌进商业 App，所以 copyleft 的**源码**许可完全不碰。
-  检查实现在 `is_blocked_license()`。LGPL 是**故意放行**的 ——
-  官方 Rime luna / essay / emoji 就是 LGPL。
+  检查实现在 `is_blocked_license()`，按**子串**匹配，所以全称写法
+（`GNU GPL v3`、`Affero GPL`、`GNU General Public License v3.0`）
+  一并拦下。LGPL 是**故意放行**的 —— 官方 Rime luna / essay / emoji
+  就是 LGPL；`LGPL-3.0` 和 `Lesser General Public License` 不受
+  GPL 匹配影响。
 - 配方树：`iDvel/rime-ice`、`rime-wanxiang`、`melt_eng`，以及任何
   社区 schema / Lua / OpenCC 树。见 `CLEANROOM.md`。
 - 商业输入法 cell 词库：搜狗 / QQ / 百度 `.scel` 导出。

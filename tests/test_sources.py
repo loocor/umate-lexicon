@@ -104,7 +104,15 @@ def test_missing_dump_is_hard_failure(tmp_path: Path) -> None:
 
 
 def test_gpl_and_agpl_licenses_are_blocked(tmp_path: Path) -> None:
-    for license_id in ("gpl-3.0-only", "AGPL-3.0-or-later", "gplv3"):
+    for license_id in (
+        "gpl-3.0-only",
+        "AGPL-3.0-or-later",
+        "gplv3",
+        "GNU GPL v3",
+        "GNU General Public License v3.0",
+        "GNU Affero General Public License v3.0",
+        "Affero GPL",
+    ):
         lock_path = _lock(
             tmp_path,
             [
@@ -122,13 +130,14 @@ def test_gpl_and_agpl_licenses_are_blocked(tmp_path: Path) -> None:
             load_lock(lock_path)
 
 
-def test_lgpl_is_not_treated_as_gpl(tmp_path: Path) -> None:
+@pytest.mark.parametrize("license_id", ["lgpl-rime-essay", "LGPL-3.0", "Lesser General Public License"])
+def test_lgpl_is_not_treated_as_gpl(tmp_path: Path, license_id: str) -> None:
     lock_path = _lock(
         tmp_path,
         [
             {
                 "id": "essay",
-                "license": "lgpl-rime-essay",
+                "license": license_id,
                 "url": "https://example.invalid/essay.txt",
                 "sha256": "0" * 64,
                 "filename": "essay.txt",
@@ -137,7 +146,7 @@ def test_lgpl_is_not_treated_as_gpl(tmp_path: Path) -> None:
         ],
     )
     lock = load_lock(lock_path)
-    assert lock.sources[0].license == "lgpl-rime-essay"
+    assert lock.sources[0].license == license_id
 
 
 def test_unknown_ingest_kind_rejected(tmp_path: Path) -> None:
