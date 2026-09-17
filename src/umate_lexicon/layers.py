@@ -107,14 +107,16 @@ def assign_layer(lemma: Lemma) -> str | None:
         return None
     if n in {2, 3} and lemma.status == "gold":
         return "base"
-    if n in {2, 3} and lemma.status == "auto":
+    # review is scrutiny, not a hard emit ban — high-freq short lemmas share
+    # the auto short-layer gate (带着 / 拿着 and similar aspect bigrams).
+    if n in {2, 3} and lemma.status in {"auto", "review"}:
         return _auto_short_layer(lemma, n)
     rf = ranking_freq(lemma)
     if n >= 4 and (lemma.status == "gold" or rf >= PHRASE_HOT_FREQ):
         return "phrases"
     if n == 4:
         return "ext"
-    if "polyphone" in lemma.flags and lemma.status != "gold":
+    if "polyphone" in lemma.flags and lemma.status not in {"gold", "auto"}:
         return None
     return "bulk"
 

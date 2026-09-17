@@ -50,16 +50,18 @@ def test_composable_absent_surface_is_segmentation(tmp_path: Path) -> None:
 
 def test_filtered_when_no_layer_survives(tmp_path: Path) -> None:
     store = _store(tmp_path)
+    # Short high-freq review lemmas may now emit; keep a long low-freq
+    # polyphone review case as the still-filtered inventory bucket.
     store.upsert(
         Lemma(
-            surface="中书",
-            pinyin_plain="zhong shu",
+            surface="中书省试案",
+            pinyin_plain="zhong shu sheng shi an",
             status="review",
             flags=["polyphone"],
             domain_freq={"essay": 408},
         )
     )
-    finding = classify_surface(store, "中书")
+    finding = classify_surface(store, "中书省试案")
     assert finding.bucket == "present-filtered"
     assert "status=review" in finding.detail
     assert "flags=polyphone" in finding.detail
