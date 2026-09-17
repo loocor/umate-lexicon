@@ -29,8 +29,9 @@ def test_emit_writes_packs(tmp_path: Path) -> None:
         Lemma(
             surface="一会儿",
             pinyin_plain="yi hui r",
-            weight=5,
+            weight=5000,
             status="auto",
+            domain_freq={"essay": 5000},
             sources=[SourceRef("essay", "lgpl-rime-essay", "test")],
         )
     )

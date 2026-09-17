@@ -24,15 +24,50 @@ def is_trusted_reading(lemma: Lemma) -> bool:
 def compose_pinyin(store: LemmaStore, surface: str) -> str | None:
     syllables: list[str] = []
     for char in surface:
-        lemmas = store.readings_for(char)
-        trusted = [item for item in lemmas if is_trusted_reading(item)]
-        plains = _unique_plain(trusted if trusted else lemmas)
-        if len(plains) != 1:
+        plain = preferred_plain(store.readings_for(char))
+        if plain is None:
             return None
-        syllables.append(plains[0])
+        syllables.append(plain)
     if not syllables:
         return None
     return " ".join(syllables)
+
+
+def preferred_plain(lemmas: list[Lemma]) -> str | None:
+    """Pick one plain reading for phrase baking.
+
+    Polyphones often carry several trusted plains (和 he/hu/huo). Dropping the
+    whole phrase made skeleton bigrams like 我和 / 我的 disappear from the
+    store. Prefer TGH / gold, then denser trusted evidence, then weight.
+    """
+    usable = [
+        item
+        for item in lemmas
+        if item.status != "rejected" and "untrusted_reading" not in item.flags
+    ]
+    trusted = [item for item in usable if is_trusted_reading(item)]
+    pool = trusted if trusted else usable
+    plains = _unique_plain(pool)
+    if len(plains) == 1:
+        return plains[0]
+    if not plains:
+        return None
+    best_by_plain: dict[str, Lemma] = {}
+    for lemma in pool:
+        current = best_by_plain.get(lemma.pinyin_plain)
+        if current is None or _reading_score(lemma) > _reading_score(current):
+            best_by_plain[lemma.pinyin_plain] = lemma
+    return max(best_by_plain.values(), key=_reading_score).pinyin_plain
+
+
+def _reading_score(lemma: Lemma) -> tuple[int, int, int, int]:
+    trusted_sources = sum(1 for ref in lemma.sources if ref.source_id in TRUSTED_SOURCE_IDS)
+    return (
+        1 if "tgh" in lemma.flags else 0,
+        1 if lemma.status == "gold" or "gold" in lemma.flags else 0,
+        trusted_sources,
+        int(lemma.weight),
+    )
 
 
 def overlay_domain_freq(

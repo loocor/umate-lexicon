@@ -53,14 +53,14 @@ def test_wiki_only_bigrams_are_not_emitted() -> None:
     assert assign_layer(lemma) is None
 
 
-def test_gold_five_char_term_stays_in_ext() -> None:
+def test_gold_five_char_term_goes_to_phrases() -> None:
     lemma = Lemma(
         surface="大语言模型",
         pinyin_plain="da yu yan mo xing",
         status="gold",
         flags=["gold"],
     )
-    assert assign_layer(lemma) == "ext"
+    assert assign_layer(lemma) == "phrases"
 
 
 def test_wiki_only_false_place_is_not_emitted() -> None:

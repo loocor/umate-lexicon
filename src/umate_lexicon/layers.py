@@ -7,7 +7,10 @@ from umate_lexicon.lemma import Lemma
 _HAN = re.compile(r"[\u4e00-\u9fff]")
 
 CORE_LAYERS = ("chars", "base")
+# Hot every-key packs beyond chars/base (wired by VoiMate sync into umate_hans).
+HOT_PACK_LAYERS = ("phrases", "corrections", "emoji")
 PACK_LAYERS = (
+    "phrases",
     "ext",
     "names",
     "places",
@@ -20,6 +23,13 @@ PACK_LAYERS = (
 )
 COVERAGE_SOURCE_IDS = frozenset({"wiki", "tencent"})
 COVERAGE_FREQ_DOMAINS = frozenset({"wiki", "tencent"})
+# Essay 4+ grams at or above this ranking_freq ride the hot phrase pack so
+# long common phrases participate in every-key sentence ranking.
+PHRASE_HOT_FREQ = 1000
+# Auto 2–3 char lemmas need luna or this essay-scale floor to stay in hot base;
+# weaker CEDICT/essay noise (涡核 / 沃德) demotes to cold bulk.
+BASE_AUTO_FREQ = 1000
+BASE_CEDICT_FREQ = 500
 
 
 def han_len(surface: str) -> int:
@@ -95,12 +105,31 @@ def assign_layer(lemma: Lemma) -> str | None:
         if lemma.status == "gold" or "tgh" in lemma.flags or any(ref.source_id == "chars" for ref in lemma.sources):
             return "chars"
         return None
-    if n in {2, 3} and lemma.status in {"gold", "auto"}:
+    if n in {2, 3} and lemma.status == "gold":
         return "base"
-    if lemma.status == "gold" and n >= 4:
-        return "ext"
+    if n in {2, 3} and lemma.status == "auto":
+        return _auto_short_layer(lemma, n)
+    rf = ranking_freq(lemma)
+    if n >= 4 and (lemma.status == "gold" or rf >= PHRASE_HOT_FREQ):
+        return "phrases"
     if n == 4:
         return "ext"
     if "polyphone" in lemma.flags and lemma.status != "gold":
         return None
     return "bulk"
+
+
+def _auto_short_layer(lemma: Lemma, n: int) -> str:
+    rf = ranking_freq(lemma)
+    source_ids = {ref.source_id for ref in lemma.sources}
+    if "luna" in source_ids or rf >= BASE_AUTO_FREQ:
+        return "base"
+    if "cedict" in source_ids and rf >= BASE_CEDICT_FREQ:
+        return "base"
+    if n == 3 and rf >= BASE_CEDICT_FREQ:
+        return "base"
+    # Explicit weak mass signal (essay/cedict/thuocl below floor) → cold bulk.
+    # Lemmas with no mass freq keep prior hot-base behavior.
+    if rf > 0 and source_ids & {"essay", "cedict", "thuocl"}:
+        return "bulk"
+    return "base"
