@@ -41,10 +41,17 @@ def test_repo_lock_version_and_kinds() -> None:
         "wiki_linktarget",
         "wiki_category",
         "tencent",
+        "aosp_en",
     } <= kinds
     assert "rime-ice" not in kinds
     assert any(source.id == "unihan" for source in lock.sources)
     assert any(source.id == "cedict" for source in lock.sources)
+    aosp = next(source for source in lock.sources if source.id == "aosp-en-us-wordlist")
+    assert aosp.ingest == "aosp_en"
+    assert aosp.license == "apache-2.0-aosp-latinime"
+    assert aosp.extract is not None
+    assert aosp.extract.kind == "base64-gzip"
+    assert aosp.extract.output == "aosp_en_US_wordlist.csv"
     tencent = next(source for source in lock.sources if source.id == "tencent-light")
     assert tencent.ingest == "tencent"
     assert tencent.license == "cc-by-3.0-tencent"

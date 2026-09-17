@@ -150,6 +150,9 @@ def _ingest_pinned(
         return ingest_wiki_linktarget(store, path, locator=locator, simplify=simplify)
     if source.ingest == "wiki_category":
         return ingest_wiki_category(store, path, locator=locator, simplify=simplify)
+    if source.ingest == "aosp_en":
+        # English sidecar for emit only; not Chinese lemma-store content.
+        return 0
     raise SourceLockError(f"unknown ingest kind {source.ingest!r} for {source.id}")
 
 

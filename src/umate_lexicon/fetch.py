@@ -85,6 +85,14 @@ def _extract(source: PinnedSource, downloads_dir: Path) -> Path:
         with gzip.open(artifact, "rb") as src, ingest_path.open("wb") as out:
             shutil.copyfileobj(src, out)
         return ingest_path
+    if source.extract.kind == "base64-gzip":
+        # Android googlesource ?format=TEXT returns base64 of the .gz bytes.
+        import base64
+
+        raw = base64.b64decode(artifact.read_text(encoding="ascii"))
+        with gzip.open(io.BytesIO(raw), "rb") as src, ingest_path.open("wb") as out:
+            shutil.copyfileobj(src, out)
+        return ingest_path
     if source.extract.kind == "transcode":
         if source.extract.input_encoding is None:
             raise SourceLockError(f"transcode input encoding missing for {source.id}")

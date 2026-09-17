@@ -82,13 +82,18 @@ def emit_rime(store: LemmaStore, out_dir: Path, version: str = "0.1.0") -> dict[
 
 
 def _resolve_aosp_wordlist() -> Path | None:
-    """Prefer pinned download, then fixture, for English sidecar emit."""
+    """Prefer pinned download extract, then downloads CSV, then fixture."""
     from umate_lexicon.paths import data_dir
     from umate_lexicon.sources import default_downloads_dir
 
-    downloads = default_downloads_dir() / "aosp_en_US_wordlist.csv"
-    if downloads.is_file():
-        return downloads
+    downloads = default_downloads_dir()
+    for name in (
+        "aosp_en_US_wordlist.csv",
+        "en_US_wordlist.combined.csv",
+    ):
+        path = downloads / name
+        if path.is_file():
+            return path
     fixture = data_dir() / "fixtures" / "aosp_en_wordlist.csv"
     if fixture.is_file():
         return fixture

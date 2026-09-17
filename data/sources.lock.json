@@ -253,6 +253,20 @@
         "output": "tencent-d200-top1m.txt",
         "max_lines": 1000000
       }
+    },
+    {
+      "id": "aosp-en-us-wordlist",
+      "license": "apache-2.0-aosp-latinime",
+      "homepage": "https://android.googlesource.com/platform/packages/inputmethods/LatinIME/",
+      "note": "AOSP LatinIME en_US_wordlist.combined. googlesource ?format=TEXT is base64 of the .gz bytes; extract base64-gzip yields the CSV for emit_aosp_en. Not Chinese lemma-store content.",
+      "url": "https://android.googlesource.com/platform/packages/inputmethods/LatinIME/+/refs/heads/main/dictionaries/en_US_wordlist.combined.gz?format=TEXT",
+      "sha256": "9eb41d421deca91ed79ab22be295d0c2abe53288603a4994c488dae65d5932cc",
+      "filename": "en_US_wordlist.combined.gz.b64",
+      "ingest": "aosp_en",
+      "extract": {
+        "kind": "base64-gzip",
+        "output": "aosp_en_US_wordlist.csv"
+      }
     }
   ]
 }
