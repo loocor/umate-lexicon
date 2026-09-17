@@ -36,7 +36,7 @@ from umate_lexicon.store import LemmaStore
 from umate_lexicon.t2s import SimplifyFn, load_unihan_simplified, make_simplifier
 from umate_lexicon.verify.rules import apply_rules
 
-_GOLD_SKIP = frozenset({"polyphones.tsv", "eval-sentences.tsv", "layer-overrides.tsv"})
+_GOLD_SKIP = frozenset({"polyphones.tsv", "eval-sentences.tsv", "layer-overrides.tsv", "daily-gaps.tsv"})
 
 
 def run_fixture_pipeline(

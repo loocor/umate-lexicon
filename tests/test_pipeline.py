@@ -2,7 +2,7 @@ from pathlib import Path
 
 from umate_lexicon.eval.gold import evaluate_store
 from umate_lexicon.layers import assign_layer
-from umate_lexicon.pipeline import run_fixture_pipeline
+from umate_lexicon.pipeline import _ingest_authored_gold, run_fixture_pipeline
 from umate_lexicon.store import LemmaStore
 
 
@@ -58,4 +58,12 @@ def test_thuocl_composes_unique_chars(tmp_path: Path) -> None:
     store = LemmaStore(store_path)
     lemma = store.get("文件备份", "wen jian bei fen")
     assert lemma is not None
+    store.close()
+
+
+def test_daily_gap_ledger_is_not_ingested_as_gold(tmp_path: Path) -> None:
+    store = LemmaStore(tmp_path / "lemmas.sqlite")
+    _ingest_authored_gold(store)
+    assert store.get("surface", "origin") is None
+    assert store.get("偷偷", "user") is None
     store.close()

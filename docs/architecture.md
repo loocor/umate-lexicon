@@ -71,8 +71,9 @@ vocab lines are `freq=1`; vectors never enter the store.
 ## Gap triage
 
 `data/gold/daily-gaps.tsv` is the running ledger of words users report as
-untypeable. `python -m umate_lexicon gaps` classifies each row against the
-store so a report turns into an action instead of a guess:
+untypeable. It is triage input only and must not be ingested as gold; the
+locked pipeline excludes it. `python -m umate_lexicon gaps` classifies each
+row against the store so a report turns into an action instead of a guess:
 
 | Bucket | Meaning | Action |
 | --- | --- | --- |
