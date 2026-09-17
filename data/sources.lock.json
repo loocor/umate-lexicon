@@ -236,6 +236,23 @@
         "kind": "word2vec-vocab",
         "output": "tencent-light-vocab.txt"
       }
+    },
+    {
+      "id": "tencent-d200-key-top1m",
+      "license": "cc-by-3.0-tencent",
+      "homepage": "https://huggingface.co/conanyu/tencent-ailab-embedding-zh-d200-v0.2.0-optim/tree/26b432a69cca98e291a76b6e8e8890f3527b67b5",
+      "note": "Tencent AI Lab d200 v0.2.0 embedding key list mirrored at a pinned Hugging Face revision. The upstream vocabulary is CC BY 3.0; the mirror declares no separate license. The original Tencent tar endpoint now returns an HTML app. The key list is 12,287,936 lines; ingest only the first 1,000,000 lines in source order as a bounded high-frequency coverage slice. The 6.14 GB vector file is not downloaded.",
+      "url": "https://huggingface.co/conanyu/tencent-ailab-embedding-zh-d200-v0.2.0-optim/resolve/26b432a69cca98e291a76b6e8e8890f3527b67b5/tencent-ailab-embedding-zh-d200-v0.2.0-key.txt",
+      "sha256": "9f4de2a6fcdd79692f172b6cf65078ced619919fd60e80c031f61bf13ac5e58a",
+      "filename": "Tencent_AILab_ChineseEmbedding_key_gbk.txt",
+      "ingest": "tencent",
+      "extract": {
+        "kind": "transcode",
+        "input_encoding": "cp936",
+        "errors": "replace",
+        "output": "tencent-d200-top1m.txt",
+        "max_lines": 1000000
+      }
     }
   ]
 }

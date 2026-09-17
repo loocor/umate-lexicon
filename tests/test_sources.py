@@ -57,8 +57,21 @@ def test_repo_lock_version_and_kinds() -> None:
     assert tencent.extract is not None
     assert tencent.extract.kind == "word2vec-vocab"
     assert tencent.extract.output == "tencent-light-vocab.txt"
+    d200 = next(source for source in lock.sources if source.id == "tencent-d200-key-top1m")
+    assert d200.ingest == "tencent"
+    assert d200.license == "cc-by-3.0-tencent"
+    assert d200.sha256 == "9f4de2a6fcdd79692f172b6cf65078ced619919fd60e80c031f61bf13ac5e58a"
+    assert d200.filename == "Tencent_AILab_ChineseEmbedding_key_gbk.txt"
+    assert "huggingface.co" in d200.url
+    assert d200.extract is not None
+    assert d200.extract.kind == "transcode"
+    assert d200.extract.input_encoding == "cp936"
+    assert d200.extract.errors == "replace"
+    assert d200.extract.output == "tencent-d200-top1m.txt"
+    assert d200.extract.max_lines == 1_000_000
     ids = [source.id for source in lock.sources]
     assert ids.index("tencent-light") > ids.index("zhwiki-categorylinks")
+    assert ids.index("tencent-d200-key-top1m") > ids.index("zhwiki-categorylinks")
 
 
 def test_hash_mismatch_is_hard_failure(tmp_path: Path) -> None:
@@ -165,6 +178,40 @@ def test_unknown_ingest_kind_rejected(tmp_path: Path) -> None:
     )
     with pytest.raises(SourceLockError, match="unknown ingest kind"):
         load_lock(lock_path)
+
+
+def test_fetch_transcodes_gbk_and_limits_lines(tmp_path: Path) -> None:
+    raw = "微信\n".encode("cp936") + b"\x80\n" + "人工智能\n".encode("cp936")
+    artifact = tmp_path / "tencent-key-gbk.txt"
+    artifact.write_bytes(raw)
+    digest = sha256_file(artifact)
+    downloads = tmp_path / "downloads"
+    downloads.mkdir()
+    (downloads / artifact.name).write_bytes(raw)
+    lock_path = _lock(
+        tmp_path,
+        [
+            {
+                "id": "tencent",
+                "license": "cc-by-3.0-tencent",
+                "url": "https://example.invalid/tencent-key-gbk.txt",
+                "sha256": digest,
+                "filename": artifact.name,
+                "ingest": "tencent",
+                "extract": {
+                    "kind": "transcode",
+                    "input_encoding": "cp936",
+                    "errors": "replace",
+                    "output": "tencent-key.txt",
+                    "max_lines": 2,
+                },
+            }
+        ],
+    )
+    lock = load_lock(lock_path)
+    results = fetch_locked_sources(lock=lock, downloads_dir=downloads)
+    assert results["tencent"] == "cached"
+    assert (downloads / "tencent-key.txt").read_text(encoding="utf-8") == "微信\n�\n"
 
 
 def test_fetch_extracts_gzip_and_verifies(tmp_path: Path) -> None:

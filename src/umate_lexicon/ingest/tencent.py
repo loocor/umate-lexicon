@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from umate_lexicon.ingest.compose import compose_pinyin, is_han_only, overlay_domain_freq
-from umate_lexicon.ingest.io import read_ingest_text
+from umate_lexicon.ingest.io import iter_ingest_text
 from umate_lexicon.lemma import Lemma, SourceRef
 from umate_lexicon.store import LemmaStore
 from umate_lexicon.t2s import SimplifyFn
@@ -25,10 +25,9 @@ def ingest_tencent(
     locator: str | None = None,
     simplify: SimplifyFn | None = None,
 ) -> int:
-    text = read_ingest_text(path)
     count = 0
     source = locator or f"tencent:{path.name}"
-    for raw in text.splitlines():
+    for raw in iter_ingest_text(path):
         line = raw.strip()
         if not line or line.startswith("#"):
             continue

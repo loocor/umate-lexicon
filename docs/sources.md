@@ -41,9 +41,13 @@ Current pins:
 - Tencent AI Lab embedding **light** subset via ModelScope
   `lili666/text2vec-word2vec-tencent-chinese`
   (`light_Tencent_AILab_ChineseEmbedding.bin`, lock id `tencent-light`).
-  Official full dump (~8M words / multi-GB) is still unavailable; those
-  URLs return HTML. This is not that dump. Do not copy rime-ice
-  `tencent.dict.yaml`.
+- Tencent AI Lab d200 v0.2.0 key list via a pinned Hugging Face revision
+  (`26b432a69cca98e291a76b6e8e8890f3527b67b5`, lock id
+  `tencent-d200-key-top1m`). The mirror declares no separate license;
+  attribution follows the upstream CC BY 3.0 Tencent AI Lab vocabulary.
+  The key list has 12,287,936 lines. The lock transcodes its first
+  1,000,000 lines from CP936 to UTF-8 and does not download the 6.14 GB
+  vector payload. Do not copy rime-ice `tencent.dict.yaml`.
 
 Essay is the ranking source (`domain_freq.essay`). Luna is coverage plus
 official readings. Ingest folds Traditional surfaces to Hans with Unihan
@@ -52,20 +56,23 @@ official readings. Ingest folds Traditional surfaces to Hans with Unihan
 readings (gold / cedict / unihan / chars). Leftover luna-only readings
 are flagged `untrusted_reading` and are not emitted.
 
-Tencent AI Lab embeddings are **coverage**, not frequency. The binary
-has no counts; ingest treats vocab lines as `freq=1` / unique compose
-and never invents essay-like weights. Overlay stamps `domain_freq.tencent=1`
-on existing lemmas; emit ranking ignores that placeholder so essay
-stays the sort key. Tencent-only unique-compose lemmas stay in **bulk**
-(not base/ext). Lock order puts `tencent-light` after the wiki dumps
-so overlay cannot steal wiki identity. Fetch downloads the ModelScope
-resolve URL (CDN `auth_key` redirects are ephemeral; the resolve URL
-plus content sha256 are the pin). `extract.kind = word2vec-vocab`
-writes a first-column word list only — vectors never enter the store.
-`scripts/extract-tencent-vocab.py` reads Google/gensim binary as well
-as text / tar.gz. CI stays on fixtures; do not commit the ~111MB bin
-or the derived vocab. ModelScope card Apache-2.0 is packaging;
-vocabulary attribution remains CC BY 3.0 Tencent AI Lab.
+Tencent AI Lab embeddings are **coverage**, not frequency. The ModelScope
+binary and the d200 key list have no counts; ingest treats vocab lines as
+`freq=1` / unique compose and never invents essay-like weights. Overlay
+stamps `domain_freq.tencent=1` on existing lemmas; emit ranking ignores
+that placeholder so essay stays the sort key. Tencent-only unique-compose
+lemmas stay in **bulk** (not base/ext). Lock order puts both Tencent sources
+after the wiki dumps so overlay cannot steal wiki identity. Fetch downloads
+the ModelScope resolve URL (CDN `auth_key` redirects are ephemeral; the
+resolve URL plus content sha256 are the pin) and the pinned Hugging Face
+revision. `extract.kind = word2vec-vocab` writes a first-column word list
+only — vectors never enter the store. `extract.kind = transcode` converts
+the d200 CP936 key list to UTF-8 and `max_lines` bounds the slice while
+streaming. `scripts/extract-tencent-vocab.py` reads Google/gensim binary as
+well as text / tar.gz. CI stays on fixtures; do not commit the raw bins or
+derived vocab. ModelScope card Apache-2.0 is packaging; the Hugging Face
+mirror declares no separate license. Vocabulary attribution remains
+CC BY 3.0 Tencent AI Lab.
 
 Share-alike (CC-CEDICT, Wikipedia titles) is tagged, never silently
 folded into a default keyboard SKU.

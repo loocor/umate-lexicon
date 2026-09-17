@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import gzip
+import io
 import shutil
 import urllib.request
 import zipfile
@@ -83,6 +84,23 @@ def _extract(source: PinnedSource, downloads_dir: Path) -> Path:
     if source.extract.kind == "gzip":
         with gzip.open(artifact, "rb") as src, ingest_path.open("wb") as out:
             shutil.copyfileobj(src, out)
+        return ingest_path
+    if source.extract.kind == "transcode":
+        if source.extract.input_encoding is None:
+            raise SourceLockError(f"transcode input encoding missing for {source.id}")
+        with artifact.open("rb") as raw, ingest_path.open("w", encoding="utf-8", newline="") as out:
+            with io.TextIOWrapper(
+                raw,
+                encoding=source.extract.input_encoding,
+                errors=source.extract.errors,
+            ) as decoded:
+                if source.extract.max_lines is None:
+                    shutil.copyfileobj(decoded, out)
+                else:
+                    for index, line in enumerate(decoded):
+                        if index >= source.extract.max_lines:
+                            break
+                        out.write(line)
         return ingest_path
     if source.extract.kind == "zip":
         member = source.extract.member

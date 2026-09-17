@@ -67,7 +67,7 @@ wiki-only 库存类型（**不改变发射层**，只记账）：
 
 ## 明确还没做
 
-1. 腾讯官方约 800 万全量 dump 仍不可用（URL 返回 HTML）。已钉 ModelScope light 高频子集（`tencent-light`）。light 吸收实测见 [tencent-light-absorb-2026-09-16.md](tencent-light-absorb-2026-09-16.md)。本表 wiki 行数仍是钉 light **之前** 的一轮；不要把两轮数字直接加总。
+1. 腾讯官方约 800 万全量 dump 仍不可用（URL 返回 HTML）。当前已钉两层：ModelScope light 高频子集（`tencent-light`），以及 Hugging Face 固定 revision 的 d200 v0.2.0 key 表前 100 万行（`tencent-d200-key-top1m`，CP936 转 UTF-8 后流式截断）。镜像没有单独声明许可，词表署名仍按腾讯 AI Lab CC BY 3.0 记录；不下载 6.14 GB 向量本体。light 吸收实测见 [tencent-light-absorb-2026-09-16.md](tencent-light-absorb-2026-09-16.md)。本表 wiki 行数仍是钉 light **之前** 的一轮；不要把两轮数字直接加总。
 2. 不把 bulk 放进默认 SKU。
 3. 不把维基人物/作品用 pageviews 抬出 bulk。
 4. 不接键盘，不抄雾凇。

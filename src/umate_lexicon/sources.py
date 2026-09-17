@@ -33,6 +33,9 @@ class ExtractSpec:
     kind: str
     output: str
     member: str | None = None
+    input_encoding: str | None = None
+    errors: str = "strict"
+    max_lines: int | None = None
 
 
 @dataclass(frozen=True)
@@ -62,7 +65,7 @@ class SourceLock:
 
 
 ALLOWED_INGEST = frozenset({"unihan", "t2s", "tgh", "cedict", "thuocl", "luna", "essay", "emoji", "tencent", "wiki", "wiki_page", "wiki_linktarget", "wiki_category"})
-ALLOWED_EXTRACT = frozenset({"gzip", "zip", "word2vec-vocab"})
+ALLOWED_EXTRACT = frozenset({"gzip", "zip", "word2vec-vocab", "transcode"})
 
 
 def default_lock_path() -> Path:
@@ -126,7 +129,24 @@ def _parse_source(item: object, lock_path: Path) -> PinnedSource:
         member = extract_raw.get("member")
         if kind == "zip" and not member:
             raise SourceLockError(f"extract.member required for zip source {item['id']}")
-        extract = ExtractSpec(kind=kind, output=str(output), member=None if member is None else str(member))
+        input_encoding = extract_raw.get("input_encoding")
+        if kind == "transcode" and not input_encoding:
+            raise SourceLockError(f"extract.input_encoding required for transcode source {item['id']}")
+        errors = str(extract_raw.get("errors", "strict"))
+        if errors not in {"strict", "replace", "ignore"}:
+            raise SourceLockError(f"unsupported extract.errors {errors!r} for {item['id']}")
+        max_lines = extract_raw.get("max_lines")
+        if max_lines is not None:
+            if isinstance(max_lines, bool) or not isinstance(max_lines, int) or max_lines <= 0:
+                raise SourceLockError(f"extract.max_lines must be a positive integer for {item['id']}")
+        extract = ExtractSpec(
+            kind=kind,
+            output=str(output),
+            member=None if member is None else str(member),
+            input_encoding=None if input_encoding is None else str(input_encoding),
+            errors=errors,
+            max_lines=max_lines,
+        )
     homepage = item.get("homepage")
     return PinnedSource(
         id=str(item["id"]),
