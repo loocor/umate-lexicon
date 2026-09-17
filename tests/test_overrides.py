@@ -43,14 +43,14 @@ def test_cross_strait_alias_goes_to_corrections() -> None:
     assert assign_layer(lemma) == "corrections"
 
 
-def test_wiki_only_bigrams_go_to_bulk() -> None:
+def test_wiki_only_bigrams_are_not_emitted() -> None:
     lemma = Lemma(
         surface="开心",
         pinyin_plain="kai xin",
         status="auto",
         sources=[SourceRef("wiki", "cc-by-sa-wikimedia", "wiki")],
     )
-    assert assign_layer(lemma) == "bulk"
+    assert assign_layer(lemma) is None
 
 
 def test_gold_five_char_term_stays_in_ext() -> None:
@@ -63,7 +63,7 @@ def test_gold_five_char_term_stays_in_ext() -> None:
     assert assign_layer(lemma) == "ext"
 
 
-def test_wiki_only_false_place_stays_bulk() -> None:
+def test_wiki_only_false_place_is_not_emitted() -> None:
     lemma = Lemma(
         surface="一剑镇神州",
         pinyin_plain="yi jian zhen shen zhou",
@@ -72,10 +72,10 @@ def test_wiki_only_false_place_stays_bulk() -> None:
         categories=["place"],
         sources=[SourceRef("wiki", "cc-by-sa-wikimedia", "wiki")],
     )
-    assert assign_layer(lemma) == "bulk"
+    assert assign_layer(lemma) is None
 
 
-def test_wiki_only_town_stays_bulk() -> None:
+def test_wiki_only_town_is_not_emitted() -> None:
     lemma = Lemma(
         surface="一亩泉镇",
         pinyin_plain="yi mu quan zhen",
@@ -84,4 +84,4 @@ def test_wiki_only_town_stays_bulk() -> None:
         categories=["place"],
         sources=[SourceRef("wiki", "cc-by-sa-wikimedia", "wiki")],
     )
-    assert assign_layer(lemma) == "bulk"
+    assert assign_layer(lemma) is None

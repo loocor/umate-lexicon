@@ -59,6 +59,13 @@ def assign_layer(lemma: Lemma) -> str | None:
         return "emoji"
     if "correction" in lemma.flags:
         return "corrections"
+    if is_wiki_only(lemma):
+        # Wikipedia titles are encyclopedia entries, not typing vocabulary.
+        # Measured on the locked store: 465k wiki-only rows, none of them
+        # carry any essay frequency, and no product probe word depends on
+        # one. They stay in the store as coverage evidence but must never
+        # reach a candidate list.
+        return None
     if is_coverage_only(lemma):
         return "bulk"
     if lemma.entity_type == "person" or "person" in lemma.categories:

@@ -69,7 +69,7 @@ def test_wiki_only_redirect_is_rejected(tmp_path: Path) -> None:
     store.close()
 
 
-def test_wiki_category_types_stay_in_bulk(tmp_path: Path) -> None:
+def test_wiki_category_types_are_not_emitted(tmp_path: Path) -> None:
     store = LemmaStore(tmp_path / "lemmas.sqlite")
     store.upsert(
         Lemma(
@@ -97,11 +97,11 @@ def test_wiki_category_types_stay_in_bulk(tmp_path: Path) -> None:
     assert company is not None
     assert company.entity_type == "org"
     assert "wiki_category" in company.flags
-    assert assign_layer(company) == "bulk"
+    assert assign_layer(company) is None
     happy = store.get("开心", "kai xin")
     assert happy is not None
     assert happy.entity_type == "person"
-    assert assign_layer(happy) == "bulk"
+    assert assign_layer(happy) is None
     store.close()
 
 
@@ -132,7 +132,7 @@ INSERT INTO `categorylinks` VALUES (9,'2020年出生','page');
     lemma = store.get("李白", "li bai")
     assert lemma is not None
     assert lemma.entity_type == "person"
-    assert assign_layer(lemma) == "bulk"
+    assert assign_layer(lemma) is None
     store.close()
 
 

@@ -34,3 +34,33 @@ def test_emit_writes_packs(tmp_path: Path) -> None:
     assert "aosp_en" in schema
     assert "umate_en" not in schema
     store.close()
+
+
+def test_wiki_only_titles_are_not_emitted(tmp_path: Path) -> None:
+    store = LemmaStore(tmp_path / "lemmas.sqlite")
+    store.upsert(
+        Lemma(
+            surface="秦虹街道",
+            pinyin_plain="qin hong jie dao",
+            status="auto",
+            sources=[SourceRef("wiki", "cc-by-sa-wikimedia", "test")],
+        )
+    )
+    store.upsert(
+        Lemma(
+            surface="一线城市",
+            pinyin_plain="yi xian cheng shi",
+            status="auto",
+            sources=[
+                SourceRef("wiki", "cc-by-sa-wikimedia", "test"),
+                SourceRef("tencent", "cc-by-3.0-tencent", "test"),
+            ],
+        )
+    )
+    out = tmp_path / "rime"
+    counts = emit_rime(store, out)
+    assert counts.get("bulk", 0) == 1
+    body = (out / "umate_bulk.dict.yaml").read_text(encoding="utf-8")
+    assert "一线城市" in body
+    assert "秦虹街道" not in body
+    store.close()

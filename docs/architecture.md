@@ -48,7 +48,8 @@ Status:
 | base | 2–3 Han chars, status gold/auto | core |
 | ext | 4 Han chars, curated | pack |
 | names / places / brands / orgs / events | `entity_type` | packs |
-| bulk | auto, no `polyphone` flag; **coverage-only (wiki and/or tencent) always bulk** | pack |
+| bulk | tencent-only and other low-frequency but real word lists | pack |
+| — | `wiki`-only lemmas | **not emitted** (coverage evidence only) |
 | corrections | `correction` flag | pack |
 | mixed | `mixed_latin` flag | pack or secondary translator |
 
