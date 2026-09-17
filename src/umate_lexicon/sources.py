@@ -12,6 +12,22 @@ class SourceLockError(ValueError):
     pass
 
 
+# License ids are free text, so match substrings rather than a prefix:
+# "GNU GPL v3", "Affero GPL" and the spelled-out names must all be caught.
+_LGPL_HINTS = ("lgpl", "lessergeneralpubliclicense")
+_AGPL_HINTS = ("agpl", "affero")
+_GPL_HINTS = ("gpl", "generalpubliclicense")
+
+
+def is_blocked_license(license_id: str) -> bool:
+    compact = "".join(ch for ch in license_id.lower() if ch.isalnum())
+    if any(hint in compact for hint in _LGPL_HINTS):
+        return False
+    if any(hint in compact for hint in _AGPL_HINTS):
+        return True
+    return any(hint in compact for hint in _GPL_HINTS)
+
+
 @dataclass(frozen=True)
 class ExtractSpec:
     kind: str
@@ -91,6 +107,11 @@ def _parse_source(item: object, lock_path: Path) -> PinnedSource:
     ingest = item["ingest"]
     if ingest not in ALLOWED_INGEST:
         raise SourceLockError(f"unknown ingest kind {ingest!r} in {lock_path}")
+    license_id = str(item["license"])
+    if is_blocked_license(license_id):
+        raise SourceLockError(
+            f"blocked GPL/AGPL license {license_id!r} for source {item['id']}"
+        )
     extract_raw = item.get("extract")
     extract = None
     if extract_raw is not None:
@@ -109,7 +130,7 @@ def _parse_source(item: object, lock_path: Path) -> PinnedSource:
     homepage = item.get("homepage")
     return PinnedSource(
         id=str(item["id"]),
-        license=str(item["license"]),
+        license=license_id,
         url=str(item["url"]),
         sha256=str(item["sha256"]).lower(),
         filename=str(item["filename"]),

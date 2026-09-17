@@ -6,6 +6,7 @@ from pathlib import Path
 from umate_lexicon.emit.rime import emit_rime
 from umate_lexicon.eval.gold import evaluate_store
 from umate_lexicon.fetch import fetch_locked_sources
+from umate_lexicon.gaps import classify_ledger, render_gaps
 from umate_lexicon.ingest.cedict import ingest_cedict
 from umate_lexicon.ingest.chars import ingest_chars
 from umate_lexicon.ingest.emoji import ingest_emoji
@@ -57,6 +58,9 @@ def main(argv: list[str] | None = None) -> int:
     sub.add_parser("inventory", help="summarize lemma coverage")
     absorb = sub.add_parser("tencent-absorb", help="measure tencent-light absorb against the store")
     absorb.add_argument("vocab", type=Path, help="extracted tencent-light-vocab.txt")
+
+    gaps = sub.add_parser("gaps", help="classify reported word gaps against the store")
+    gaps.add_argument("--file", type=Path, default=None, help="gap ledger TSV (default data/gold/daily-gaps.tsv)")
 
     args = parser.parse_args(argv)
     store_path = args.store or default_store_path()
@@ -124,6 +128,10 @@ def main(argv: list[str] | None = None) -> int:
     if args.cmd == "inventory":
         summary = summarize_store(store)
         print(render_summary(summary), end="")
+        store.close()
+        return 0
+    if args.cmd == "gaps":
+        print(render_gaps(classify_ledger(store, args.file)), end="")
         store.close()
         return 0
     if args.cmd == "tencent-absorb":
