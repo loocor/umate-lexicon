@@ -213,7 +213,12 @@ def assign_layer(lemma: Lemma) -> str | None:
             return "brands"
         return None
     if n == 1:
-        if lemma.status == "gold" or "tgh" in lemma.flags or any(ref.source_id == "chars" for ref in lemma.sources):
+        if (
+            lemma.status == "gold"
+            or "tgh" in lemma.flags
+            or "hanyu_pinlu" in lemma.flags
+            or any(ref.source_id == "chars" for ref in lemma.sources)
+        ):
             return "chars"
         return None
     if n in {2, 3} and lemma.status == "gold":
