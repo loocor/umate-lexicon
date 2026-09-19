@@ -43,7 +43,7 @@ def test_cross_strait_alias_goes_to_corrections() -> None:
     assert assign_layer(lemma) == "corrections"
 
 
-def test_wiki_only_bigrams_are_not_emitted() -> None:
+def test_wiki_only_bigrams_go_to_cold_tail() -> None:
     lemma = Lemma(
         surface="开心",
         pinyin_plain="kai xin",
@@ -63,7 +63,12 @@ def test_gold_five_char_term_goes_to_phrases() -> None:
     assert assign_layer(lemma) == "phrases"
 
 
-def test_wiki_only_false_place_is_not_emitted() -> None:
+def test_wiki_only_typed_place_rides_places_pack() -> None:
+    """2026-09-19 policy: wiki-only typed entries join named packs at
+    cold weight for long-code lookup.  They stay below HOT_WEIGHT_FLOOR
+    so they never enter the hot projection."""
+    from umate_lexicon.layers import emit_weight
+
     lemma = Lemma(
         surface="一剑镇神州",
         pinyin_plain="yi jian zhen shen zhou",
@@ -72,10 +77,13 @@ def test_wiki_only_false_place_is_not_emitted() -> None:
         categories=["place"],
         sources=[SourceRef("wiki", "cc-by-sa-wikimedia", "wiki")],
     )
-    assert assign_layer(lemma) is None
+    assert assign_layer(lemma) == "places"
+    assert emit_weight(lemma) == 100  # WIKI_COLD_WEIGHT, below hot floor
 
 
-def test_wiki_only_town_is_not_emitted() -> None:
+def test_wiki_only_typed_town_rides_places_pack() -> None:
+    from umate_lexicon.layers import emit_weight
+
     lemma = Lemma(
         surface="一亩泉镇",
         pinyin_plain="yi mu quan zhen",
@@ -84,4 +92,30 @@ def test_wiki_only_town_is_not_emitted() -> None:
         categories=["place"],
         sources=[SourceRef("wiki", "cc-by-sa-wikimedia", "wiki")],
     )
+    assert assign_layer(lemma) == "places"
+    assert emit_weight(lemma) == 100
+
+
+def test_wiki_only_untyped_stays_out_of_category_packs() -> None:
+    """Untyped wiki-only entries have no category signal and stay in
+    wiki_tail (disabled by default) -- not emitted."""
+    lemma = Lemma(
+        surface="某个概念条目",
+        pinyin_plain="mou ge gai nian tiao mu",
+        status="auto",
+        sources=[SourceRef("wiki", "cc-by-sa-wikimedia", "wiki")],
+    )
     assert assign_layer(lemma) is None
+
+
+def test_wiki_only_tail_when_policy_enabled(monkeypatch) -> None:
+    from umate_lexicon import layers
+
+    monkeypatch.setattr(layers, "WIKI_TAIL_ENABLED", True)
+    lemma = Lemma(
+        surface="开心",
+        pinyin_plain="kai xin",
+        status="auto",
+        sources=[SourceRef("wiki", "cc-by-sa-wikimedia", "wiki")],
+    )
+    assert assign_layer(lemma) == "wiki_tail"

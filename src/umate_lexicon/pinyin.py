@@ -148,7 +148,7 @@ _WS_RE = re.compile(r"\s+")
 def sanitize_emit_code(code: str) -> str | None:
     """Return a Rime-safe plain code, or None if the row must be dropped.
 
-    VoiMate Host compile assumes emit codes are already a–z / digits /
+    uMate Host compile assumes emit codes are already a–z / digits /
     spaces only. Keep this the single source of truth so the keyboard
     sync script does not rewrite lemma rows.
     """

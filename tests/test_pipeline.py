@@ -21,6 +21,12 @@ def test_fixture_pipeline_passes_gold(tmp_path: Path) -> None:
     core = (out_dir / "umate_hans.dict.yaml").read_text(encoding="utf-8")
     assert "import_tables:" in core
     assert "umate_chars" in core
+    assert "- umate_hot_tail" in core
+    assert "umate_wiki_tail" not in core
+    cold_core = (out_dir / "umate_hans_cold.dict.yaml").read_text(encoding="utf-8")
+    assert "umate_wiki_tail" not in cold_core
+    assert "- umate_hot_tail" not in cold_core
+    assert (out_dir / "umate_hot_tail.dict.yaml").exists()
     bank = store.get("银行", "yin hang")
     assert bank is not None
     assert bank.domain_freq.get("essay") == 36856

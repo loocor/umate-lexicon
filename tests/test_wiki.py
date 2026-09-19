@@ -97,11 +97,12 @@ def test_wiki_category_types_are_not_emitted(tmp_path: Path) -> None:
     assert company is not None
     assert company.entity_type == "org"
     assert "wiki_category" in company.flags
-    assert assign_layer(company) is None
+    # 2026-09-19: wiki-only typed entries ride the corresponding pack
+    assert assign_layer(company) == "orgs"
     happy = store.get("开心", "kai xin")
     assert happy is not None
     assert happy.entity_type == "person"
-    assert assign_layer(happy) is None
+    assert assign_layer(happy) == "names"
     store.close()
 
 
@@ -132,7 +133,8 @@ INSERT INTO `categorylinks` VALUES (9,'2020年出生','page');
     lemma = store.get("李白", "li bai")
     assert lemma is not None
     assert lemma.entity_type == "person"
-    assert assign_layer(lemma) is None
+    # 2026-09-19: wiki-only typed lemmas ride the corresponding pack.
+    assert assign_layer(lemma) == "names"
     store.close()
 
 

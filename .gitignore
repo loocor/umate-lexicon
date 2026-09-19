@@ -13,3 +13,4 @@ data/sources/downloads/
 .DS_Store
 uv.lock
 .uv-cache/
+data/sources/wiki_page_weights.tsv
