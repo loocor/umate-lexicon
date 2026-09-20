@@ -32,6 +32,7 @@ def emit_aosp_en(
     out_dir: Path,
     *,
     min_length: int = 4,
+    unigram_min_length: int = 1,
     unigram_limit: int = 20_000,
     snapshot_note: str = "snapshot from Lexicon emit",
 ) -> dict[str, int]:
@@ -40,16 +41,23 @@ def emit_aosp_en(
         for word, weight in load_aosp_wordlist(csv_path)
         if len(word) >= min_length and word.isascii() and word.isalpha()
     ]
+    # Prefix completions need the short function words ("the", "and") that
+    # the Rime table filters away, so the TSV keeps its own floor.
+    unigrams = [
+        (word, weight)
+        for word, weight in load_aosp_wordlist(csv_path)
+        if len(word) >= unigram_min_length and word.isascii() and word.isalpha()
+    ]
     out_dir.mkdir(parents=True, exist_ok=True)
     dict_path = out_dir / "aosp_en.dict.yaml"
     _write_dict(dict_path, words, snapshot_note)
     tsv_path = out_dir / "en_us_unigrams.tsv"
-    _write_unigrams(tsv_path, words[:unigram_limit])
+    _write_unigrams(tsv_path, unigrams[:unigram_limit])
     schema_path = out_dir / "aosp_en.schema.yaml"
     _write_schema(schema_path)
     return {
         "aosp_en_words": len(words),
-        "en_us_unigrams": min(unigram_limit, len(words)),
+        "en_us_unigrams": min(unigram_limit, len(unigrams)),
     }
 
 
