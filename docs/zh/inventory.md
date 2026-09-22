@@ -1,73 +1,71 @@
-# 词库盘点（2026-09-16，wiki 分类排重后）
+# 词库盘点（2026-09-23）
 
-本地 `lemmas.sqlite` 和 `dist/rime/*.dict.yaml` **不入库**。YAML 不是真相；发版看金标、lock 和本盘点。
+这份盘点替换 2026-09-16 的 1,311,126。数字来自当前 `data/store/lemmas.sqlite` 上的 `assign_layer`，不是干净重灌。干净 locked pipeline 另写到 `/tmp/lexicon-locked-rebuild`，因为对已有 store 再 ingest 会把 `domain_freq` 加一遍。那次重灌若还在跑，不能拿来和本表对账。
 
-这一轮**先整理维基，不碰腾讯**。标题表没有拼音、没有收录时间、没有编辑次数；那些字段也不适合当输入法词频。分类和排重改走同一日期的 `page` / `linktarget` / `categorylinks` dump。
+本地 `lemmas.sqlite`、`data/sources/downloads/`、`dist/` 不入库。
 
-## 规模（locked dumps overlay，eval 0 failure）
+## 规模
 
 | 项 | 数量 | 说明 |
 | --- | ---: | --- |
-| lemmas | **1311126** | 条数没变，状态变了 |
-| 独特表面 | 1301130 |  |
-| wiki-only | 844275 | 仍全部 **bulk**，默认 SKU 不带 |
-| wiki-only 重定向 | **378018** | `status=rejected`，`wiki_redirect` |
-| wiki-only 未类型 | 693749 | 含已拒绝重定向 |
-| dropped | 442718 | 重定向 + 未闭合多音 + 未信任读音 |
+| lemmas | 1,425,891 |  |
+| 独特表面 | 1,415,890 |  |
+| auto / rejected / review / gold | 889,272 / 487,435 / 48,999 / 185 |  |
+| wiki-only | 842,019 | 其中发出 184,554，热表 59,786 |
+| cedict-only | 10,970 | 全部 auto。冻结：不再抬进热表，也不剥 |
+| tencent-only | 22,811 | 全部 bulk，`freq=1` |
+| essay-only | 259,733 |  |
 
-发出分层：
+`review` 48,999 里，34,634 仍有发射层，14,365 被滤掉。滤掉的主要是 `untrusted_reading` 和没有可信读音的组合。闭集单字里，luna-only 的 29 条保持不发。
+
+## 发射层
 
 | 层 | 行数 | 角色 |
 | --- | ---: | --- |
-| chars | 7877 | 8105 纪律未改 |
-| base | 220353 | 2–3 字，essay/cedict/thuocl/gold |
-| ext | 79592 | 4 字 + 金标长词 |
-| bulk | **480869** | 维基非重定向为主；上次 775811 |
-| places | **20721** | 金标省市 + THUOCL 等地名；上次 60562 是后缀误伤 |
-| orgs | 43032 | 后缀泄漏已从 wiki-only 拿掉 |
-| names | 11336 | 维基人物仍在 bulk，不进默认 names |
-| emoji | 3585 | 默认 schema 仍不挂 pack |
+| dropped | 815,528 | rejected + 未信任读音 + 未放行 |
+| base | 178,081 | 热表结构层 |
+| bulk | 132,897 | 覆盖；热表只收权重 ≥ 450 的投影 |
+| names | 115,425 | 含冷权重的 wiki 人物 |
+| orgs | 55,323 |  |
+| places | 47,849 |  |
+| ext | 35,626 |  |
+| phrases | 32,563 |  |
+| chars | 7,971 | 含本轮补回的 19 条闭集读音 |
+| emoji | 3,585 | 热表结构层；键盘 schema 另接 |
 | brands | 873 |  |
 | mixed | 138 |  |
 | events | 22 |  |
 | corrections | 10 |  |
 
-wiki-only 库存类型（**不改变发射层**，只记账）：
+`umate_chars.dict.yaml` 实际写出 7,965 行。另有 9 条 chars 层读音被 `sanitize_emit_code` 丢掉或改写：`儿/r`，以及 `呒/呣/嗯` 的鼻音声调码。本跑道不改清洗规则。
 
-| entity | 数量 |
-| --- | ---: |
-| none | 693749 |
-| person | 104527 |
-| place | 26586 |
-| org | 12190 |
-| work | 7223 |
+## 本轮多音补回
 
-例：`一剑镇神州` 不再当地名；`一亩泉镇` 标 place 但仍是 bulk；`上海` 金标仍在 places。
+闭集 84 字里，19 条读音已有 CC-CEDICT，也有 essay/luna，但单字门原先只认 gold / tgh / kHanyuPinlu / chars 源，所以没发出。现已进 `chars`。权重没改，仍是 `ranking_freq`。其中几条次读音带着主读音的 essay 计数，所以权重很高，不是口语实测：
 
-## 维基 meta 能不能当词频？
+| 表面 | 拼音 | 发出权重 |
+| --- | --- | ---: |
+| 和 | hu | 1995095 |
+| 说 | shui | 1021126 |
+| 将 | qiang | 361278 |
+| 行 | heng | 119731 |
+| 车 | ju | 81081 |
+| 区 | ou | 79185 |
 
-不能。
+其余 13 条在 5,076–64,207。这是读音补回，不是排序实验。次读音和主读音共享 essay 计数的问题留到下一次确认。
 
-| dump | 有什么 | 输入法词频？ |
-| --- | --- | --- |
-| `all-titles-in-ns0` | 只有标题 | 否 |
-| `page` | `page_is_redirect`、`page_len`、`page_touched` | `page_len` 是条目字节，不是「的/了」。**禁止**写入 `domain_freq` |
-| `categorylinks` + `linktarget` | 分类 | 类型，不是口语频次 |
-| stub-meta-history（8GB，未拉） | 可算创建时间和编辑次数 | 百科热度 ≠ 口语。未用 |
-| Wikidata P1721 拼音 | 极少 | 不够用 |
+## Share-alike
 
-拼音：中文维基标题表没有拼音。条目 infobox 要 3.3GB XML；Wiktionary `{{zh-pron}}` 是另一份 dump。本轮继续 **unique compose**，不爬正文。
+没有记录过的法律结论。59,786 条 wiki-only 已经在热表投影里，这是 `02edd7b` 的既有行为。冻结：不再抬，也不剥。`NOTICE` 仍随表走。
 
-## 这一轮做了什么
+## 探针
 
-1. **分层纪律：** wiki-only 一律 bulk。后缀 `镇/州/旗/公司` 不再把维基标题抬进 places/orgs。
-2. **排重：** ns0 重定向且仅有 wiki 来源 → rejected。有 essay/cedict/thuocl 的词不杀。
-3. **分类：** 保守类别标记（`年出生`/`年逝世`/`人物`，电影/电视剧等 ending，公司/大学，行政区划/乡镇）。不用裸 `作品`、不用 `科/属/种`。
-4. **钉死** 20260901：`page` / `linktarget` / `categorylinks`，sha256 是下载后算的，没有编造。
+`eval` 0 failure。四条缺口：偷偷、多少是 `present-shipped`；连着、出门是 `present-ranked-low`。不进 gold。
 
 ## 明确还没做
 
-1. 腾讯官方约 800 万全量 dump 仍不可用（URL 返回 HTML）。当前已钉两层：ModelScope light 高频子集（`tencent-light`），以及 Hugging Face 固定 revision 的 d200 v0.2.0 key 表前 100 万行（`tencent-d200-key-top1m`，CP936 转 UTF-8 后流式截断）。镜像没有单独声明许可，词表署名仍按腾讯 AI Lab CC BY 3.0 记录；不下载 6.14 GB 向量本体。light 吸收实测见 [tencent-light-absorb-2026-09-16.md](tencent-light-absorb-2026-09-16.md)。本表 wiki 行数仍是钉 light **之前** 的一轮；不要把两轮数字直接加总。
-2. 不把 bulk 放进默认 SKU。
-3. 不把维基人物/作品用 pageviews 抬出 bulk。
-4. 不接键盘，不抄雾凇。
+1. 不改 `HOT_WEIGHT_FLOOR`，不改权重公式。
+2. 不把纯 wiki / 纯 CC-CEDICT 再抬进热表。
+3. 不同步键盘，不编译，不装机。
+4. 腾讯全量约 800 万仍不可用。不拉向量。
+5. 不 ingest rime-ice / rime-frost / melt_eng / 商业细胞词库。

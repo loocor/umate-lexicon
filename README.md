@@ -68,24 +68,17 @@ typing-test *behavior* is allowed.
 ## Pipeline
 
 ```text
-umate_hans.dict.yaml          core: chars + 2–3 char base + A–Z/digits
-translator/packs:
-  umate_ext                   4-char and curated extra
-  umate_names                 people
-  umate_places                admin divisions / POI
-  umate_brands                brands / products
-  umate_orgs                  orgs / industries
-  umate_events                dated events (droppable)
-  umate_bulk                  large coverage, no unresolved polyphones
-  umate_corrections           common typos / wrong pinyin
-secondary translators / sidecars:
-  aosp_en                     English Rime table (AOSP LatinIME, Apache-2.0)
-  en_us_unigrams.tsv          Swift EnglishLexicon truncation (~20k)
-  umate_cn_en                 mixed phrases (planned)
+umate_hans.dict.yaml          hot every-key: chars + base + corrections + emoji + hot_tail
+umate_hans_cold.dict.yaml     full fallback; drawer-only
+umate_hot_tail                long-tail packs at or above the hot weight floor
+umate_mixed                   mixed Latin phrases already emitted
+aosp_en.dict.yaml             English Rime table (AOSP LatinIME, Apache-2.0)
+en_us_unigrams.tsv            Swift EnglishLexicon truncation, including short function words
 ```
 
-Keyboard default SKU: core + ext + names/brands. Bulk and events stay
-optional so the iOS Keyboard Extension can mmap without compiling.
+The keyboard schema is `umate_pinyin*`, owned by uMate. This factory does
+not compile binaries and does not decide which cold packs the extension
+mmap. See [docs/rime-contract.md](docs/rime-contract.md).
 
 ## Quick start
 
@@ -112,7 +105,7 @@ PYTHONPATH=src python -m umate_lexicon pipeline
 银行/`yin hang`, 行走/`xing zou` are missing or wrong.
 
 Coverage after a locked emit is recorded in [docs/zh/inventory.md](docs/zh/inventory.md).
-8105, zhwiki titles, and authored brand/event packs are in. Wikipedia page/category dumps now reject wiki-only redirects and type inventory; wiki-only stays bulk. Tencent coverage has two pinned layers: the ModelScope light high-frequency subset (`tencent-light`) and the Tencent AI Lab d200 v0.2.0 key list from a pinned Hugging Face revision (`tencent-d200-key-top1m`). The full key list contains 12,287,936 lines; the lock ingests the first 1,000,000 lines in source order as a bounded high-frequency slice and never downloads the 6.14 GB vector payload. Do not copy rime-ice `tencent.dict.yaml`. Tencent-only unique-compose lemmas stay in bulk; `domain_freq.tencent=1` is a coverage placeholder and does not change essay ranking. Measured light absorb: [docs/zh/tencent-light-absorb-2026-09-16.md](docs/zh/tencent-light-absorb-2026-09-16.md). CI stays on fixtures; a locked fetch downloads the local Tencent artifacts.
+8105, zhwiki titles, and authored brand/event packs are in. Wikipedia page/category dumps now reject wiki-only redirects and type inventory. Typed wiki-only rows join their named pack at a cold weight; untyped rows enter bulk only when the page-length tier meets the hot floor. That split is frozen: do not promote more pure wiki or pure CC-CEDICT into the hot table, and do not strip rows already emitted, until a legal decision is recorded. See docs/zh/next-plan.md. Tencent coverage has two pinned layers: the ModelScope light high-frequency subset (`tencent-light`) and the Tencent AI Lab d200 v0.2.0 key list from a pinned Hugging Face revision (`tencent-d200-key-top1m`). The full key list contains 12,287,936 lines; the lock ingests the first 1,000,000 lines in source order as a bounded high-frequency slice and never downloads the 6.14 GB vector payload. Do not copy rime-ice `tencent.dict.yaml`. Tencent-only unique-compose lemmas stay in bulk; `domain_freq.tencent=1` is a coverage placeholder and does not change essay ranking. Measured light absorb: [docs/zh/tencent-light-absorb-2026-09-16.md](docs/zh/tencent-light-absorb-2026-09-16.md). CI stays on fixtures; a locked fetch downloads the local Tencent artifacts.
 
 ## LLM role
 

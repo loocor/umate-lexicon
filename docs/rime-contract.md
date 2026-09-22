@@ -5,36 +5,19 @@ Target: librime 1.16 dictionary source format.
 A dict file is a YAML header between `---` and `...`, then tab-separated
 rows: `text`, `code`, `weight`.
 
-```yaml
-# Rime dictionary
-# encoding: utf-8
----
-name: umate_hans
-version: "0.1.0"
-sort: by_weight
-use_preset_vocabulary: false
-import_tables:
-  - umate_chars
-  - umate_base
-...
-```
+The hot table `umate_hans` imports `umate_chars`, `umate_base`,
+`umate_corrections`, `umate_emoji`, and `umate_hot_tail`.
+`use_preset_vocabulary` stays `false`. `umate_hans_cold` imports every
+emitable pack and is the drawer fallback, not the every-key table.
+`umate_hot_tail` is the weight projection of the long-tail packs.
+
+uMate wires schema ids `umate_pinyin`, `umate_pinyin_t9`, and
+`umate_pinyin_14key` onto dictionary `umate_hans`. This factory emits
+the dictionary sources. It does not own those schema ids.
 
 Packs (librime ≥ 1.6) are extra `*.table.bin` files sharing the core
-prism syllable table. Schema:
-
-```yaml
-translator:
-  dictionary: umate_hans
-  packs:
-    - umate_ext
-    - umate_names
-    - umate_places
-    - umate_brands
-    - umate_orgs
-    - umate_events
-    - umate_bulk
-    - umate_corrections
-```
+prism syllable table. The generated `umate_hans.schema.yaml` lists the
+pack names for wiring; the keyboard schema is the product shell.
 
 This repo emits **source YAML**. Binary compilation is a Host job in
 VoiMate (`table.bin`, `prism.bin`, `reverse.bin`). The keyboard extension
