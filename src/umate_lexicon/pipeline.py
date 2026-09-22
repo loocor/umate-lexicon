@@ -125,7 +125,7 @@ def _ingest_pinned(
 ) -> int:
     locator = f"{source.id}:{source.filename}"
     if source.ingest == "unihan":
-        return ingest_unihan(store, path, locator=locator)
+        return ingest_unihan(store, path, locator=locator, simplify=simplify)
     if source.ingest == "t2s":
         return len(load_unihan_simplified(path))
     if source.ingest == "tgh":
