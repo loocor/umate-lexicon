@@ -75,6 +75,8 @@ WIKI_PAGE_WEIGHT_TIERS: tuple[tuple[int, int], ...] = (
     (0, 100),
 )
 _wiki_page_weights: dict[str, int] | None = None
+_polyphone_chars: frozenset[str] | None = None
+_TRUSTED_CHAR_SOURCES = frozenset({"gold", "cedict", "unihan"})
 
 
 def _load_wiki_page_weights() -> dict[str, int]:
@@ -97,6 +99,33 @@ def _load_wiki_page_weights() -> dict[str, int]:
                     pass
     _wiki_page_weights = weights
     return weights
+
+
+
+def polyphone_chars() -> frozenset[str]:
+    """Closed-set characters from gold/polyphones.tsv. Not a layer."""
+    global _polyphone_chars
+    if _polyphone_chars is not None:
+        return _polyphone_chars
+    from umate_lexicon.paths import data_dir
+
+    path = data_dir() / "gold" / "polyphones.tsv"
+    chars: list[str] = []
+    if path.is_file():
+        for raw in path.read_text(encoding="utf-8").splitlines():
+            line = raw.strip()
+            if not line or line.startswith("#"):
+                continue
+            chars.append(line.split("\t")[0])
+    _polyphone_chars = frozenset(chars)
+    return _polyphone_chars
+
+
+def _trusted_char_reading(lemma: Lemma) -> bool:
+    """Gold, CC-CEDICT, Unihan, or kHanyuPinlu. Luna-only stays untrusted."""
+    if "hanyu_pinlu" in lemma.flags:
+        return True
+    return any(ref.source_id in _TRUSTED_CHAR_SOURCES for ref in lemma.sources)
 
 
 def wiki_page_weight(surface: str) -> int | None:
@@ -218,6 +247,7 @@ def assign_layer(lemma: Lemma) -> str | None:
             or "tgh" in lemma.flags
             or "hanyu_pinlu" in lemma.flags
             or any(ref.source_id == "chars" for ref in lemma.sources)
+            or (lemma.surface in polyphone_chars() and _trusted_char_reading(lemma))
         ):
             return "chars"
         return None

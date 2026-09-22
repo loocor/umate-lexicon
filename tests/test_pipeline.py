@@ -72,4 +72,6 @@ def test_daily_gap_ledger_is_not_ingested_as_gold(tmp_path: Path) -> None:
     _ingest_authored_gold(store)
     assert store.get("surface", "origin") is None
     assert store.get("偷偷", "user") is None
+    assert store.get("reading", "重庆") is None
+    assert store.get("layer", "长") is None
     store.close()

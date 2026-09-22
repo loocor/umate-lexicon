@@ -36,7 +36,7 @@ from umate_lexicon.store import LemmaStore
 from umate_lexicon.t2s import SimplifyFn, load_unihan_simplified, make_simplifier
 from umate_lexicon.verify.rules import apply_rules
 
-_GOLD_SKIP = frozenset({"polyphones.tsv", "eval-sentences.tsv", "layer-overrides.tsv", "daily-gaps.tsv"})
+_GOLD_SKIP = frozenset({"polyphones.tsv", "eval-sentences.tsv", "layer-overrides.tsv", "daily-gaps.tsv", "emit-probes.tsv"})
 
 
 def run_fixture_pipeline(
@@ -169,10 +169,21 @@ def _finish(store: LemmaStore, stats: dict[str, int], out_dir: Path | None) -> d
     stats["lemmas"] = store.count()
     failures = evaluate_store(store)
     stats["eval_failures"] = len(failures)
+    probe_failures: list[object] = []
+    if store.count() > 10_000:
+        from umate_lexicon.eval.probes import evaluate_probes
+
+        probe_failures = evaluate_probes(store, emit_dir=emit_dir)
+        stats["probe_failures"] = len(probe_failures)
     store.close()
     if failures:
         details = "; ".join(
             f"{item.surface} expected {item.expected_pinyin} got {item.actual}" for item in failures
         )
         raise SystemExit(f"eval failed: {details}")
+    if probe_failures:
+        details = "; ".join(
+            f"{item.check}:{item.surface}:{item.detail}" for item in probe_failures
+        )
+        raise SystemExit(f"probes failed: {details}")
     return stats

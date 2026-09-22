@@ -95,3 +95,35 @@ def test_review_short_lemma_can_emit_via_freq_gate() -> None:
         sources=[SourceRef("essay", "lgpl-rime-essay", "essay.txt")],
     )
     assert assign_layer(lemma) == "base"
+
+
+def test_closed_set_cedict_reading_emits_to_chars() -> None:
+    lemma = Lemma(
+        surface="说",
+        pinyin_plain="shui",
+        status="auto",
+        flags=["polyphone"],
+        sources=[SourceRef("cedict", "cc-by-sa-cedict", "x")],
+    )
+    assert assign_layer(lemma) == "chars"
+
+
+def test_non_polyphone_cedict_char_stays_out_of_chars() -> None:
+    lemma = Lemma(
+        surface="蝌",
+        pinyin_plain="ke",
+        status="auto",
+        sources=[SourceRef("cedict", "cc-by-sa-cedict", "x")],
+    )
+    assert assign_layer(lemma) is None
+
+
+def test_untrusted_polyphone_reading_stays_unemitted() -> None:
+    lemma = Lemma(
+        surface="还",
+        pinyin_plain="xuan",
+        status="review",
+        flags=["untrusted_reading", "polyphone"],
+        sources=[SourceRef("luna", "lgpl-rime-luna", "x")],
+    )
+    assert assign_layer(lemma) is None

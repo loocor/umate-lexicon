@@ -1,0 +1,42 @@
+# check	surface	pinyin	expect	expect2
+# Characterization of the current factory. Not gold. Do not ingest.
+reading	重庆	chong qing	present	
+reading	银行	yin hang	present	
+reading	行走	xing zou	present	
+layer	长	chang	chars	
+layer	长	zhang	chars	
+layer	了	le	chars	
+layer	了	liao	chars	
+layer	还	hai	chars	
+layer	还	huan	chars	
+weight_gt	了	le	了	liao
+weight_gt	还	hai	还	huan
+weight_gt	粉色	fen se	分色	fen se
+hot	带着	dai zhe	yes	
+hot	拿着	na zhe	yes	
+hot	偷偷	tou tou	yes	
+gap	偷偷		present-shipped	
+gap	连着		present-ranked-low	
+gap	出门		present-ranked-low	
+gap	多少		present-shipped	
+not_emitted	还	xuan		
+# Closed-set readings already in CC-CEDICT that the chars gate used to drop.
+layer	乐	lao	chars	
+layer	区	ou	chars	
+layer	吓	he	chars	
+layer	和	hu	chars	
+layer	将	qiang	chars	
+layer	差	ci	chars	
+layer	强	jiang	chars	
+layer	扎	za	chars	
+layer	数	shuo	chars	
+layer	省	xing	chars	
+layer	石	dan	chars	
+layer	纤	qian	chars	
+layer	落	lao	chars	
+layer	藏	zang	chars	
+layer	行	heng	chars	
+layer	说	shui	chars	
+layer	车	ju	chars	
+layer	转	zhuai	chars	
+layer	阿	e	chars	

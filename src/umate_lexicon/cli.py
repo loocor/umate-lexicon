@@ -137,11 +137,20 @@ def main(argv: list[str] | None = None) -> int:
         store.close()
         return 0
     if args.cmd == "eval":
+        from umate_lexicon.eval.probes import evaluate_probes
+
         failures = evaluate_store(store)
+        emit_dir = Path(__file__).resolve().parents[2] / "dist" / "rime"
+        probe_failures = evaluate_probes(
+            store,
+            emit_dir=emit_dir if (emit_dir / "umate_chars.dict.yaml").is_file() else None,
+        )
         store.close()
-        if failures:
+        if failures or probe_failures:
             for item in failures:
                 print(f"{item.surface}\t{item.expected_pinyin}\t{item.reason}\t{item.actual}")
+            for item in probe_failures:
+                print(f"probe\t{item.check}\t{item.surface}\t{item.detail}")
             return 1
         print("ok")
         return 0
