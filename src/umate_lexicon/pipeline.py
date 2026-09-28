@@ -10,6 +10,10 @@ from umate_lexicon.enrich.readings import apply_reading_merge
 from umate_lexicon.eval.gold import evaluate_store
 from umate_lexicon.ingest.cedict import ingest_cedict
 from umate_lexicon.ingest.chars import ingest_chars
+from umate_lexicon.ingest.curation import (
+    ingest_english_emoji_curation,
+    ingest_pinyin_emoji_curation,
+)
 from umate_lexicon.ingest.emoji import ingest_emoji
 from umate_lexicon.ingest.essay import ingest_essay
 from umate_lexicon.ingest.gold import ingest_gold
@@ -49,6 +53,7 @@ def run_fixture_pipeline(
     with store.deferred_commit():
         stats = {
             "gold": _ingest_authored_gold(store),
+            "curation": _ingest_authored_curation(store),
             "chars": ingest_chars(store, root / "fixtures" / "chars.tsv"),
             "unihan": ingest_unihan(store, root / "fixtures" / "unihan.txt"),
             "tgh": ingest_tgh(store, root / "fixtures" / "unihan-tgh.txt"),
@@ -86,12 +91,26 @@ def run_locked_pipeline(
     stats: dict[str, int] = {}
     with store.deferred_commit():
         stats["gold"] = _ingest_authored_gold(store)
+        stats["curation"] = _ingest_authored_curation(store)
         for source in lock.sources:
             if source.id in skip:
                 stats[f"skipped_{source.id}"] = 0
                 continue
             stats[source.id] = _ingest_pinned(store, source, ready[source.id], simplify=simplify)
     return _finish(store, stats, out_dir)
+
+
+def _ingest_authored_curation(store: LemmaStore) -> int:
+    """VoiMate-curated emoji rows. Authored data, not a pinned dump."""
+    voimate = data_dir() / "voimate"
+    count = 0
+    pinyin = voimate / "pinyin-emoji-curation.tsv"
+    if pinyin.is_file():
+        count += ingest_pinyin_emoji_curation(store, pinyin)
+    english = voimate / "english-emoji-curation.tsv"
+    if english.is_file():
+        count += ingest_english_emoji_curation(store, english)
+    return count
 
 
 def _ingest_authored_gold(store: LemmaStore) -> int:

@@ -157,11 +157,33 @@ def is_coverage_only(lemma: Lemma) -> bool:
 
 def ranking_freq(lemma: Lemma) -> int:
     ranked = sum(
-        count for domain, count in lemma.domain_freq.items() if domain not in COVERAGE_FREQ_DOMAINS
+        count
+        for domain, count in lemma.domain_freq.items()
+        if domain not in COVERAGE_FREQ_DOMAINS and domain != "curation_rank"
     )
     if ranked:
         return ranked
     return lemma.weight
+
+
+# Curated emoji tier A (VoiMate overlay): engine-visible, ordered per
+# trigger by rank decay. Tier B is the flat floor for official emoji so
+# they stay mid-tail instead of the compile-invisible weight 1–4 rows.
+CURATION_HOT_BASE = 6000
+CURATION_HOT_DECAY = 0.6
+EMOJI_TAIL_WEIGHT = 600
+
+
+def curated_rank(lemma: Lemma) -> int:
+    return int(lemma.domain_freq.get("curation_rank") or 0)
+
+
+def is_emoji_lemma(lemma: Lemma) -> bool:
+    return (
+        "emoji" in lemma.flags
+        or lemma.entity_type == "emoji"
+        or "emoji" in lemma.categories
+    )
 
 
 def emit_weight(lemma: Lemma) -> int:
@@ -173,11 +195,20 @@ def emit_weight(lemma: Lemma) -> int:
     counts already use. Compressing it here would flatten the distribution
     and let a rare entry compete with a common one.
 
+    Emoji rows carry explicit tiers instead of corpus frequency: curated
+    rows decay per rank from CURATION_HOT_BASE, official rows sit at the
+    EMOJI_TAIL_WEIGHT floor so they surface mid-tail, never at the top.
+
     Wiki-only typed entries (person / place / org / work) carry a flat
     cold weight: enough to surface in the cold fallback table, never
     enough to enter the hot projection or outrank essay-ranked entries.
     """
+    if "curated" in lemma.flags:
+        rank = max(1, curated_rank(lemma))
+        return round(CURATION_HOT_BASE * (CURATION_HOT_DECAY ** (rank - 1)))
     w = max(1, ranking_freq(lemma))
+    if is_emoji_lemma(lemma):
+        return max(w, EMOJI_TAIL_WEIGHT)
     if w <= 1 and is_wiki_only(lemma):
         page_w = wiki_page_weight(lemma.surface)
         if page_w is not None:
