@@ -64,7 +64,7 @@ def evaluate_probes(
             if lemma is None:
                 failures.append(ProbeFailure(check, surface, f"missing {pinyin}"))
                 continue
-            hot = is_hot_member(lemma)
+            hot = is_hot_member(lemma, store.readings_for(lemma.surface))
             if expect == "yes" and not hot:
                 failures.append(ProbeFailure(check, surface, f"{pinyin} not hot"))
             if expect == "no" and hot:
@@ -76,12 +76,31 @@ def evaluate_probes(
             if left is None or right is None:
                 failures.append(ProbeFailure(check, surface, f"missing pair {pinyin} / {expect} {expect2}"))
                 continue
-            if emit_weight(left) <= emit_weight(right):
+            left_weight = emit_weight(left, store.readings_for(left.surface))
+            right_weight = emit_weight(right, store.readings_for(right.surface))
+            if left_weight <= right_weight:
                 failures.append(
                     ProbeFailure(
                         check,
                         surface,
-                        f"{pinyin} {emit_weight(left)} <= {expect} {expect2} {emit_weight(right)}",
+                        f"{pinyin} {left_weight} <= {expect} {expect2} {right_weight}",
+                    )
+                )
+            continue
+        if check == "weight_ge":
+            left = store.get(surface, pinyin)
+            right = store.get(expect, expect2)
+            if left is None or right is None:
+                failures.append(ProbeFailure(check, surface, f"missing pair {pinyin} / {expect} {expect2}"))
+                continue
+            left_weight = emit_weight(left, store.readings_for(left.surface))
+            right_weight = emit_weight(right, store.readings_for(right.surface))
+            if left_weight < right_weight:
+                failures.append(
+                    ProbeFailure(
+                        check,
+                        surface,
+                        f"{pinyin} {left_weight} < {expect} {expect2} {right_weight}",
                     )
                 )
             continue

@@ -9,8 +9,8 @@ layer	了	le	chars
 layer	了	liao	chars	
 layer	还	hai	chars	
 layer	还	huan	chars	
-weight_gt	了	le	了	liao
-weight_gt	还	hai	还	huan
+weight_ge	了	le	了	liao
+weight_ge	还	hai	还	huan
 weight_gt	粉色	fen se	分色	fen se
 hot	带着	dai zhe	yes	
 hot	拿着	na zhe	yes	

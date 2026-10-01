@@ -139,7 +139,8 @@ def test_emitted_weight_is_the_raw_ranking_frequency(tmp_path: Path) -> None:
     out = tmp_path / "rime"
     emit_rime(store, out)
     body = (out / "umate_base.dict.yaml").read_text(encoding="utf-8")
-    assert "粉色\tfen se\t1585" in body
+    # One column: the essay count itself, not essay + cedict marker.
+    assert "粉色\tfen se\t1584" in body
     store.close()
 
 

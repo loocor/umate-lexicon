@@ -55,12 +55,16 @@ def preferred_plain(lemmas: list[Lemma]) -> str | None:
     best_by_plain: dict[str, Lemma] = {}
     for lemma in pool:
         current = best_by_plain.get(lemma.pinyin_plain)
-        if current is None or _reading_score(lemma) > _reading_score(current):
+        if current is None or reading_rank_score(lemma) > reading_rank_score(current):
             best_by_plain[lemma.pinyin_plain] = lemma
-    return max(best_by_plain.values(), key=_reading_score).pinyin_plain
+    return max(best_by_plain.values(), key=reading_rank_score).pinyin_plain
 
 
-def _reading_score(lemma: Lemma) -> tuple[int, int, int, int]:
+def _is_single_han(surface: str) -> bool:
+    return len(surface) == 1 and "\u4e00" <= surface <= "\u9fff"
+
+
+def reading_rank_score(lemma: Lemma) -> tuple[int, int, int, int]:
     trusted_sources = sum(1 for ref in lemma.sources if ref.source_id in TRUSTED_SOURCE_IDS)
     return (
         1 if "tgh" in lemma.flags else 0,
@@ -84,7 +88,16 @@ def overlay_domain_freq(
     if not existing:
         return 0
     trusted = [item for item in existing if is_trusted_reading(item)]
-    targets = trusted if trusted else existing
+    pool = trusted if trusted else existing
+    # Single-character essay lines have no reading. Stamp only the
+    # preferred reading so a secondary reading cannot inherit the count.
+    # Multi-character rows keep every trusted reading: a gold correction
+    # (信息/zi xun) must not steal the count from the common reading.
+    if _is_single_han(surface) and pool:
+        best = max(reading_rank_score(item) for item in pool)
+        targets = [item for item in pool if reading_rank_score(item) == best]
+    else:
+        targets = pool
     count = 0
     for lemma in targets:
         store.upsert(
