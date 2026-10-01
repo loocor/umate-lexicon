@@ -21,8 +21,11 @@ PACK_LAYERS = (
     "bulk",
     "corrections",
 )
-COVERAGE_SOURCE_IDS = frozenset({"wiki", "tencent"})
-COVERAGE_FREQ_DOMAINS = frozenset({"wiki", "tencent"})
+COVERAGE_SOURCE_IDS = frozenset({"wiki", "tencent", "wikinews"})
+COVERAGE_FREQ_DOMAINS = frozenset({"wiki", "tencent", "wikinews"})
+# wikinews is coverage, not ranking: missing-surface ingest only. Without
+# this set, 2–3 char auto lemmas fall through _auto_short_layer into base
+# and ride the every-key hot table. Same bulk treatment as tencent-only.
 
 # Whole packs that ride the every-key hot table unconditionally.
 HOT_STRUCTURAL_LAYERS = ("chars", "base", "corrections", "emoji")

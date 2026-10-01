@@ -63,3 +63,18 @@ def test_strong_essay_bigram_stays_base() -> None:
         ],
     )
     assert assign_layer(lemma) == "base"
+
+
+def test_wikinews_only_short_lemma_is_bulk() -> None:
+    from umate_lexicon.layers import is_coverage_only
+
+    lemma = Lemma(
+        surface="震央",
+        pinyin_plain="zhen yang",
+        status="auto",
+        domain_freq={"wikinews": 12},
+        weight=12,
+        sources=[SourceRef("wikinews", "cc-by-4.0-wikinews", "wikinews-pages")],
+    )
+    assert is_coverage_only(lemma)
+    assert assign_layer(lemma) == "bulk"

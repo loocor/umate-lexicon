@@ -5,7 +5,8 @@
 3. Ingest in lock order after gold: Unihan readings (kMandarin and
    kHanyuPinlu), variants (t2s), kTGH (8105), CC-CEDICT, THUOCL, official
    luna, essay, emoji, zhwiki titles / page / category, then Tencent light
-   vocab and the d200 key top 1,000,000 lines. AOSP English is an emit
+   vocab and the d200 key top 1,000,000 lines, then Wikinews pages last
+   (missing surfaces only). AOSP English is an emit
    sidecar, not a Chinese lemma. Luna/essay/emoji/tencent/wiki surfaces are
    simplified before overlay. Lock order puts both Tencent sources after
    wiki so overlay cannot steal wiki identity. Do not re-run a locked

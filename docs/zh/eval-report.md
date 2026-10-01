@@ -159,3 +159,19 @@ octagram 是结构性出路）。
 ## octagram grammar v2（2026-10-01 追加）
 
 维基新闻 10,074 篇（8.7M 字符，CC BY 4.0）+ zhwiki 重下混合重训。A/B：246 case 与现役 v1 完全打平（20 PASS、0 回退、ctx 保持）；成本大幅优化：bundle 24→8.1MB（-66%）、RSS -7.6MB、延迟持平。判定 v2 换包，v1 备份可回滚。域内增量（台风/地震类搭配 542 行）已入 gram 但现用例集不覆盖，后续补 wikinews 域 ctx case。详见 data/eval/rounds/2026-10-01-grammar-v2.md。
+
+## octagram 域内 ctx（wikinews）与 v3 扩充决策（2026-10-01 追加）
+
+从 wikinews TSV 按 v2 高分搭配人工核验 40 条上下文选词 case（`domain=wikinews`），
+用 v1 备份 gram 与现役 v2 复测：v1 22 PASS / v2 35 PASS，**增益 13、回退 0**。
+典型翻转：橙色预警、台风吹袭、飓风过境、洪水暴涨。两侧同 FAIL 5 条为台风专名
+或无上下文也打不赢的同音（纪录/记录），不是回退。
+
+判定：新闻域搭配增益可测且方向正确，octagram **GO 扩语料重训 v3**（不停留 v2）。
+v3 训练循环要求先 pin MOT/VOA Mandarin（公有领域新闻，CC BY 4.0 汇集）或等价
+清洁源，把混合 CJK 做到 20M+，再走完整 A/B + criteria。wikinews 滚动采集常态化
+为新 dated TSV + lock hash bump。Newsdata.io / CC-News 因底层稿件版权不入训。
+评测面：`data/eval/rounds/grammar-probe-ctx-cases.tsv`；报告：
+`data/eval/rounds/2026-10-01-grammar-wikinews-ctx.md`。
+
+词库：`COVERAGE_SOURCE_IDS` 纳入 wikinews，只补缺失表面，落层 bulk。

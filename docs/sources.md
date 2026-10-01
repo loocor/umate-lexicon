@@ -26,6 +26,7 @@ policy lives in `source-policy.md`.
 | `wiki_linktarget` | zhwiki `linktarget` SQL | `cc-by-sa-wikimedia` | category titles |
 | `wiki_category` | zhwiki `categorylinks` SQL | `cc-by-sa-wikimedia` | type overlay, still bulk |
 | `tencent` | embedding vocab (first column) | `cc-by-3.0-tencent` | unique compose, coverage only, bulk if tencent-only |
+| `wikinews` | dated article TSV `title<TAB>body` | `cc-by-4.0-wikinews` | unique compose, missing surfaces only, coverage only, bulk if wikinews-only |
 
 Current pins:
 
@@ -78,6 +79,13 @@ well as text / tar.gz. CI stays on fixtures; do not commit the raw bins or
 derived vocab. ModelScope card Apache-2.0 is packaging; the Hugging Face
 mirror declares no separate license. Vocabulary attribution remains
 CC BY 3.0 Tencent AI Lab.
+
+Wikinews article text (`wikinews-pages`, CC BY 4.0) is **coverage**, not
+frequency. The dated TSV from `scripts/fetch-wikinews.py` is ingested last
+and only inserts surfaces missing from every earlier channel, so it cannot
+steal identity or ranking from essay / luna / wiki / tencent. Wikinews-only
+lemmas stay in **bulk**; `domain_freq.wikinews` is excluded from
+`ranking_freq`. Re-fetching is a new dated file plus a lock hash bump.
 
 Share-alike (CC-CEDICT, Wikipedia titles) is tagged, never silently
 folded into a default keyboard SKU.

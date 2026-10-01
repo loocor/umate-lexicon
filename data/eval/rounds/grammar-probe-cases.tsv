@@ -231,3 +231,47 @@ wanshui	完水	lex228-wanshui	1
 shuihou	水后	lex229-shuihou	1
 jirou	鸡肉	lex230-jirou	1
 bianyi	编译	lex231-bianyi	1
+
+# Wikinews domain ctx cases (2026-10-01). Ranking probe skips lines starting with #.
+# Machine-readable copy: grammar-probe-ctx-cases.tsv (prefix probe expected label soft domain)
+#ctx	prefix_pinyin	probe_pinyin	expected	label	soft	domain
+#ctx	yuzhen	zhenyuan	震源	ctx-wikinews-001-yuzhen-zhenyuan	1	wikinews
+#ctx	dizhen	zhenyuan	震源	ctx-wikinews-002-dizhen-zhenyuan	1	wikinews
+#ctx	pumie	huozai	火灾	ctx-wikinews-003-pumie-huozai	1	wikinews
+#ctx	sashui	jiangwen	降温	ctx-wikinews-004-sashui-jiangwen	1	wikinews
+#ctx	pingmin	shangwang	伤亡	ctx-wikinews-005-pingmin-shangwang	1	wikinews
+#ctx	chenghongse	yujing	预警	ctx-wikinews-006-chenghongse-yujing	1	wikinews
+#ctx	chengse	yujing	预警	ctx-wikinews-007-chengse-yujing	1	wikinews
+#ctx	chenchuan	shijian	事件	ctx-wikinews-008-chenchuan-shijian	1	wikinews
+#ctx	hebaozha	weili	威力	ctx-wikinews-009-hebaozha-weili	1	wikinews
+#ctx	baozha	weili	威力	ctx-wikinews-010-baozha-weili	1	wikinews
+#ctx	guanbing	shangwang	伤亡	ctx-wikinews-011-guanbing-shangwang	1	wikinews
+#ctx	qixiangting	lude	录得	ctx-wikinews-012-qixiangting-lude	1	wikinews
+#ctx	dizhen	guohou	过后	ctx-wikinews-013-dizhen-guohou	1	wikinews
+#ctx	wulumuqi	huozai	火灾	ctx-wikinews-014-wulumuqi-huozai	1	wikinews
+#ctx	tianqi	shijian	事件	ctx-wikinews-015-tianqi-shijian	1	wikinews
+#ctx	taifeng	denglu	登陆	ctx-wikinews-016-taifeng-denglu	1	wikinews
+#ctx	jufeng	denglu	登陆	ctx-wikinews-017-jufeng-denglu	1	wikinews
+#ctx	daguimo	huozai	火灾	ctx-wikinews-018-daguimo-huozai	1	wikinews
+#ctx	taifeng	tiange	天鸽	ctx-wikinews-019-taifeng-tiange	1	wikinews
+#ctx	taifeng	chuixi	吹袭	ctx-wikinews-020-taifeng-chuixi	1	wikinews
+#ctx	taifeng	guohou	过后	ctx-wikinews-021-taifeng-guohou	1	wikinews
+#ctx	jufeng	chuixi	吹袭	ctx-wikinews-022-jufeng-chuixi	1	wikinews
+#ctx	jufeng	guohou	过后	ctx-wikinews-023-jufeng-guohou	1	wikinews
+#ctx	taifeng	bawei	巴威	ctx-wikinews-024-taifeng-bawei	1	wikinews
+#ctx	zhuangche	shijian	事件	ctx-wikinews-025-zhuangche-shijian	1	wikinews
+#ctx	hongshui	chonghui	冲毁	ctx-wikinews-026-hongshui-chonghui	1	wikinews
+#ctx	dizhen	qianzhao	前兆	ctx-wikinews-027-dizhen-qianzhao	1	wikinews
+#ctx	dizhen	jiuzai	救灾	ctx-wikinews-028-dizhen-jiuzai	1	wikinews
+#ctx	dizhen	zaiqu	灾区	ctx-wikinews-029-dizhen-zaiqu	1	wikinews
+#ctx	taifeng	yunxi	云系	ctx-wikinews-030-taifeng-yunxi	1	wikinews
+#ctx	jufeng	shisu	时速	ctx-wikinews-031-jufeng-shisu	1	wikinews
+#ctx	jufeng	guojing	过境	ctx-wikinews-032-jufeng-guojing	1	wikinews
+#ctx	gaowen	jilu	纪录	ctx-wikinews-033-gaowen-jilu	1	wikinews
+#ctx	qixiangju	yinying	因应	ctx-wikinews-034-qixiangju-yinying	1	wikinews
+#ctx	gaowen	shaoyu	少雨	ctx-wikinews-035-gaowen-shaoyu	1	wikinews
+#ctx	tafang	zhongduan	中断	ctx-wikinews-036-tafang-zhongduan	1	wikinews
+#ctx	dizhen	zhenzhong	震中	ctx-wikinews-037-dizhen-zhenzhong	1	wikinews
+#ctx	dizhen	zhenyang	震央	ctx-wikinews-038-dizhen-zhenyang	1	wikinews
+#ctx	hongshui	chongzou	冲走	ctx-wikinews-039-hongshui-chongzou	1	wikinews
+#ctx	hongshui	baozhang	暴涨	ctx-wikinews-040-hongshui-baozhang	1	wikinews

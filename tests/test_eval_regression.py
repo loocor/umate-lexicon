@@ -95,3 +95,30 @@ class TestProbeCaseFileStable:
             labels.add(label)
             rows += 1
         assert rows >= 200, f"probe case set shrunk to {rows} rows"
+
+
+CTX_TSV = ROUNDS_DIR / "grammar-probe-ctx-cases.tsv"
+
+
+class TestCtxCaseFile:
+    def test_ctx_cases_shape_and_wikinews_domain(self) -> None:
+        if not CTX_TSV.is_file():
+            pytest.skip("grammar-probe-ctx-cases.tsv not exported yet")
+        labels: set[str] = set()
+        rows = 0
+        domains: set[str] = set()
+        for line in CTX_TSV.read_text(encoding="utf-8").splitlines():
+            if line.startswith("#") or not line.strip():
+                continue
+            parts = line.split("\t")
+            assert len(parts) >= 6, f"expected 6+ TSV columns, got {len(parts)}"
+            prefix, probe, expected, label, soft, domain = parts[:6]
+            assert prefix and probe and expected and label
+            assert soft in {"0", "1"}
+            assert domain == "wikinews"
+            assert label not in labels, f"duplicate label {label}"
+            labels.add(label)
+            domains.add(domain)
+            rows += 1
+        assert rows >= 30, f"wikinews ctx case set shrunk to {rows} rows"
+        assert domains == {"wikinews"}
