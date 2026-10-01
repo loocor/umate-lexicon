@@ -124,3 +124,30 @@ schema、`build/`、`umate-zh-hans.gram`、`lua/`、`opencc/`、
 `default.yaml` 等由 VoiMate 侧拥有。同步必须用 `rsync -a`（禁止
 `--delete`），否则会删掉 VoiMate 侧 66 个 tracked 文件（本次已从
 git 完整恢复，.gram 25,183,276 B 字节级核对一致）。
+
+## 轮次流程固化与遗留子目标（2026-10-01 决策）
+
+杯水车薪问题的定位：语料轮是传感器不是修理厂——它负责发现系统性
+缺口，批量修复走数据源/管道层，单条 curated 修复只做高价值个案。
+为此固化三件工具：
+
+- `scripts/round_report.py`：一轮一条命令，产出 `data/eval/rounds/`
+  的 delta 报告（含缺口率/千词、分源统计），并维护 `latest.json`
+  快照；同口径系列自 r2 起（唯一词口径）。
+- `data/eval/corpus/SOURCES.md`：语料源登记表，区分 eval-only 与
+  training-feed，采集纪律（只追加不改写、未登记不入库）。
+- `data/eval/probe-cases.tsv`：排序缺口导出的同音竞争用例
+  （pinyin/expected/current_top1/weight/freq/sources），供 VoiMate
+  `umate_grammar_probe` 扩充 octagram A/B case 集。
+
+原 goal 三段子目标中，harness 已完成；剩余两项转入常规轮次，
+不再使用 goal 预算推进：
+
+1. octagram 上下文评测：用例已在 `probe-cases.tsv`（r2 导出 849 条），
+   探针执行与格式对齐在 VoiMate 侧完成。
+2. 评测纳入回归测试：待 probe case 集稳定后，把小语料子集的
+   eval_corpus 断言收进 pytest（阈值护栏，不锁死具体词表）。
+
+r2 同口径确认效果：覆盖缺口 431→308（-28.5%），排序缺口率 58.07→
+62.78/千词（口径=对，dist 近翻倍竞争面扩大，主体仍为上下文依赖，
+octagram 是结构性出路）。
