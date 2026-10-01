@@ -88,3 +88,39 @@ def read_rows(path: Path) -> list[tuple[str, list[str]]]:
         if key and emojis:
             rows.append((key, emojis))
     return rows
+
+
+def ingest_phrase_curation(store: LemmaStore, path: Path) -> int:
+    """Curated surface → pinyin phrase rows for segmentation gaps.
+
+    Each row adds one Tier-A lemma whose surface is exactly the unit that
+    segmentation kept splitting into characters. Rank is fixed at 1: there
+    is no intra-key competition, unlike emoji decay tiers.
+    """
+    count = 0
+    for raw in path.read_text(encoding="utf-8").splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#"):
+            continue
+        parts = line.split("\t")
+        if len(parts) < 2:
+            continue
+        surface, pinyin = parts[0].strip(), parts[1].strip()
+        if not surface or not pinyin:
+            continue
+        store.upsert(_phrase_row(surface, pinyin))
+        count += 1
+    return count
+
+
+def _phrase_row(surface: str, pinyin: str) -> Lemma:
+    return Lemma(
+        surface=surface,
+        pinyin_plain=pinyin,
+        weight=curated_weight(1),
+        status="auto",
+        categories=["phrase"],
+        flags=["curated"],
+        domain_freq={"phrase-curation": 1, "curation_rank": 1},
+        sources=[SourceRef(SOURCE_ID, LICENSE_ID, f"{SOURCE_ID}:phrase:{surface}")],
+    )

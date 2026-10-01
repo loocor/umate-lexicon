@@ -12,6 +12,7 @@ from umate_lexicon.ingest.cedict import ingest_cedict
 from umate_lexicon.ingest.chars import ingest_chars
 from umate_lexicon.ingest.curation import (
     ingest_english_emoji_curation,
+    ingest_phrase_curation,
     ingest_pinyin_emoji_curation,
 )
 from umate_lexicon.ingest.emoji import ingest_emoji
@@ -110,6 +111,9 @@ def _ingest_authored_curation(store: LemmaStore) -> int:
     english = voimate / "english-emoji-curation.tsv"
     if english.is_file():
         count += ingest_english_emoji_curation(store, english)
+    phrases = voimate / "phrase-curation.tsv"
+    if phrases.is_file():
+        count += ingest_phrase_curation(store, phrases)
     return count
 
 

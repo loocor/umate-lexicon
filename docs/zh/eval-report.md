@@ -96,3 +96,22 @@ OpenCC `t2s` 在 emit 层强制转换，一次性转换 **20,207 条**繁体条�
   词频 override 层只适合处理无歧义词对，作为权宜手段。
 - 工具：新增 `scripts/triage_coverage.py`，基于 lemma store 对 OOV
   词做 missing/segmentation 分诊，保证只有真实缺口进入台账。
+
+## 2026-10-01 第二轮：13 篇语料 + phrase-curation 通道
+
+语料扩到 13 篇（新增 Mate 90 数码、番茄小说文娱、胖东来零售、炖肉
+烹饪）。分词 14638 次，唯一词 5044 个。dist 从 875761 涨到 1461667
+条（locked pipeline 全量重建，opencc t2s 生效）。
+
+- phrase-curation 通道落地：`data/voimate/phrase-curation.tsv` +
+  `ingest_phrase_curation()`（Tier-A weight 6000、固定 rank 1），
+  首批 21 词覆盖台账 8 词与本轮新增 13 词（漫剧、变柴、血沫、微沸、
+  软乎、七八分、没熟、沿锅边、闷味、抢味、典藏版、钉子户、炖牛肉）。
+  覆盖缺口 431 → 308（-28.5%），全部仍为 segmentation 桶分词伪影
+  或超长数字表达。
+- 繁体回归发现与修复：无 opencc 环境跑 locked pipeline 时 t2s
+  import-guard 静默降级 identity，乾淨(weight 11882, essay 域 47528)
+  抢走干净 TOP-1。重建必须带 opencc；已在 test_corpus_eval 既有
+  断言下复测通过（127 passed）。
+- 排序缺口 850 → 919：dist 规模近翻倍后同音竞争面扩大，主体仍是
+  上下文依赖词对，octagram 是结构性出路（P3 调研继续）。
