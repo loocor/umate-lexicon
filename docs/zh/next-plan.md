@@ -35,7 +35,9 @@ store 不回写；干净重灌时 essay 只盖首选读音。
 
 ## Share-alike 冻结
 
-CC-BY-SA（CC-CEDICT、中文维基）可否进入商业包，**没有记录过的法律结论**。当前是冻结，不是批准。
+CC-BY-SA（CC-CEDICT、中文维基）**作为热表权重来源**可否进入商业包，**没有记录过的法律结论**。当前是冻结，不是批准。
+
+层面区分（2026-10-01）：本节冻结的是**词库发射权重**（纯 CEDICT/wiki 抬进热表）；**.gram 训练语料**属另一层面，其 CC BY-SA verdict 已按 training-feed 纪律单独记录在 `data/eval/corpus/SOURCES.md`（zhwiki/wikivoyage dumps，GFDL+CC BY-SA 3.0 取 CC 分支，NOTICE 署名已补），两条线互不扩大、互不回滚。
 
 - 不把纯 CEDICT / 纯 wiki 再抬进热表。
 - 也不在另一次确认前把它们从已经发出的表里剥掉。
