@@ -77,3 +77,17 @@ RIME_PROBE_CASES=data/eval/rounds/grammar-probe-cases.tsv \
 
 - 探针 C 改动在 VoiMate 侧单独 tooling commit。
 - force_load 验收条件建议写入后续探针文档/脚本。
+
+## Merge criteria 对照（2026-10-01，数据为 force_load 轮）
+
+| 标准 | 状态 | 证据 |
+|---|---|---|
+| 1 Effect | 过 | +2 ctx PASS、0 回退；翻转归因（厨房/柴火 × 生火搭配）成立，n-gram 计数核对未做 |
+| 2 Cost | 临界/未覆盖 | gram 25,183,276 B = 24.01 MiB，超 24 MB 锚线约 0.07%；RSS、warm per-query ≤2ms、真机 spot-check 均未测 |
+| 3 Licensing | 未完成 | essay.txt 训练语料尚无 license verdict 登记（当前最大缺口）；插件代码侧待核 BSD/MIT |
+| 4 Swappability | 过 | off 侧仅数据文件删除即可回退，引擎/ schema 无需改动 |
+| 5 Closure | 过 | 本报告 + experiment-1 wrapup 均在 |
+
+清理条件：1/2/3/4 均未触发（主套件有净收益、非 gold-anchor、非 neural-LM、本轮可复现）。
+
+**判定：现状是 .gram 已随 `3c2291d5` 进入主 bundle，但标准 2/3 未完成，暂不满足正式合并门槛；作为测试性质资产保留，下一步按序：① essay.txt 训练语料 license verdict 登记（Lexicon SOURCES.md）② RSS/latency 测量 ③ gram 瘦身或锚线修订（超线 0.07%）④ n-gram 归因核对。**
