@@ -29,7 +29,7 @@
 
 | 文件模式 | 来源 | 用途 | 许可 | 采集方式 | 状态 |
 |---|---|---|---|---|---|
-| `mot-cmn-voa-*.jsonl`（拟定） | MOT v1.11 Mandarin / Voice of America | training-feed 候选（.gram v3） | VOA 雇员作品公有领域（17 U.S.C. § 105）；MOT 汇集声明 CC BY 4.0（arxiv:2201.05609，bltlab/mot） | GitHub Release 按语言 tarball，只取 `cmn` | 评审通过、**尚未 pin**；下一循环下载、hash、NOTICE 署名后才能训 |
+| `cmn_voachinese.tgz`（MOT v1.11）→ 衍生 `pages-articles-mot-cmn-20261001.xml.bz2` | MOT v1.11 Mandarin / Voice of America（bltlab/mot release v1.11；正文为 VOA 中文） | training-feed（.gram v3） | VOA 雇员职务作品公有领域（17 U.S.C. § 105）；MOT 汇集声明 CC BY 4.0（arxiv:2201.05609，https://github.com/bltlab/mot）。只取 `article/` 且 `predicted_language=cmn`；粤语包 `cmn_voacantonese.tgz` 不入训。OpenCC t2s 后入 extract。不入库、不入 `sources.lock.json`（非 lemma ingest） | GitHub Release 直连；`scripts/wrap_mot_voa.py` 切 recent-first 10M CJK 并 wrap 成 mediawiki xml.bz2 | **已 pin 2026-10-01**：tarball sha256 `c60b30efa873c022ea16956670b1a6f6f059ad1f9267a673cc785d6406c95f6d`（757,528,067 B）；t2s xml sha256 `81fb504d4835247e7225783e74f08836ee66161b0a1b2daf5d82420b2537c5c7`（7,203 篇 / 10,001,958 CJK，2023-10-18–2025-03-15）。v3 已按此 pin 训练；域内 ctx 相对 v2 **回退 4 / 增益 0**，现役仍 v2，NOTICE 不改。衍生 xml 留 Backup/tmp，不入库 |
 | `newsdata-io-*` | Newsdata.io free datasets | 不采用 | 数据集包 CC BY 4.0，但条款写明底层文章仍归原出版社 | — | **否决**：不能把出版社稿件洗进商用 .gram |
 | `cc-news-*` / INFINI-NEWS | Common Crawl 新闻聚合 | 不采用 | 原站版权 | — | **否决** |
 

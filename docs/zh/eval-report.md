@@ -175,3 +175,17 @@ v3 训练循环要求先 pin MOT/VOA Mandarin（公有领域新闻，CC BY 4.0 �
 `data/eval/rounds/2026-10-01-grammar-wikinews-ctx.md`。
 
 词库：`COVERAGE_SOURCE_IDS` 纳入 wikinews，只补缺失表面，落层 bulk。
+
+## octagram grammar v3（2026-10-01 追加）
+
+已 pin MOT v1.11 VOA Mandarin（tarball sha256 `c60b30efa8…`，t2s xml
+`81fb504d…`，7,203 篇 / 10.0M CJK）并与 v2 的 zhwiki+wikinews 混合重训，
+合计 **27.9M CJK**，gram 8.1→13.2 MB。A/B vs 现役 v2（286 case，
+`nm | grep octagram` = 7）：wikinews ctx 35→31 PASS，**增益 0 / 回退 4**
+（伤亡→上网、事件→时间 ×2、中断→终端）；232 条词级排序仍 0 翻转；
+builtin `shenghuo` 保持 PASS。scored 核对：`方中断` 92919→89090 被
+min_value=90000 裁掉，短尾巴被 MOT 稀释。
+
+判定：Effect 不满足零回退，**停留 v2，不换包**。MOT 许可清洁且 pin 有效，
+但 10M 近端 VOA 不能当作 Wikinews 搭配增益。v3 gram 留 Backup 作实验物，
+未 rsync 键盘。详见 `data/eval/rounds/2026-10-01-grammar-v3.md`。

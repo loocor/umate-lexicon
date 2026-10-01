@@ -116,3 +116,8 @@ MOT Mandarin（论文口径约 29 万篇）足够，且比再堆 zhwiki shard �
 
 `COVERAGE_SOURCE_IDS` 纳入 wikinews 的理由成立：若未纳入，2–3 字 auto 会进 base 热表。
 产物在 `/Volumes/Backup/tmp/umate-lexicon-locked-20261001/`，并已 rsync -a 回本仓库 `dist/rime/` 与 `data/store/lemmas.sqlite`（均 gitignore）。未同步 VoiMate bundle。
+
+## 后续（v3 循环已关闭）
+
+GO 已执行：见 `2026-10-01-grammar-v3.md`。MOT 已 pin 并混合重训到 27.9M CJK，
+但相对 v2 **ctx 回退 4 / 增益 0**，判定停留 v2、不换包。
