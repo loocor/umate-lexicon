@@ -84,10 +84,10 @@ RIME_PROBE_CASES=data/eval/rounds/grammar-probe-cases.tsv \
 |---|---|---|
 | 1 Effect | 过 | +2 ctx PASS、0 回退；翻转归因（厨房/柴火 × 生火搭配）成立，n-gram 计数核对未做 |
 | 2 Cost | 临界/未覆盖 | gram 25,183,276 B = 24.01 MiB，超 24 MB 锚线约 0.07%；RSS、warm per-query ≤2ms、真机 spot-check 均未测 |
-| 3 Licensing | 未完成 | essay.txt 训练语料尚无 license verdict 登记（当前最大缺口）；插件代码侧待核 BSD/MIT |
+| 3 Licensing | v1 已完成 | .gram v1 训练语料 = Wikimedia zhwiki/wikivoyage dumps，GFDL+CC BY-SA 3.0 双许可取 CC 分支（2026-10-01 verdict 登记 SOURCES.md，与 wiki 词库通道同级）；bundle NOTICE 署名已补（9613973f）。essay.txt 非 .gram 语料（rime 词频表，lgpl-rime-essay 通道 NOTICE 已有）。v2 新语料须逐源登记 verdict |
 | 4 Swappability | 过 | off 侧仅数据文件删除即可回退，引擎/ schema 无需改动 |
 | 5 Closure | 过 | 本报告 + experiment-1 wrapup 均在 |
 
 清理条件：1/2/3/4 均未触发（主套件有净收益、非 gold-anchor、非 neural-LM、本轮可复现）。
 
-**判定：现状是 .gram 已随 `3c2291d5` 进入主 bundle，但标准 2/3 未完成，暂不满足正式合并门槛；作为测试性质资产保留，下一步按序：① essay.txt 训练语料 license verdict 登记（Lexicon SOURCES.md）② RSS/latency 测量 ③ gram 瘦身或锚线修订（超线 0.07%）④ n-gram 归因核对。**
+**判定：现状是 .gram 已随 `3c2291d5` 进入主 bundle；标准 1/3/4/5 已完成（v1 语料 verdict + NOTICE 署名 2026-10-01 落地），标准 2 未覆盖（RSS、warm per-query ≤2ms、真机 spot-check 未测，gram 超 24MB 锚线 0.07%）。作为测试性质资产保留，下一步按序：① RSS/latency 测量 ② gram 瘦身或锚线修订 ③ n-gram 归因核对 ④ v2 训练语料（维基新闻 CC BY 4.0 等商用清洁源）逐源登记后重建。**
