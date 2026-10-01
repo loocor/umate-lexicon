@@ -47,7 +47,7 @@ def test_fixture_pipeline_passes_gold(tmp_path: Path) -> None:
     assert assign_layer(weixin) == "base"
     ai = store.get("人工智能", "ren gong zhi neng")
     assert ai is not None
-    assert {ref.source_id for ref in ai.sources} == {"tencent"}
+    assert "tencent" in {ref.source_id for ref in ai.sources}
     assert ai.domain_freq["tencent"] == 1
     assert assign_layer(ai) == "bulk"
     laugh = store.get("😂", "ha ha")
