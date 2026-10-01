@@ -18,6 +18,7 @@ from umate_lexicon.layers import (
 )
 from umate_lexicon.lemma import Lemma
 from umate_lexicon.pinyin import sanitize_emit_code
+from umate_lexicon.t2s import SimplifyFn
 from umate_lexicon.store import LemmaStore
 
 LATIN_SYLLABLES = [(ch, ch) for ch in "ABCDEFGHIJKLMNOPQRSTUVWXYZ"]
@@ -36,11 +37,55 @@ DIGIT_SYLLABLES = [
 ]
 
 
+_opencc_t2s: SimplifyFn | None = None
+_opencc_loaded = False
+
+
+def _load_opencc_t2s() -> SimplifyFn:
+    """Load OpenCC t2s converter once; return identity on import failure."""
+    global _opencc_t2s, _opencc_loaded
+    if _opencc_loaded:
+        return _opencc_t2s if _opencc_t2s is not None else (lambda s: s)
+    _opencc_loaded = True
+    try:
+        from opencc import OpenCC
+        cc = OpenCC("t2s")
+        _opencc_t2s = cc.convert
+    except ImportError:
+        pass
+    return _opencc_t2s if _opencc_t2s is not None else (lambda s: s)
+
+
 def emit_rime(store: LemmaStore, out_dir: Path, version: str = "0.1.0") -> dict[str, int]:
     out_dir.mkdir(parents=True, exist_ok=True)
+    to_simplified = _load_opencc_t2s()
     siblings: dict[str, list[Lemma]] = defaultdict(list)
     buckets: dict[str, list[Lemma]] = defaultdict(list)
-    for lemma in store.all_lemmas():
+    t2s_converted = 0
+    seen_keys: set[tuple[str, str]] = set()
+    for raw_lemma in store.all_lemmas():
+        fixed_surface = to_simplified(raw_lemma.surface)
+        if fixed_surface != raw_lemma.surface:
+            t2s_converted += 1
+            lemma = Lemma(
+                surface=fixed_surface,
+                pinyin_plain=raw_lemma.pinyin_plain,
+                pinyin_toned=raw_lemma.pinyin_toned,
+                weight=raw_lemma.weight,
+                status=raw_lemma.status,
+                script=raw_lemma.script,
+                categories=list(raw_lemma.categories),
+                flags=list(raw_lemma.flags),
+                entity_type=raw_lemma.entity_type,
+                domain_freq=dict(raw_lemma.domain_freq),
+                sources=list(raw_lemma.sources),
+            )
+        else:
+            lemma = raw_lemma
+        key = lemma.key()
+        if key in seen_keys:
+            continue
+        seen_keys.add(key)
         siblings[lemma.surface].append(lemma)
         layer = assign_layer(lemma)
         if layer is None:
@@ -75,6 +120,7 @@ def emit_rime(store: LemmaStore, out_dir: Path, version: str = "0.1.0") -> dict[
         buckets[name] = cleaned
 
     counts = {name: len(items) for name, items in buckets.items()}
+    counts["t2s_converted"] = t2s_converted
     counts["codes_sanitized"] = sanitized
     counts["codes_dropped"] = dropped
     _write_table(out_dir / "umate_chars.dict.yaml", "umate_chars", version, buckets.get("chars", []), siblings)
