@@ -4,3 +4,11 @@ surface	origin	reported	note
 出门	user	2026-09-17	reported missing while typing
 多少	user	2026-09-17	reported missing while typing
 覆盖	user	2026-10-01	fugai emitted 复盖 (variant) instead; 覆盖 weight 1 bulk-only
+共沸剂	zhihu-corpus	2026-10-01	phrase gap (segmentation); chemistry term from alcohol corpus
+不摆烂	zhihu-corpus	2026-10-01	phrase gap (segmentation); common internet usage
+跑通	zhihu-corpus	2026-10-01	phrase gap (segmentation); general verb
+底味	zhihu-corpus	2026-10-01	phrase gap (segmentation); cooking term
+糊锅	zhihu-corpus	2026-10-01	phrase gap (segmentation); cooking term
+划散	zhihu-corpus	2026-10-01	phrase gap (segmentation); cooking term
+发柴	zhihu-corpus	2026-10-01	phrase gap (segmentation); cooking term
+任前	zhihu-corpus	2026-10-01	phrase gap (segmentation); workplace/gov term (renqian talk)
