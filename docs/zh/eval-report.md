@@ -115,3 +115,12 @@ OpenCC `t2s` 在 emit 层强制转换，一次性转换 **20,207 条**繁体条�
   断言下复测通过（127 passed）。
 - 排序缺口 850 → 919：dist 规模近翻倍后同音竞争面扩大，主体仍是
   上下文依赖词对，octagram 是结构性出路（P3 调研继续）。
+
+### bundle 同步契约（2026-10-01 事故教训）
+
+`RimeSharedData.bundle` 是共享领土：Lexicon 只拥有根目录的
+`umate_*.dict.yaml`、`aosp_en.*`、`en_us_unigrams.tsv` 等数据文件；
+schema、`build/`、`umate-zh-hans.gram`、`lua/`、`opencc/`、
+`default.yaml` 等由 VoiMate 侧拥有。同步必须用 `rsync -a`（禁止
+`--delete`），否则会删掉 VoiMate 侧 66 个 tracked 文件（本次已从
+git 完整恢复，.gram 25,183,276 B 字节级核对一致）。
