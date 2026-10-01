@@ -267,6 +267,15 @@
         "kind": "base64-gzip",
         "output": "aosp_en_US_wordlist.csv"
       }
+    },
+    {
+      "id": "wikinews-pages",
+      "license": "cc-by-4.0-wikinews",
+      "homepage": "https://zh.wikinews.org/",
+      "url": "https://zh.wikinews.org/w/api.php (snapshot via scripts/fetch-wikinews.py; rolling, bump hash per dated fetch)",
+      "sha256": "4c068a3289b1bef97bf862b0d9c32e656113ced51d36007b506f3663f0215061",
+      "filename": "wikinews-20261001-pages.tsv",
+      "ingest": "wikinews"
     }
   ]
 }
