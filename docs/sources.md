@@ -5,6 +5,11 @@ Fetch with `python -m umate_lexicon fetch` or `scripts/fetch-sources.sh`.
 The ingest gate (`verify-sources` / locked `pipeline`) refuses missing
 files and hash mismatches. It does not fall back to fixtures.
 
+Scope note: this file is the lemma-store adapter contract. Evaluation
+and training corpora (round eval files, `.gram` training feeds) are
+registered separately in `data/eval/corpus/SOURCES.md`; admission
+policy lives in `source-policy.md`.
+
 | Adapter | Input | License to record | Pinyin |
 | --- | --- | --- | --- |
 | `chars` | `surface<TAB>pinyin<TAB>weight` | `standard-8105` or `unihan` | required |
