@@ -155,3 +155,7 @@ octagram 是结构性出路）。
 ## octagram grammar A/B（2026-10-01 追加）
 
 232 条 freq≥2 排序缺口用例 + 14 内置/上下文 case，on（25.2MB .gram）/off（剥 grammar 块）双 bundle 对比。结果：上下文条件 case 修复 2（shenghuo→生火 ×2）、回退 0；232 条词级同音排序用例 0 翻转。结论：octagram 增量真实但限于上下文条件次词排序；词级排序缺口（223 条）走 phrase-curation，与 .gram 正交。方法学教训：静态链接 librime 探针必须 `-Wl,-force_load` 并以 `nm | grep octagram ≥ 1` 验收，否则模块静默失效（首轮无效实验已记录）。criteria 五条对照判定：全部满足（成本维度依据 2026-09-19 experiment-1 wrapup 实测：RSS +14.8 MB、ctx 0.2 ms、QWERTY 1.8 ms、iPhone-JA 实机验证；唯一残留 gram 超 24 MB 锚线 0.07%），.gram 正式保留在主 bundle。详见 `data/eval/rounds/2026-10-01-grammar-ab.md`。
+
+## octagram grammar v2（2026-10-01 追加）
+
+维基新闻 10,074 篇（8.7M 字符，CC BY 4.0）+ zhwiki 重下混合重训。A/B：246 case 与现役 v1 完全打平（20 PASS、0 回退、ctx 保持）；成本大幅优化：bundle 24→8.1MB（-66%）、RSS -7.6MB、延迟持平。判定 v2 换包，v1 备份可回滚。域内增量（台风/地震类搭配 542 行）已入 gram 但现用例集不覆盖，后续补 wikinews 域 ctx case。详见 data/eval/rounds/2026-10-01-grammar-v2.md。

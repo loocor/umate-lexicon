@@ -23,6 +23,7 @@ from umate_lexicon.ingest.tencent import ingest_tencent
 from umate_lexicon.ingest.tgh import ingest_tgh
 from umate_lexicon.ingest.thuocl import ingest_thuocl
 from umate_lexicon.ingest.unihan import ingest_unihan
+from umate_lexicon.ingest.wikinews import ingest_wikinews
 from umate_lexicon.ingest.wiki import (
     ingest_wiki,
     ingest_wiki_category,
@@ -68,6 +69,9 @@ def run_fixture_pipeline(
             "wiki_linktarget": ingest_wiki_linktarget(store, root / "fixtures" / "wiki-linktarget.sql"),
             "wiki_category": ingest_wiki_category(store, root / "fixtures" / "wiki-categorylinks.sql"),
             "tencent": ingest_tencent(store, root / "fixtures" / "tencent.txt", simplify=simplify),
+            # wikinews runs last: it only adds surfaces missing from every
+            # earlier channel, so its position in this dict is load-bearing.
+            "wikinews": ingest_wikinews(store, root / "fixtures" / "wikinews-pages.tsv"),
         }
     return _finish(store, stats, out_dir)
 
@@ -165,6 +169,8 @@ def _ingest_pinned(
         return ingest_emoji(store, path, locator=locator, simplify=simplify)
     if source.ingest == "tencent":
         return ingest_tencent(store, path, locator=locator, simplify=simplify)
+    if source.ingest == "wikinews":
+        return ingest_wikinews(store, path, locator=locator)
     if source.ingest == "wiki":
         return ingest_wiki(store, path, locator=locator, simplify=simplify)
     if source.ingest == "wiki_page":
