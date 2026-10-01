@@ -9,7 +9,8 @@
 | 文件模式 | 来源 | 用途 | 许可 | 采集方式 | 状态 |
 |---|---|---|---|---|---|
 | `zhihu_<topic>.txt` | 知乎热榜问答正文 | eval-only | 用户内容默认许可含 NC 变体；进入训练前需逐篇评审 | 内部浏览器 AX 提取 | 活跃（13 篇） |
-| `news_<org>_<yyyymmdd>.txt` | 新闻源（待选型） | 评审后可升 training-feed | 须选明确许可源（如 CC 授权媒体、公开政府公报） | RSS / API | 未启动 |
+| `wikinews_<yyyymmdd>.txt` | 中文维基新闻 zh.wikinews.org | training-feed 候选（选型通过，未采数） | CC BY 4.0（站方版权页 2026-10-01 核对；署名即可、允许商用；.gram NOTICE 附署名） | API / dump 批量拉取 | 已选型 |
+| `gongbao_<yyyymmdd>.txt` | 国务院公报 gov.cn/gongbao | training-feed 候选（有条件） | 著作权法第五条第(一)项：法规与行政性质文件不受保护；公报内讲话、解读类仍受保护，须按篇过滤 | 逐期抓取 | 待逐篇过滤规则复核 |
 
 ## 采集纪律
 
