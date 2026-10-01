@@ -17,3 +17,4 @@
 - 每轮只追加新文件，不改写旧文件，保证轮次指标可比。
 - 文件名即来源标识；未登记的文件不得进入 corpus 目录。
 - `.gram` v2 训练启动前，training-feed 清单必须全部带许可结论。
+| `wikimedia_dumps_*.xml.bz2`（zhwiki pages-articles shard p1p187712、wikivoyage dump） | Wikimedia dumps（dumps.wikimedia.org） | training-feed（.gram v1 已消费；raw dump 不入库、不入 bundle，仅衍生统计分发） | GFDL + CC BY-SA 3.0 双许可，按 CC BY-SA 3.0 分支分发衍生 .gram；与词库 wiki 通道（cc-by-sa-wikimedia，已在 bundle）同级先例；条件：分发物 NOTICE 附署名（2026-10-01 verdict，依据 dumps.wikimedia.org/legal.html 与 Wikipedia:Licensing update） | `Scripts/experiments/octagram-grammar/fetch_corpus.sh` 直连下载 | .gram v1 已消费；NOTICE 署名 2026-10-01 补齐 |
