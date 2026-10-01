@@ -151,3 +151,7 @@ git 完整恢复，.gram 25,183,276 B 字节级核对一致）。
 r2 同口径确认效果：覆盖缺口 431→308（-28.5%），排序缺口率 58.07→
 62.78/千词（口径=对，dist 近翻倍竞争面扩大，主体仍为上下文依赖，
 octagram 是结构性出路）。
+
+## octagram grammar A/B（2026-10-01 追加）
+
+232 条 freq≥2 排序缺口用例 + 14 内置/上下文 case，on（25.2MB .gram）/off（剥 grammar 块）双 bundle 对比。结果：上下文条件 case 修复 2（shenghuo→生火 ×2）、回退 0；232 条词级同音排序用例 0 翻转。结论：octagram 增量真实但限于上下文条件次词排序；词级排序缺口（223 条）走 phrase-curation，与 .gram 正交。方法学教训：静态链接 librime 探针必须 `-Wl,-force_load` 并以 `nm | grep octagram ≥ 1` 验收，否则模块静默失效（首轮无效实验已记录）。详见 `data/eval/rounds/2026-10-01-grammar-ab.md`。
