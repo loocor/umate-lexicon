@@ -11,14 +11,33 @@
 ## 不可以做
 
 - 新 pin 数据源。
-- 改 `HOT_WEIGHT_FLOOR` 或权重公式。
+- 改 `HOT_WEIGHT_FLOOR`。
 - 把纯 wiki / 纯 CC-CEDICT 再抬进热表。
 - 从现有发射里剥离 share-alike 行。
+- 为了四条已能全拼打出的词去抬词重。
 - 同步 VoiMate、Host 编译、装机、发版。
+
+## 已做的排序修正（2026-10-01 干跑，落地待确认）
+
+分域记账：发射权重取最强单一频次列（essay 优先，其次 hanyu_pinlu / chars /
+gold / thuocl* / luna / cedict），不同量纲不求和。THUOCL 的 df 本身是
+百万级（版权 thuocl=13,204,281 vs essay=42,144），旧求和让 THUOCL 词压过
+essay 全表。单字 essay 计数没有拼音，只让首选读音保留；次读音保留自己的
+实测列，不回退旧 weight。多字词不动，避免 gold correction 抢走常用读音。
+store 不回写；干净重灌时 essay 只盖首选读音。
+
+干跑实测（现有 store 重发射，1,428,27 热投影行不变号）：328,533 行中
+111,455 行权重变化，其中 87,612 行是 ±3 以内的标记尘埃；热投影缩 4,589 行
+（全部仍在对应冷包，无覆盖丢失）；同码 TOP-1 翻转 992 / 233,158（抽样为
+净改善：`e` 首位 `哦→额`、`zhu de` 首位 `朱德→住的`、`xie dai` 首位
+`携带`）。19 条闭集次读音落地权重 1–3。`青团`（essay 468）被 2 字 essay
+碎片闸（<500）挡在热投影外，属 P1 调优候选，本轮不动。
 
 ## Share-alike 冻结
 
-CC-BY-SA（CC-CEDICT、中文维基）可否进入商业包，**没有记录过的法律结论**。当前是冻结，不是批准。
+CC-BY-SA（CC-CEDICT、中文维基）**作为热表权重来源**可否进入商业包，**没有记录过的法律结论**。当前是冻结，不是批准。
+
+层面区分（2026-10-01）：本节冻结的是**词库发射权重**（纯 CEDICT/wiki 抬进热表）；**.gram 训练语料**属另一层面，其 CC BY-SA verdict 已按 training-feed 纪律单独记录在 `data/eval/corpus/SOURCES.md`（zhwiki/wikivoyage dumps，GFDL+CC BY-SA 3.0 取 CC 分支，NOTICE 署名已补），两条线互不扩大、互不回滚。
 
 - 不把纯 CEDICT / 纯 wiki 再抬进热表。
 - 也不在另一次确认前把它们从已经发出的表里剥掉。

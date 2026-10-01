@@ -18,6 +18,7 @@ from umate_lexicon.layers import (
 )
 from umate_lexicon.lemma import Lemma
 from umate_lexicon.pinyin import sanitize_emit_code
+from umate_lexicon.t2s import SimplifyFn
 from umate_lexicon.store import LemmaStore
 
 LATIN_SYLLABLES = [(ch, ch) for ch in "ABCDEFGHIJKLMNOPQRSTUVWXYZ"]
@@ -36,10 +37,62 @@ DIGIT_SYLLABLES = [
 ]
 
 
+_opencc_t2s: SimplifyFn | None = None
+_opencc_loaded = False
+
+
+def _load_opencc_t2s() -> SimplifyFn:
+    """Load OpenCC t2s converter once; return identity on import failure."""
+    global _opencc_t2s, _opencc_loaded
+    if _opencc_loaded:
+        return _opencc_t2s if _opencc_t2s is not None else (lambda s: s)
+    _opencc_loaded = True
+    try:
+        from opencc import OpenCC
+        cc = OpenCC("t2s")
+        _opencc_t2s = cc.convert
+    except ImportError:
+        pass
+    return _opencc_t2s if _opencc_t2s is not None else (lambda s: s)
+
+
 def emit_rime(store: LemmaStore, out_dir: Path, version: str = "0.1.0") -> dict[str, int]:
     out_dir.mkdir(parents=True, exist_ok=True)
+    to_simplified = _load_opencc_t2s()
+    siblings: dict[str, list[Lemma]] = defaultdict(list)
     buckets: dict[str, list[Lemma]] = defaultdict(list)
-    for lemma in store.all_lemmas():
+    t2s_converted = 0
+    deduped = 0
+    best_by_key: dict[tuple[str, str], Lemma] = {}
+    for raw_lemma in store.all_lemmas():
+        fixed_surface = to_simplified(raw_lemma.surface)
+        if fixed_surface != raw_lemma.surface:
+            t2s_converted += 1
+            lemma = Lemma(
+                surface=fixed_surface,
+                pinyin_plain=raw_lemma.pinyin_plain,
+                pinyin_toned=raw_lemma.pinyin_toned,
+                weight=raw_lemma.weight,
+                status=raw_lemma.status,
+                script=raw_lemma.script,
+                categories=list(raw_lemma.categories),
+                flags=list(raw_lemma.flags),
+                entity_type=raw_lemma.entity_type,
+                domain_freq=dict(raw_lemma.domain_freq),
+                sources=list(raw_lemma.sources),
+            )
+        else:
+            lemma = raw_lemma
+        key = lemma.key()
+        existing = best_by_key.get(key)
+        if existing is not None:
+            deduped += 1
+            if lemma.weight > existing.weight:
+                best_by_key[key] = lemma
+            continue
+        best_by_key[key] = lemma
+    for lemma in best_by_key.values():
+        siblings[lemma.surface].append(lemma)
         layer = assign_layer(lemma)
         if layer is None:
             continue
@@ -73,21 +126,29 @@ def emit_rime(store: LemmaStore, out_dir: Path, version: str = "0.1.0") -> dict[
         buckets[name] = cleaned
 
     counts = {name: len(items) for name, items in buckets.items()}
+    counts["t2s_converted"] = t2s_converted
+    counts["deduped"] = deduped
     counts["codes_sanitized"] = sanitized
     counts["codes_dropped"] = dropped
-    _write_table(out_dir / "umate_chars.dict.yaml", "umate_chars", version, buckets.get("chars", []))
-    _write_table(out_dir / "umate_base.dict.yaml", "umate_base", version, buckets.get("base", []))
+    _write_table(out_dir / "umate_chars.dict.yaml", "umate_chars", version, buckets.get("chars", []), siblings)
+    _write_table(out_dir / "umate_base.dict.yaml", "umate_base", version, buckets.get("base", []), siblings)
     for pack in PACK_LAYERS:
-        _write_table(out_dir / f"umate_{pack}.dict.yaml", f"umate_{pack}", version, buckets.get(pack, []))
-    _write_table(out_dir / "umate_emoji.dict.yaml", "umate_emoji", version, buckets.get("emoji", []))
+        _write_table(
+            out_dir / f"umate_{pack}.dict.yaml",
+            f"umate_{pack}",
+            version,
+            buckets.get(pack, []),
+            siblings,
+        )
+    _write_table(out_dir / "umate_emoji.dict.yaml", "umate_emoji", version, buckets.get("emoji", []), siblings)
     hot_tail = [
         lemma
         for pack in HOT_PROJECTED_LAYERS
         for lemma in buckets.get(pack, [])
-        if is_hot_projected(lemma)
+        if is_hot_projected(lemma, siblings.get(lemma.surface))
     ]
     counts["hot_tail"] = len(hot_tail)
-    _write_table(out_dir / "umate_hot_tail.dict.yaml", "umate_hot_tail", version, hot_tail)
+    _write_table(out_dir / "umate_hot_tail.dict.yaml", "umate_hot_tail", version, hot_tail, siblings)
     cold_only_enabled = COLD_ONLY_LAYERS if _layers.WIKI_TAIL_ENABLED else ()
     for layer in COLD_ONLY_LAYERS:
         stale = out_dir / f"umate_{layer}.dict.yaml"
@@ -102,15 +163,18 @@ def emit_rime(store: LemmaStore, out_dir: Path, version: str = "0.1.0") -> dict[
                 f"umate_{layer}",
                 version,
                 buckets.get(layer, []),
+                siblings,
             )
     _write_core(out_dir / "umate_hans.dict.yaml", version)
     _write_cold_core(out_dir / "umate_hans_cold.dict.yaml", version)
     _write_schema(out_dir / "umate_hans.schema.yaml")
     _write_emoji_opencc(out_dir, store)
-    _write_notice(out_dir / "NOTICE", store)
+    # AOSP artifacts must exist before NOTICE: the notice lists them by
+    # filename, and a fresh emit dir has no files from a previous run.
     aosp_csv = _resolve_aosp_wordlist()
     if aosp_csv is not None:
         counts.update(emit_aosp_en(aosp_csv, out_dir))
+    _write_notice(out_dir / "NOTICE", store)
     return counts
 
 
@@ -186,7 +250,13 @@ def _write_cold_core(path: Path, version: str) -> None:
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
-def _write_table(path: Path, name: str, version: str, lemmas: list[Lemma]) -> None:
+def _write_table(
+    path: Path,
+    name: str,
+    version: str,
+    lemmas: list[Lemma],
+    siblings: dict[str, list[Lemma]] | None = None,
+) -> None:
     lines = [
         "# Rime dictionary",
         "# encoding: utf-8",
@@ -203,9 +273,13 @@ def _write_table(path: Path, name: str, version: str, lemmas: list[Lemma]) -> No
         "...",
         "",
     ]
-    ordered = sorted(lemmas, key=lambda item: (-emit_weight(item), item.surface, item.pinyin_plain))
+    def weight_of(item: Lemma) -> int:
+        group = None if siblings is None else siblings.get(item.surface)
+        return emit_weight(item, group)
+
+    ordered = sorted(lemmas, key=lambda item: (-weight_of(item), item.surface, item.pinyin_plain))
     for lemma in ordered:
-        lines.append(f"{lemma.surface}\t{lemma.pinyin_plain}\t{emit_weight(lemma)}")
+        lines.append(f"{lemma.surface}\t{lemma.pinyin_plain}\t{weight_of(lemma)}")
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 

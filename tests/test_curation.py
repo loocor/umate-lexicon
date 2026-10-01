@@ -4,6 +4,7 @@ from umate_lexicon.emit.rime import emit_rime
 from umate_lexicon.ingest.curation import (
     curated_weight,
     ingest_english_emoji_curation,
+    ingest_phrase_curation,
     ingest_pinyin_emoji_curation,
 )
 from umate_lexicon.layers import EMOJI_TAIL_WEIGHT, emit_weight
@@ -59,3 +60,17 @@ def test_official_emoji_rides_the_tail_floor(tmp_path: Path) -> None:
     }
     assert rows[("👌", "hao")] == 6000
     assert all(weight >= EMOJI_TAIL_WEIGHT for weight in rows.values())
+
+
+def test_curated_phrase_rows_close_segmentation_gaps(tmp_path: Path) -> None:
+    store = LemmaStore(tmp_path / "lemmas.sqlite")
+    count = ingest_phrase_curation(store, data_dir() / "voimate" / "phrase-curation.tsv")
+    assert count >= 1
+    phrase = store.get("糊锅", "hu guo")
+    assert phrase is not None
+    assert "curated" in phrase.flags
+    assert emit_weight(phrase) == 6000
+    assert phrase.sources[0].license == "voimate-curation"
+    slang = store.get("不摆烂", "bu bai lan")
+    assert slang is not None
+    assert emit_weight(slang) == 6000

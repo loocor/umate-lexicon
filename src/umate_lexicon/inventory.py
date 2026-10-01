@@ -72,7 +72,7 @@ def summarize_store(store: LemmaStore) -> dict[str, object]:
             if not lemmas:
                 rows.append({"surface": surface, "present": False})
                 continue
-            best = max(lemmas, key=lambda item: (emit_weight(item), item.status == "gold"))
+            best = max(lemmas, key=lambda item: (emit_weight(item, lemmas), item.status == "gold"))
             rows.append(
                 {
                     "surface": surface,
@@ -80,7 +80,7 @@ def summarize_store(store: LemmaStore) -> dict[str, object]:
                     "status": best.status,
                     "pinyin": best.pinyin_plain,
                     "layer": assign_layer(best),
-                    "weight": emit_weight(best),
+                    "weight": emit_weight(best, lemmas),
                     "freq": dict(best.domain_freq),
                 }
             )

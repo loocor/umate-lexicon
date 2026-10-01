@@ -58,11 +58,26 @@ to the first matching layer only.
 
 ## Weight
 
-Raw counts live in `domain_freq`. The emitted `weight` column is the raw
-ranking frequency itself: librime compiles it as `log(weight)` and
-subtracts `log(1e8)` when a candidate is built, so the column is a
-frequency on a 1e8 scale. Do not pre-compress it -- a log here is applied
-twice and flattens the distribution until rare entries rival common ones.
+Raw counts live in `domain_freq`, one column per measuring instrument.
+The emitted `weight` column is a single raw column, never a sum: the
+strongest measured domain wins (`essay` first, then `hanyu_pinlu`,
+`chars`, `gold`, `thuocl*`, `luna`, `cedict`, `unihan`). A THUOCL
+document count and an essay 1e8-scale count are different rulers, not
+addends -- summing them let THUOCL terms outrank common essay-ranked
+words. librime compiles the column as `log(weight)` and subtracts
+`log(1e8)` when a candidate is built, so the column stays on the essay
+1e8 scale. Do not pre-compress it -- a log here is applied twice and
+flattens the distribution until rare entries rival common ones.
+
+Essay lines have no pinyin. For a single character, when the same essay
+count is stamped on more than one reading, emit keeps it on the preferred
+reading only (TGH, gold, then trusted-source count, then weight). A
+strictly weaker reading loses the shared column and keeps its own
+measured domains; it never falls back to the stale store weight. Ties
+keep the count. Multi-character rows are not rewritten this way: a gold
+correction such as `信息/zi xun` must not steal the count from the
+common reading. The store is not rewritten; a later clean ingest stamps
+the preferred reading only for single characters.
 
 Coverage placeholders (`domain_freq.tencent`, `domain_freq.wiki`) are
 stored but excluded from ranking so essay remains the sort key. Tencent

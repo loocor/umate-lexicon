@@ -41,18 +41,31 @@
 
 ## 本轮多音补回
 
-闭集 84 字里，19 条读音已有 CC-CEDICT，也有 essay/luna，但单字门原先只认 gold / tgh / kHanyuPinlu / chars 源，所以没发出。现已进 `chars`。权重没改，仍是 `ranking_freq`。其中几条次读音带着主读音的 essay 计数，所以权重很高，不是口语实测：
+闭集 84 字里，19 条读音已有 CC-CEDICT，也有 essay/luna，但单字门原先只认 gold / tgh / kHanyuPinlu / chars 源，所以没发出。现已进 `chars`。单字 essay 没有拼音，同一计数不再拿去排次读音；次读音只保留自己的 kHanyuPinlu / CC-CEDICT。多字词不套这条规则，避免 gold correction 抢走「信息 / 软件」的计数。
 
 | 表面 | 拼音 | 发出权重 |
 | --- | --- | ---: |
-| 和 | hu | 1995095 |
-| 说 | shui | 1021126 |
-| 将 | qiang | 361278 |
-| 行 | heng | 119731 |
-| 车 | ju | 81081 |
-| 区 | ou | 79185 |
+| 说 | shui | 3 |
+| 吓 | he | 2 |
+| 将 | qiang | 2 |
+| 车 | ju | 2 |
+| 纤 | qian | 2 |
+| 强 | jiang | 2 |
+| 区 | ou | 2 |
+| 数 | shuo | 2 |
+| 和 | hu | 1 |
+| 差 | ci | 1 |
+| 行 | heng | 1 |
+| 省 | xing | 1 |
+| 石 | dan | 1 |
+| 落 | lao | 1 |
+| 乐 | lao | 1 |
+| 阿 | e | 1 |
+| 藏 | zang | 1 |
+| 扎 | za | 1 |
+| 转 | zhuai | 1 |
 
-其余 13 条在 5,076–64,207。这是读音补回，不是排序实验。次读音和主读音共享 essay 计数的问题留到下一次确认。
+主读音权重没变。这 19 条现在能进表，但排在该音节现任首位之下。
 
 ## Share-alike
 
@@ -64,7 +77,7 @@
 
 ## 明确还没做
 
-1. 不改 `HOT_WEIGHT_FLOOR`，不改权重公式。
+1. 不改 `HOT_WEIGHT_FLOOR`。单字共享 essay 的发射修正已经落地；多字词权重公式不动。
 2. 不把纯 wiki / 纯 CC-CEDICT 再抬进热表。
 3. 不同步键盘，不编译，不装机。
 4. 腾讯全量约 800 万仍不可用。不拉向量。

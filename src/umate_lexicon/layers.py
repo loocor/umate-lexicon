@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import re
 
+from collections.abc import Sequence
+
 from umate_lexicon.lemma import Lemma
 
 _HAN = re.compile(r"[\u4e00-\u9fff]")
@@ -155,15 +157,92 @@ def is_coverage_only(lemma: Lemma) -> bool:
     return bool(ids) and ids <= COVERAGE_SOURCE_IDS
 
 
-def ranking_freq(lemma: Lemma) -> int:
-    ranked = sum(
-        count
+# Mass-frequency domains, strongest instrument first. The emitted weight is
+# a raw count on ONE scale (the essay 1e8 contract), so the ranking column
+# is the strongest measured domain -- never a sum. A THUOCL document count
+# and an essay 1e8 count are different rulers, not addends; every domain
+# stays recorded in domain_freq as evidence.
+RANK_DOMAIN_PRECEDENCE: tuple[str, ...] = (
+    "essay",
+    "hanyu_pinlu",
+    "chars",
+    "gold",
+    "thuocl",  # prefix match below also covers thuocl-<topic> domains
+    "luna",
+    "cedict",
+    "unihan",
+    "emoji",
+)
+
+
+def _mass_ledger(lemma: Lemma) -> dict[str, int]:
+    return {
+        domain: int(count)
         for domain, count in lemma.domain_freq.items()
-        if domain not in COVERAGE_FREQ_DOMAINS and domain != "curation_rank"
-    )
-    if ranked:
-        return ranked
+        if domain not in COVERAGE_FREQ_DOMAINS
+        and domain != "curation_rank"
+        and int(count) > 0
+    }
+
+
+def _rank_column(ledger: dict[str, int]) -> int:
+    if not ledger:
+        return 0
+    for domain in RANK_DOMAIN_PRECEDENCE:
+        value = ledger.get(domain)
+        if value:
+            return value
+    for domain, value in ledger.items():
+        if domain.startswith("thuocl"):
+            return value
+    return max(ledger.values())
+
+
+def ranking_freq(lemma: Lemma) -> int:
+    """The strongest single measured frequency column, never a sum."""
+    column = _rank_column(_mass_ledger(lemma))
+    if column:
+        return column
     return lemma.weight
+
+
+def _emit_ranking_freq(lemma: Lemma, siblings: Sequence[Lemma] | None) -> int:
+    """Ranking column for emit, with the single-char essay-sibling rule.
+
+    Essay lines have no pinyin. When one surface count was stamped on
+    several readings, only the preferred reading keeps it; a strictly
+    weaker reading keeps its own measured columns and does not fall back
+    to the stale store weight. Ties keep the count. Multi-character rows
+    are not rewritten: a gold correction must not steal the count from
+    the common reading.
+    """
+    ledger = _mass_ledger(lemma)
+    demoted = False
+    essay = ledger.get("essay", 0)
+    if essay > 0 and siblings and len(lemma.surface) == 1:
+        peers = [
+            item
+            for item in siblings
+            if item.status != "rejected"
+            and int(item.domain_freq.get("essay") or 0) == essay
+        ]
+        if len({item.pinyin_plain for item in peers}) >= 2:
+            from umate_lexicon.ingest.compose import reading_rank_score
+
+            best = max(reading_rank_score(item) for item in peers)
+            if reading_rank_score(lemma) < best:
+                ledger = {
+                    domain: count
+                    for domain, count in ledger.items()
+                    if domain != "essay"
+                }
+                demoted = True
+    column = _rank_column(ledger)
+    if column:
+        return column
+    if demoted:
+        return 0
+    return int(lemma.weight)
 
 
 # Curated emoji tier A (VoiMate overlay): engine-visible, ordered per
@@ -186,7 +265,7 @@ def is_emoji_lemma(lemma: Lemma) -> bool:
     )
 
 
-def emit_weight(lemma: Lemma) -> int:
+def emit_weight(lemma: Lemma, siblings: Sequence[Lemma] | None = None) -> int:
     """Value for the Rime `weight` column.
 
     librime stores this column as `log(weight)` at compile time
@@ -199,6 +278,12 @@ def emit_weight(lemma: Lemma) -> int:
     rows decay per rank from CURATION_HOT_BASE, official rows sit at the
     EMOJI_TAIL_WEIGHT floor so they surface mid-tail, never at the top.
 
+    Single-character essay lines have no pinyin. A shared count stamped on
+    every trusted reading ranks only the preferred reading; a strictly
+    weaker reading keeps its own measured columns (kHanyuPinlu, CC-CEDICT)
+    and drops the shared count. Callers that omit siblings preserve the
+    raw ranking column.
+
     Wiki-only typed entries (person / place / org / work) carry a flat
     cold weight: enough to surface in the cold fallback table, never
     enough to enter the hot projection or outrank essay-ranked entries.
@@ -206,7 +291,7 @@ def emit_weight(lemma: Lemma) -> int:
     if "curated" in lemma.flags:
         rank = max(1, curated_rank(lemma))
         return round(CURATION_HOT_BASE * (CURATION_HOT_DECAY ** (rank - 1)))
-    w = max(1, ranking_freq(lemma))
+    w = max(1, _emit_ranking_freq(lemma, siblings))
     if is_emoji_lemma(lemma):
         return max(w, EMOJI_TAIL_WEIGHT)
     if w <= 1 and is_wiki_only(lemma):
@@ -314,22 +399,26 @@ def _auto_short_layer(lemma: Lemma, n: int) -> str:
     return "base"
 
 
-def _is_essay_two_char_fragment(lemma: Lemma) -> bool:
+def _is_essay_two_char_fragment(
+    lemma: Lemma, siblings: Sequence[Lemma] | None = None
+) -> bool:
     """Essay-only 2-char collocation fragment below the fragment floor."""
     if len(lemma.surface) != 2:
         return False
-    if emit_weight(lemma) >= HOT_TWO_CHAR_ESSAY_FLOOR:
+    if emit_weight(lemma, siblings) >= HOT_TWO_CHAR_ESSAY_FLOOR:
         return False
     return any(ref.source_id == "essay" for ref in lemma.sources)
 
 
-def is_hot_projected(lemma: Lemma) -> bool:
+def is_hot_projected(lemma: Lemma, siblings: Sequence[Lemma] | None = None) -> bool:
     """Weight-projection predicate for long-tail packs, with the essay
     2-char fragment guard."""
-    return emit_weight(lemma) >= HOT_WEIGHT_FLOOR and not _is_essay_two_char_fragment(lemma)
+    return emit_weight(lemma, siblings) >= HOT_WEIGHT_FLOOR and not _is_essay_two_char_fragment(
+        lemma, siblings
+    )
 
 
-def is_hot_member(lemma: Lemma) -> bool:
+def is_hot_member(lemma: Lemma, siblings: Sequence[Lemma] | None = None) -> bool:
     """Whether the lemma rides the every-key hot table.
 
     Structural layers (chars/base/corrections/emoji) ride hot wholesale.
@@ -342,4 +431,4 @@ def is_hot_member(lemma: Lemma) -> bool:
         return False
     if layer in HOT_STRUCTURAL_LAYERS:
         return True
-    return is_hot_projected(lemma)
+    return is_hot_projected(lemma, siblings)
