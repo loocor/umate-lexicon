@@ -1,0 +1,10 @@
+# surface	pinyin_plain	reason
+# Emit-time TOP-1 claims for the same pinyin. The listed surface is raised
+# just above the current peak so a variant, toponym, or junk row cannot
+# outrank it. Do not list context-locked pairs (任务/人物, 老师/老实).
+覆盖	fu gai	standard 覆盖 vs essay variant 复盖
+计划	ji hua	tie-break 计划 vs 计画
+复购	fu gou	commerce 复购 vs county 扶沟
+慢炖	man dun	cooking 慢炖 vs name 曼顿
+显著	xian zhu	common word missing essay, beaten by 先主
+可逆	ke ni	real word vs junk 可你

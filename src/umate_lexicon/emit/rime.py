@@ -56,7 +56,62 @@ def _load_opencc_t2s() -> SimplifyFn:
     return _opencc_t2s if _opencc_t2s is not None else (lambda s: s)
 
 
-def emit_rime(store: LemmaStore, out_dir: Path, version: str = "0.1.0") -> dict[str, int]:
+def default_ranking_overrides_path() -> Path:
+    return Path(__file__).resolve().parents[3] / "data" / "voimate" / "ranking-overrides.tsv"
+
+
+def load_ranking_overrides(path: Path | None = None) -> dict[tuple[str, str], str]:
+    """Map (surface, pinyin_plain) -> reason. Missing file => empty."""
+    src = path if path is not None else default_ranking_overrides_path()
+    rows: dict[tuple[str, str], str] = {}
+    if not src.is_file():
+        return rows
+    for raw in src.read_text(encoding="utf-8").splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#"):
+            continue
+        parts = line.split("\t")
+        if len(parts) < 2:
+            continue
+        surface, pinyin = parts[0].strip(), parts[1].strip()
+        if surface and pinyin:
+            rows[(surface, pinyin)] = parts[2].strip() if len(parts) > 2 else ""
+    return rows
+
+
+def apply_ranking_overrides(
+    weights: dict[tuple[str, str], int],
+    overrides: dict[tuple[str, str], str],
+) -> int:
+    """Raise each override just above the current same-pinyin peak. Returns applied count."""
+    if not overrides:
+        return 0
+    by_py: dict[str, list[tuple[int, str]]] = {}
+    for (surface, pinyin), weight in weights.items():
+        by_py.setdefault(pinyin, []).append((weight, surface))
+    applied = 0
+    for (surface, pinyin), _reason in overrides.items():
+        if (surface, pinyin) not in weights:
+            continue
+        group = by_py.get(pinyin) or []
+        if not group:
+            continue
+        peak = max(weight for weight, _ in group)
+        tied = [name for weight, name in group if weight == peak]
+        current = weights[(surface, pinyin)]
+        if current < peak or (current == peak and (len(tied) > 1 or tied != [surface])):
+            weights[(surface, pinyin)] = peak + 1
+            applied += 1
+    return applied
+
+
+def emit_rime(
+    store: LemmaStore,
+    out_dir: Path,
+    version: str = "0.1.0",
+    *,
+    ranking_overrides: Path | None = None,
+) -> dict[str, int]:
     out_dir.mkdir(parents=True, exist_ok=True)
     to_simplified = _load_opencc_t2s()
     siblings: dict[str, list[Lemma]] = defaultdict(list)
@@ -130,8 +185,26 @@ def emit_rime(store: LemmaStore, out_dir: Path, version: str = "0.1.0") -> dict[
     counts["deduped"] = deduped
     counts["codes_sanitized"] = sanitized
     counts["codes_dropped"] = dropped
-    _write_table(out_dir / "umate_chars.dict.yaml", "umate_chars", version, buckets.get("chars", []), siblings)
-    _write_table(out_dir / "umate_base.dict.yaml", "umate_base", version, buckets.get("base", []), siblings)
+    weight_cache: dict[tuple[str, str], int] = {}
+    for items in buckets.values():
+        for lemma in items:
+            key = (lemma.surface, lemma.pinyin_plain)
+            if key not in weight_cache:
+                weight_cache[key] = emit_weight(lemma, siblings.get(lemma.surface))
+    override_path = ranking_overrides
+    if override_path is None:
+        default_path = default_ranking_overrides_path()
+        override_path = default_path if default_path.is_file() else None
+    applied = 0
+    boosted: set[tuple[str, str]] = set()
+    if override_path is not None:
+        loaded = load_ranking_overrides(override_path)
+        before = dict(weight_cache)
+        applied = apply_ranking_overrides(weight_cache, loaded)
+        boosted = {key for key, value in weight_cache.items() if before.get(key) != value}
+    counts["ranking_overrides"] = applied
+    _write_table(out_dir / "umate_chars.dict.yaml", "umate_chars", version, buckets.get("chars", []), siblings, weight_cache)
+    _write_table(out_dir / "umate_base.dict.yaml", "umate_base", version, buckets.get("base", []), siblings, weight_cache)
     for pack in PACK_LAYERS:
         _write_table(
             out_dir / f"umate_{pack}.dict.yaml",
@@ -139,16 +212,20 @@ def emit_rime(store: LemmaStore, out_dir: Path, version: str = "0.1.0") -> dict[
             version,
             buckets.get(pack, []),
             siblings,
+            weight_cache,
         )
-    _write_table(out_dir / "umate_emoji.dict.yaml", "umate_emoji", version, buckets.get("emoji", []), siblings)
-    hot_tail = [
-        lemma
-        for pack in HOT_PROJECTED_LAYERS
-        for lemma in buckets.get(pack, [])
-        if is_hot_projected(lemma, siblings.get(lemma.surface))
-    ]
+    _write_table(out_dir / "umate_emoji.dict.yaml", "umate_emoji", version, buckets.get("emoji", []), siblings, weight_cache)
+    hot_tail = []
+    for pack in HOT_PROJECTED_LAYERS:
+        for lemma in buckets.get(pack, []):
+            key = (lemma.surface, lemma.pinyin_plain)
+            if key in boosted:
+                if weight_cache[key] >= _layers.HOT_WEIGHT_FLOOR:
+                    hot_tail.append(lemma)
+            elif is_hot_projected(lemma, siblings.get(lemma.surface)):
+                hot_tail.append(lemma)
     counts["hot_tail"] = len(hot_tail)
-    _write_table(out_dir / "umate_hot_tail.dict.yaml", "umate_hot_tail", version, hot_tail, siblings)
+    _write_table(out_dir / "umate_hot_tail.dict.yaml", "umate_hot_tail", version, hot_tail, siblings, weight_cache)
     cold_only_enabled = COLD_ONLY_LAYERS if _layers.WIKI_TAIL_ENABLED else ()
     for layer in COLD_ONLY_LAYERS:
         stale = out_dir / f"umate_{layer}.dict.yaml"
@@ -256,6 +333,7 @@ def _write_table(
     version: str,
     lemmas: list[Lemma],
     siblings: dict[str, list[Lemma]] | None = None,
+    weights: dict[tuple[str, str], int] | None = None,
 ) -> None:
     lines = [
         "# Rime dictionary",
@@ -274,6 +352,10 @@ def _write_table(
         "",
     ]
     def weight_of(item: Lemma) -> int:
+        if weights is not None:
+            cached = weights.get((item.surface, item.pinyin_plain))
+            if cached is not None:
+                return cached
         group = None if siblings is None else siblings.get(item.surface)
         return emit_weight(item, group)
 

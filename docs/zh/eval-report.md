@@ -189,3 +189,29 @@ min_value=90000 裁掉，短尾巴被 MOT 稀释。
 判定：Effect 不满足零回退，**停留 v2，不换包**。MOT 许可清洁且 pin 有效，
 但 10M 近端 VOA 不能当作 Wikinews 搭配增益。v3 gram 留 Backup 作实验物，
 未 rsync 键盘。详见 `data/eval/rounds/2026-10-01-grammar-v3.md`。
+
+## ranking r1：目标模式 + 6 条 emit 提权（2026-10-01）
+
+无上下文 TOP-1 定为通用书面语，知乎 13 篇只当传感器。通道是 emit
+写时把指定表面抬到同音峰 +1，不改 essay、不改 `HOT_WEIGHT_FLOOR`。
+
+`data/voimate/ranking-overrides.tsv` 首批 6 条，热表 TOP-1 全部翻转：
+
+| 拼音 | 原 TOP-1 | 现 TOP-1 |
+|---|---|---|
+| fu gai | 复盖 14118 | 覆盖 14119（进 hot_tail） |
+| ji hua | 计画 = 计划 45520 | 计划 45521 |
+| fu gou | 扶沟 578 | 复购 579 |
+| man dun | 曼顿 757 | 慢炖 758（进 hot_tail） |
+| xian zhu | 先主 652 | 显著 653（进 hot_tail） |
+| ke ni | 可你 831 | 可逆 832 |
+
+类 C（任务/人物、老师/老实）未全局翻转。`python -m umate_lexicon eval`
+探针 ok。`tests/test_ranking_overrides.py` + emit/eval-regression 绿。
+
+知乎-13 传感器（`2026-10-01-ranking-r1`，语料未改写）：覆盖缺口 307→277
+（-30，本轮 OpenCC t2s 重建把繁体表面并进简体）；排序缺口 849→850（+1，
+6 条不在这 13 篇的排序缺口里，+1 是同音竞争面噪声，低于回归轨 +8）。
+dist 条目 1,461,667→1,480,994（含 hot_tail 投影重复计数）。
+
+判定：r1 结构修复成立，词库可同步键盘。不把知乎/VOA 写进 lemma 或 .gram。
