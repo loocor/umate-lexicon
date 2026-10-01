@@ -62,7 +62,8 @@ def emit_rime(store: LemmaStore, out_dir: Path, version: str = "0.1.0") -> dict[
     siblings: dict[str, list[Lemma]] = defaultdict(list)
     buckets: dict[str, list[Lemma]] = defaultdict(list)
     t2s_converted = 0
-    seen_keys: set[tuple[str, str]] = set()
+    deduped = 0
+    best_by_key: dict[tuple[str, str], Lemma] = {}
     for raw_lemma in store.all_lemmas():
         fixed_surface = to_simplified(raw_lemma.surface)
         if fixed_surface != raw_lemma.surface:
@@ -83,9 +84,14 @@ def emit_rime(store: LemmaStore, out_dir: Path, version: str = "0.1.0") -> dict[
         else:
             lemma = raw_lemma
         key = lemma.key()
-        if key in seen_keys:
+        existing = best_by_key.get(key)
+        if existing is not None:
+            deduped += 1
+            if lemma.weight > existing.weight:
+                best_by_key[key] = lemma
             continue
-        seen_keys.add(key)
+        best_by_key[key] = lemma
+    for lemma in best_by_key.values():
         siblings[lemma.surface].append(lemma)
         layer = assign_layer(lemma)
         if layer is None:
@@ -121,6 +127,7 @@ def emit_rime(store: LemmaStore, out_dir: Path, version: str = "0.1.0") -> dict[
 
     counts = {name: len(items) for name, items in buckets.items()}
     counts["t2s_converted"] = t2s_converted
+    counts["deduped"] = deduped
     counts["codes_sanitized"] = sanitized
     counts["codes_dropped"] = dropped
     _write_table(out_dir / "umate_chars.dict.yaml", "umate_chars", version, buckets.get("chars", []), siblings)
