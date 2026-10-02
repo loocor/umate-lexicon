@@ -18,7 +18,9 @@
    stay `review`.
 5. Emit. Run `eval`. Gold readings and `data/gold/emit-probes.tsv` both
    fail the release. The probe file is not gold and must stay in
-   `_GOLD_SKIP`.
+   `_GOLD_SKIP`. OpenCC t2s folds traditional *words* at emit time; it
+   must not replace a TGH/gold/chars 1-gram or keep the heavier
+   traditional lemma when that would drop the chars gate (羣/群, 喫/吃).
 6. Compile on the Mac Host used by uMate. Copy `table.bin` /
    `prism.bin` into the keyboard bundle. Never compile inside the
    extension. Sync is a separate confirmation; this factory does not

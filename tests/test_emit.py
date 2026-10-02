@@ -162,3 +162,159 @@ def test_wiki_tail_paused_by_default(tmp_path: Path) -> None:
     assert "umate_wiki_tail" not in cold
     assert (out / "umate_hot_tail.dict.yaml").exists()
     store.close()
+
+
+def _fake_t2s():
+    mapping = str.maketrans(
+        {
+            "羣": "群",
+            "喫": "吃",
+            "乾": "干",
+            "淨": "净",
+        }
+    )
+
+    def convert(text: str) -> str:
+        if text == "乾淨":
+            return "干净"
+        if text == "乾隆":
+            return "乾隆"
+        return text.translate(mapping)
+
+    return convert
+
+
+def test_t2s_keeps_tgh_char_when_traditional_is_heavier(tmp_path: Path, monkeypatch) -> None:
+    from umate_lexicon.emit import rime as emit_mod
+
+    monkeypatch.setattr(emit_mod, "_load_opencc_t2s", _fake_t2s)
+    store = LemmaStore(tmp_path / "lemmas.sqlite")
+    store.upsert(
+        Lemma(
+            surface="群",
+            pinyin_plain="qun",
+            weight=1210,
+            status="auto",
+            flags=["hanyu_pinlu", "tgh"],
+            domain_freq={"hanyu_pinlu": 1210, "essay": 1000},
+            sources=[SourceRef("tgh", "unicode", "test")],
+        )
+    )
+    store.upsert(
+        Lemma(
+            surface="羣",
+            pinyin_plain="qun",
+            weight=14339,
+            status="auto",
+            domain_freq={"essay": 14339},
+            sources=[SourceRef("essay", "lgpl-rime-essay", "test")],
+        )
+    )
+    store.upsert(
+        Lemma(
+            surface="吃",
+            pinyin_plain="chi",
+            weight=1684,
+            status="auto",
+            flags=["hanyu_pinlu", "tgh"],
+            sources=[SourceRef("tgh", "unicode", "test")],
+        )
+    )
+    store.upsert(
+        Lemma(
+            surface="喫",
+            pinyin_plain="chi",
+            weight=65597,
+            status="auto",
+            domain_freq={"essay": 65597},
+            sources=[SourceRef("essay", "lgpl-rime-essay", "test")],
+        )
+    )
+    out = tmp_path / "rime"
+    emit_rime(store, out)
+    body = (out / "umate_chars.dict.yaml").read_text(encoding="utf-8")
+    assert "群\tqun\t" in body
+    assert "羣\t" not in body
+    assert "吃\tchi\t" in body
+    assert "喫\t" not in body
+    store.close()
+
+
+def test_t2s_does_not_fold_tgh_qian_into_gan(tmp_path: Path, monkeypatch) -> None:
+    from umate_lexicon.emit import rime as emit_mod
+
+    monkeypatch.setattr(emit_mod, "_load_opencc_t2s", _fake_t2s)
+    store = LemmaStore(tmp_path / "lemmas.sqlite")
+    store.upsert(
+        Lemma(
+            surface="乾",
+            pinyin_plain="qian",
+            weight=6347,
+            status="auto",
+            flags=["tgh"],
+            domain_freq={"essay": 6347},
+            sources=[SourceRef("tgh", "unicode", "test")],
+        )
+    )
+    store.upsert(
+        Lemma(
+            surface="干",
+            pinyin_plain="gan",
+            weight=13753,
+            status="auto",
+            flags=["hanyu_pinlu", "tgh"],
+            sources=[SourceRef("tgh", "unicode", "test")],
+        )
+    )
+    out = tmp_path / "rime"
+    emit_rime(store, out)
+    body = (out / "umate_chars.dict.yaml").read_text(encoding="utf-8")
+    assert "乾\tqian\t" in body
+    assert "干\tgan\t" in body
+    store.close()
+
+
+def test_t2s_still_folds_pinlu_traditional_onto_simplified(tmp_path: Path, monkeypatch) -> None:
+    from umate_lexicon.emit import rime as emit_mod
+
+    monkeypatch.setattr(emit_mod, "_load_opencc_t2s", _fake_t2s)
+    store = LemmaStore(tmp_path / "lemmas.sqlite")
+    store.upsert(
+        Lemma(
+            surface="净",
+            pinyin_plain="jing",
+            weight=100,
+            status="auto",
+            flags=["tgh"],
+            sources=[SourceRef("tgh", "unicode", "test")],
+        )
+    )
+    store.upsert(
+        Lemma(
+            surface="淨",
+            pinyin_plain="jing",
+            weight=3397,
+            status="auto",
+            flags=["hanyu_pinlu"],
+            domain_freq={"hanyu_pinlu": 3397},
+            sources=[SourceRef("unihan", "unicode", "test")],
+        )
+    )
+    store.upsert(
+        Lemma(
+            surface="乾淨",
+            pinyin_plain="gan jing",
+            weight=10,
+            status="gold",
+            sources=[SourceRef("gold", "umate-gold", "test")],
+        )
+    )
+    out = tmp_path / "rime"
+    emit_rime(store, out)
+    chars = (out / "umate_chars.dict.yaml").read_text(encoding="utf-8")
+    assert "净\tjing\t" in chars
+    assert "淨\t" not in chars
+    base = (out / "umate_base.dict.yaml").read_text(encoding="utf-8")
+    assert "干净\tgan jing\t" in base
+    assert "乾淨\t" not in base
+    store.close()

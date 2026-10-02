@@ -15,6 +15,7 @@ from umate_lexicon.layers import (
     PACK_LAYERS,
     assign_layer,
     emit_weight,
+    han_len,
 )
 from umate_lexicon.lemma import Lemma
 from umate_lexicon.pinyin import sanitize_emit_code
@@ -105,6 +106,26 @@ def apply_ranking_overrides(
     return applied
 
 
+def _emit_surface(lemma: Lemma, to_simplified: SimplifyFn) -> tuple[str, bool]:
+    """Choose the emit surface and whether OpenCC folded it.
+
+    Ingest-time Unihan kSimplifiedVariant does not fold semantic variants
+    such as 羣/群. Emit-time OpenCC does. Replacing the TGH row with the
+    heavier traditional lemma then drops the chars gate (no tgh / pinlu),
+    so 群/吃/面 disappear from the one-character table. Keep TGH, gold, and
+    chars-source 1-grams on their own glyph. kHanyuPinlu-only traditional
+    1-grams such as 淨 still fold onto 净.
+    """
+    if han_len(lemma.surface) == 1 and (
+        "tgh" in lemma.flags
+        or lemma.status == "gold"
+        or any(ref.source_id == "chars" for ref in lemma.sources)
+    ):
+        return lemma.surface, False
+    fixed = to_simplified(lemma.surface)
+    return fixed, fixed != lemma.surface
+
+
 def emit_rime(
     store: LemmaStore,
     out_dir: Path,
@@ -119,9 +140,10 @@ def emit_rime(
     t2s_converted = 0
     deduped = 0
     best_by_key: dict[tuple[str, str], Lemma] = {}
+    native_keys: set[tuple[str, str]] = set()
     for raw_lemma in store.all_lemmas():
-        fixed_surface = to_simplified(raw_lemma.surface)
-        if fixed_surface != raw_lemma.surface:
+        fixed_surface, converted = _emit_surface(raw_lemma, to_simplified)
+        if converted:
             t2s_converted += 1
             lemma = Lemma(
                 surface=fixed_surface,
@@ -140,12 +162,25 @@ def emit_rime(
             lemma = raw_lemma
         key = lemma.key()
         existing = best_by_key.get(key)
-        if existing is not None:
-            deduped += 1
+        if existing is None:
+            best_by_key[key] = lemma
+            if not converted:
+                native_keys.add(key)
+            continue
+        deduped += 1
+        existing_native = key in native_keys
+        if existing_native and converted:
+            continue
+        if converted and not existing_native:
             if lemma.weight > existing.weight:
                 best_by_key[key] = lemma
             continue
-        best_by_key[key] = lemma
+        if not converted and not existing_native:
+            best_by_key[key] = lemma
+            native_keys.add(key)
+            continue
+        if lemma.weight > existing.weight:
+            best_by_key[key] = lemma
     for lemma in best_by_key.values():
         siblings[lemma.surface].append(lemma)
         layer = assign_layer(lemma)
