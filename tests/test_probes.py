@@ -13,7 +13,7 @@ def test_probe_weight_and_gap(tmp_path: Path) -> None:
             pinyin_plain="le",
             status="auto",
             flags=["tgh"],
-            domain_freq={"essay": 100},
+            domain_freq={"core": 100},
             sources=[SourceRef("chars", "standard-8105", "x")],
         )
     )
@@ -23,7 +23,7 @@ def test_probe_weight_and_gap(tmp_path: Path) -> None:
             pinyin_plain="liao",
             status="auto",
             flags=["tgh"],
-            domain_freq={"essay": 10},
+            domain_freq={"core": 10},
             sources=[SourceRef("chars", "standard-8105", "x")],
         )
     )

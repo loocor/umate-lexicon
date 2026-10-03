@@ -8,8 +8,8 @@ data/fixtures         tiny original samples for tests
 data/gold             readings, polyphones, eval sentences
         │
         ▼
-   ingest adapters    cedict / thuocl / chars / unihan / t2s / tgh / luna / essay / emoji / tencent / wiki
-        │             t2s folds luna/essay/emoji/tencent/wiki to Hans; clean-room gate first
+   ingest adapters    cedict / thuocl / chars / unihan / t2s / tgh / luna / absorbed-core / emoji / tencent / wiki
+        │             t2s folds luna/core/emoji/tencent/wiki to Hans; clean-room gate first
         ▼
    SQLite store       lemmas + lemma_sources
         │
@@ -60,16 +60,16 @@ to the first matching layer only.
 
 Raw counts live in `domain_freq`, one column per measuring instrument.
 The emitted `weight` column is a single raw column, never a sum: the
-strongest measured domain wins (`essay` first, then `hanyu_pinlu`,
+strongest measured domain wins (`core` first, then `hanyu_pinlu`,
 `chars`, `gold`, `thuocl*`, `luna`, `cedict`, `unihan`). A THUOCL
-document count and an essay 1e8-scale count are different rulers, not
-addends -- summing them let THUOCL terms outrank common essay-ranked
+document count and a core 1e8-scale count are different rulers, not
+addends -- summing them let THUOCL terms outrank common core-ranked
 words. librime compiles the column as `log(weight)` and subtracts
-`log(1e8)` when a candidate is built, so the column stays on the essay
+`log(1e8)` when a candidate is built, so the column stays on the core
 1e8 scale. Do not pre-compress it -- a log here is applied twice and
 flattens the distribution until rare entries rival common ones.
 
-Essay lines have no pinyin. For a single character, when the same essay
+Core corpus lines have no pinyin. For a single character, when the same core
 count is stamped on more than one reading, emit keeps it on the preferred
 reading only (TGH, gold, then trusted-source count, then weight). A
 strictly weaker reading loses the shared column and keeps its own
@@ -80,7 +80,7 @@ common reading. The store is not rewritten; a later clean ingest stamps
 the preferred reading only for single characters.
 
 Coverage placeholders (`domain_freq.tencent`, `domain_freq.wiki`) are
-stored but excluded from ranking so essay remains the sort key. Tencent
+stored but excluded from ranking so core remains the sort key. Tencent
 vocab lines are `freq=1`; vectors never enter the store.
 
 ## Gap triage

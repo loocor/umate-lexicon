@@ -4,14 +4,14 @@
 2. `python -m umate_lexicon fetch` then `verify-sources`.
 3. Ingest in lock order after gold: Unihan readings (kMandarin and
    kHanyuPinlu), variants (t2s), kTGH (8105), CC-CEDICT, THUOCL, official
-   luna, essay, emoji, zhwiki titles / page / category, then Tencent light
+   luna, absorbed core, emoji, zhwiki titles / page / category, then Tencent light
    vocab and the d200 key top 1,000,000 lines, then Wikinews pages last
    (missing surfaces only). AOSP English is an emit
-   sidecar, not a Chinese lemma. Luna/essay/emoji/tencent/wiki surfaces are
+   sidecar, not a Chinese lemma. Luna/core/emoji/tencent/wiki surfaces are
    simplified before overlay. Lock order puts both Tencent sources after
    wiki so overlay cannot steal wiki identity. Do not re-run a locked
    pipeline into an existing store: `domain_freq` values are summed on
-   merge, so a second ingest doubles essay counts. Use a fresh `--store`.
+   merge, so a second ingest doubles core counts. Use a fresh `--store`.
 4. Enrich polyphones. A closed-set character reading from gold, CC-CEDICT,
    Unihan, or kHanyuPinlu emits to `chars`. Luna-only readings stay
    `untrusted_reading` and are not emitted. Low-frequency composed guesses
@@ -25,7 +25,7 @@
    A-F, stays in `chars` even when THUOCL tagged it as industry/org
    (鸮/鸰). Unihan-only Extension A stays out. A floor simplified row
    (ranking frequency <= 1) may inherit the folded traditional ranking
-   column (乾淨 essay -> 干净). A native row that already has a measured
+   column (乾淨 core -> 干净). A native row that already has a measured
    column keeps it (群 does not absorb 羣).
 6. Compile on the Mac Host used by uMate. Copy `table.bin` /
    `prism.bin` into the keyboard bundle. Never compile inside the
@@ -47,3 +47,21 @@ is written down. `NOTICE` still ships with the table.
 
 Human time goes to the review queue and the polyphone closed set, not
 to hand-editing million-line YAML.
+
+## Essay absorption record (2026-10-03)
+
+The `rime/rime-essay` word list was absorbed once into this repo as the
+self-owned snapshot `data/voimate/absorbed-core.tsv` (derived from
+`essay.txt` @ `e9b1a374a6ea015fca5bdd04318924b4483ac35a`, sha256
+`a6f8409c...4151cea`, LGPL-3.0). Data provenance in the store is
+`umate-core` (domain `core`); the ranking column is resolved once into
+`lemmas.rank` + `store_meta.policy_version = v1-absorb` by
+`scripts/absorb_essay_migration.py`. No pipeline stage reads the essay
+identity anymore; attribution lives in `NOTICE` and this record.
+
+Upstream review cadence: check `rime/rime-essay` every 3-6 months for
+word-list corrections worth re-absorbing; re-absorption is a deliberate
+versioned migration, never an automatic fetch.
+
+Acceptance: post-migration emit is byte-identical on every `*.dict.yaml`
+(NOTICE only renames `essay` -> `umate-core`, same 440148 lemmas).

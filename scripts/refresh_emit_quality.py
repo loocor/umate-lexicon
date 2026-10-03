@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Refresh store lemmas that quality fixes need, then re-emit Rime packs.
 
-Does not re-ingest wiki/tencent (hours). Re-applies authored gold, essay
-compose (polyphone bake), enrich/rules, and emit_weight (raw ranking_freq).
+Does not re-ingest wiki/tencent (hours). Re-applies authored gold, the
+absorbed core snapshot (polyphone bake), enrich/rules, resolve, and
+emit_weight (raw ranking_freq).
 """
 from __future__ import annotations
 
@@ -18,7 +19,8 @@ from umate_lexicon.enrich.overrides import apply_overrides
 from umate_lexicon.enrich.polyphone import apply_polyphone_flags
 from umate_lexicon.enrich.readings import apply_reading_merge
 from umate_lexicon.eval.gold import evaluate_store
-from umate_lexicon.ingest.essay import ingest_essay
+from umate_lexicon.ingest.core import ingest_core, verify_absorbed_core
+from umate_lexicon.resolve import resolve_store
 from umate_lexicon.ingest.gold import ingest_gold
 from umate_lexicon.paths import data_dir, default_store_path
 from umate_lexicon.sources import default_downloads_dir, load_lock, verify_ingest_file
@@ -44,22 +46,26 @@ def main() -> int:
             path = gold_dir / name
             if path.is_file():
                 gold_n += ingest_gold(store, path)
-        essay_source = next(s for s in lock.sources if s.id == "essay")
-        essay_path = verify_ingest_file(essay_source, downloads)
-        essay_n = ingest_essay(store, essay_path, locator=f"essay:{essay_source.filename}", simplify=simplify)
+        core_n = ingest_core(
+            store,
+            verify_absorbed_core(),
+            locator="absorbed:absorbed-core.tsv",
+            simplify=simplify,
+        )
         for lemma in store.all_lemmas():
             store.save(classify(lemma))
         overrides = apply_overrides(store)
         reading_merge = apply_reading_merge(store)
         polyphone = apply_polyphone_flags(store)
         rejected = apply_rules(store)
+        resolved = resolve_store(store)["resolved"]
 
     out = ROOT / "dist" / "rime"
     emit_counts = emit_rime(store, out)
     failures = evaluate_store(store)
     store.close()
     print(
-        f"refresh gold={gold_n} essay={essay_n} overrides={overrides} "
+        f"refresh gold={gold_n} core={core_n} resolved={resolved} overrides={overrides} "
         f"reading_merge={reading_merge} polyphone={polyphone} rejected={rejected} "
         f"emit={emit_counts} eval_failures={len(failures)}"
     )

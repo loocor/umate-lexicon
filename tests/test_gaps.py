@@ -19,7 +19,7 @@ def _store(tmp_path: Path) -> LemmaStore:
                 surface="出",
                 pinyin_plain="chu",
                 status="auto",
-                domain_freq={"essay": 57216},
+                domain_freq={"core": 57216},
             )
         )
         store.upsert(
@@ -27,7 +27,7 @@ def _store(tmp_path: Path) -> LemmaStore:
                 surface="门",
                 pinyin_plain="men",
                 status="auto",
-                domain_freq={"essay": 15697},
+                domain_freq={"core": 15697},
             )
         )
     return store
@@ -58,7 +58,7 @@ def test_filtered_when_no_layer_survives(tmp_path: Path) -> None:
             pinyin_plain="zhong shu sheng shi an",
             status="review",
             flags=["polyphone"],
-            domain_freq={"essay": 408},
+            domain_freq={"core": 408},
         )
     )
     finding = classify_surface(store, "中书省试案")
@@ -76,7 +76,7 @@ def test_pack_only_surface_is_not_shipped(tmp_path: Path) -> None:
             pinyin_plain="kun ming",
             status="auto",
             entity_type="place",
-            domain_freq={"essay": 900},
+            domain_freq={"core": 900},
         )
     )
     finding = classify_surface(store, "昆明")
@@ -88,7 +88,7 @@ def test_pack_only_surface_is_not_shipped(tmp_path: Path) -> None:
 def test_phrase_below_character_floor_is_ranked_low(tmp_path: Path) -> None:
     store = _store(tmp_path)
     store.upsert(
-        Lemma(surface="出门", pinyin_plain="chu men", status="auto", domain_freq={"essay": 12251})
+        Lemma(surface="出门", pinyin_plain="chu men", status="auto", domain_freq={"core": 12251})
     )
     assert char_floor(store, "出门", "chu men") == 15697
     finding = classify_surface(store, "出门")
@@ -100,7 +100,7 @@ def test_phrase_below_character_floor_is_ranked_low(tmp_path: Path) -> None:
 def test_phrase_above_character_floor_is_shipped(tmp_path: Path) -> None:
     store = _store(tmp_path)
     store.upsert(
-        Lemma(surface="出门", pinyin_plain="chu men", status="auto", domain_freq={"essay": 99999})
+        Lemma(surface="出门", pinyin_plain="chu men", status="auto", domain_freq={"core": 99999})
     )
     finding = classify_surface(store, "出门")
     assert finding.bucket == "present-shipped"
@@ -132,7 +132,7 @@ def test_ledger_skips_header_and_comments(tmp_path: Path) -> None:
 def test_report_renders_bucket_counts(tmp_path: Path) -> None:
     store = _store(tmp_path)
     store.upsert(
-        Lemma(surface="出门", pinyin_plain="chu men", status="auto", domain_freq={"essay": 12251})
+        Lemma(surface="出门", pinyin_plain="chu men", status="auto", domain_freq={"core": 12251})
     )
     ledger = tmp_path / "daily-gaps.tsv"
     ledger.write_text("surface\torigin\treported\tnote\n出门\tuser\t2026-09-17\t\n", encoding="utf-8")

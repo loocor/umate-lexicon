@@ -52,3 +52,16 @@
 `umate_hans_cold` 保留 emoji 以维持抽屉可达。表内 rank 只决定 emoji 之间的相对次序。
 Host 侧策略（off / inline / drawer）另行接线，inline 最多占一个 emoji 槽且不得压过中文词。
 此前「吃饭被 emoji 压过」一类问题的结构性根源即热表合池，拆分后该类问题不再依赖逐词提权。
+
+## essay 吸收 / 平铺（2026-10-03）
+
+方案落地：rime-essay 快照（@ e9b1a37，sha256 a6f8409c…）一次性吸收为自有文件
+`data/voimate/absorbed-core.tsv`（sha256 305ba65a…），store 内域名 essay→core、
+来源 essay→umate-core；`lemmas.rank` + `policy_version=v1-absorb` 由
+`scripts/absorb_essay_migration.py` 一次性结算（2,462,723 条全量，essay 残留 0）。
+管线、代码、数据零 essay 身份残留；署名保留在 NOTICE 与本记录。
+验收：吸收后 emit 全部 `*.dict.yaml` 逐字节零漂移（NOTICE 仅改名，词数 440148 不变），
+pytest 144 通过 / 6 失败均为既有 jieba 环境缺失。
+上游复评周期：3–6 个月检查 rime-essay 词表修订，值得吸收时走带版本迁移。
+下一阶段：modern_freq v1（tencent 71.8 万 + hanyu_pinlu 2,906 结算独立表，
+万象相对位置对照 + 知乎 A/B），然后 resolve v2 切换排序（群/裙类修正在此落地）。

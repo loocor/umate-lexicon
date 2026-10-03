@@ -16,7 +16,7 @@ from umate_lexicon.ingest.curation import (
     ingest_pinyin_emoji_curation,
 )
 from umate_lexicon.ingest.emoji import ingest_emoji
-from umate_lexicon.ingest.essay import ingest_essay
+from umate_lexicon.ingest.core import ingest_core, verify_absorbed_core
 from umate_lexicon.ingest.gold import ingest_gold
 from umate_lexicon.ingest.luna import ingest_luna
 from umate_lexicon.ingest.tencent import ingest_tencent
@@ -41,6 +41,7 @@ from umate_lexicon.sources import (
 from umate_lexicon.store import LemmaStore
 from umate_lexicon.t2s import SimplifyFn, load_unihan_simplified, make_simplifier
 from umate_lexicon.verify.rules import apply_rules
+from umate_lexicon.resolve import resolve_store
 
 _GOLD_SKIP = frozenset({"polyphones.tsv", "eval-sentences.tsv", "layer-overrides.tsv", "daily-gaps.tsv", "emit-probes.tsv"})
 
@@ -62,7 +63,7 @@ def run_fixture_pipeline(
             "cedict": ingest_cedict(store, root / "fixtures" / "cedict.txt"),
             "thuocl": ingest_thuocl(store, root / "fixtures" / "thuocl.txt"),
             "luna": ingest_luna(store, root / "fixtures" / "luna.dict.yaml", simplify=simplify),
-            "essay": ingest_essay(store, root / "fixtures" / "essay.txt", simplify=simplify),
+            "core": ingest_core(store, root / "fixtures" / "absorbed-core.txt", simplify=simplify),
             "emoji": ingest_emoji(store, root / "fixtures" / "emoji_word.txt", simplify=simplify),
             "wiki": ingest_wiki(store, root / "fixtures" / "wiki-titles.txt", simplify=simplify),
             "wiki_page": ingest_wiki_page(store, root / "fixtures" / "wiki-page.sql", simplify=simplify),
@@ -97,11 +98,30 @@ def run_locked_pipeline(
     with store.deferred_commit():
         stats["gold"] = _ingest_authored_gold(store)
         stats["curation"] = _ingest_authored_curation(store)
+        core_done = False
         for source in lock.sources:
+            # The absorbed core snapshot takes the former upstream word-list
+            # slot: after luna, before emoji, so overlay behavior matches
+            # the frozen absorption snapshot exactly.
+            if source.ingest == "emoji" and not core_done:
+                stats["core"] = ingest_core(
+                    store,
+                    verify_absorbed_core(),
+                    locator="absorbed:absorbed-core.tsv",
+                    simplify=simplify,
+                )
+                core_done = True
             if source.id in skip:
                 stats[f"skipped_{source.id}"] = 0
                 continue
             stats[source.id] = _ingest_pinned(store, source, ready[source.id], simplify=simplify)
+        if not core_done:
+            stats["core"] = ingest_core(
+                store,
+                verify_absorbed_core(),
+                locator="absorbed:absorbed-core.tsv",
+                simplify=simplify,
+            )
     return _finish(store, stats, out_dir)
 
 
@@ -163,8 +183,6 @@ def _ingest_pinned(
         return ingest_thuocl(store, path, locator=locator)
     if source.ingest == "luna":
         return ingest_luna(store, path, locator=locator, simplify=simplify)
-    if source.ingest == "essay":
-        return ingest_essay(store, path, locator=locator, simplify=simplify)
     if source.ingest == "emoji":
         return ingest_emoji(store, path, locator=locator, simplify=simplify)
     if source.ingest == "tencent":
@@ -193,6 +211,7 @@ def _finish(store: LemmaStore, stats: dict[str, int], out_dir: Path | None) -> d
         stats["reading_merge"] = apply_reading_merge(store)
         stats["polyphone"] = apply_polyphone_flags(store)
         stats["rejected"] = apply_rules(store)
+        stats["resolve"] = resolve_store(store)["resolved"]
     emit_dir = out_dir or (Path(__file__).resolve().parents[2] / "dist" / "rime")
     stats.update({f"emit_{k}": v for k, v in emit_rime(store, emit_dir).items()})
     stats["lemmas"] = store.count()

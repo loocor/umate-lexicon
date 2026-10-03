@@ -51,8 +51,8 @@ def test_high_freq_aspect_bigram_stays_auto_and_emits(tmp_path: Path) -> None:
             pinyin_plain="na zhe",
             status="auto",
             weight=16449,
-            domain_freq={"essay": 16449},
-            sources=[SourceRef("essay", "lgpl-rime-essay", "essay.txt")],
+            domain_freq={"core": 16449},
+            sources=[SourceRef("umate-core", "lgpl-rime-essay", "absorbed-core.tsv")],
         )
     )
     apply_polyphone_flags(store, frozenset({"着"}))
@@ -72,9 +72,9 @@ def test_prior_review_high_freq_reopens_to_auto(tmp_path: Path) -> None:
             pinyin_plain="dai zhe",
             status="review",
             weight=29478,
-            domain_freq={"essay": 29478},
+            domain_freq={"core": 29478},
             flags=["polyphone"],
-            sources=[SourceRef("essay", "lgpl-rime-essay", "essay.txt")],
+            sources=[SourceRef("umate-core", "lgpl-rime-essay", "absorbed-core.tsv")],
         )
     )
     apply_polyphone_flags(store, frozenset({"着"}))
@@ -90,9 +90,9 @@ def test_review_short_lemma_can_emit_via_freq_gate() -> None:
         surface="看着",
         pinyin_plain="kan zhe",
         status="review",
-        domain_freq={"essay": 32548},
+        domain_freq={"core": 32548},
         flags=["polyphone"],
-        sources=[SourceRef("essay", "lgpl-rime-essay", "essay.txt")],
+        sources=[SourceRef("umate-core", "lgpl-rime-essay", "absorbed-core.tsv")],
     )
     assert assign_layer(lemma) == "base"
 

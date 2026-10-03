@@ -5,14 +5,14 @@ from umate_lexicon.lemma import Lemma, SourceRef
 from umate_lexicon.store import LemmaStore
 
 
-def _essay(store: LemmaStore, surface: str, pinyin: str, freq: int) -> None:
+def _core(store: LemmaStore, surface: str, pinyin: str, freq: int) -> None:
     store.upsert(
         Lemma(
             surface=surface,
             pinyin_plain=pinyin,
             status="auto",
-            domain_freq={"essay": freq},
-            sources=[SourceRef("essay", "lgpl-rime-essay", "test")],
+            domain_freq={"core": freq},
+            sources=[SourceRef("umate-core", "lgpl-rime-essay", "test")],
         )
     )
 
@@ -54,7 +54,7 @@ def test_apply_breaks_tie() -> None:
 
 def test_emit_override_beats_variant(tmp_path: Path) -> None:
     store = LemmaStore(tmp_path / "lemmas.sqlite")
-    _essay(store, "复盖", "fu gai", 14118)
+    _core(store, "复盖", "fu gai", 14118)
     _cedict(store, "覆盖", "fu gai")
     overrides = tmp_path / "overrides.tsv"
     overrides.write_text("覆盖\tfu gai\n", encoding="utf-8")
@@ -78,9 +78,9 @@ def test_emit_override_beats_variant(tmp_path: Path) -> None:
     store.close()
 
 
-def test_emit_without_override_keeps_essay(tmp_path: Path) -> None:
+def test_emit_without_override_keeps_core(tmp_path: Path) -> None:
     store = LemmaStore(tmp_path / "lemmas.sqlite")
-    _essay(store, "粉色", "fen se", 1584)
+    _core(store, "粉色", "fen se", 1584)
     empty = tmp_path / "empty.tsv"
     empty.write_text("# none\n", encoding="utf-8")
     out = tmp_path / "rime"

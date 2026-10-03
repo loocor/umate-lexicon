@@ -22,6 +22,7 @@ from umate_lexicon.layers import (
 )
 from umate_lexicon.lemma import Lemma
 from umate_lexicon.pinyin import sanitize_emit_code
+from umate_lexicon.resolve import ensure_resolved
 from umate_lexicon.t2s import SimplifyFn
 from umate_lexicon.store import LemmaStore
 
@@ -112,7 +113,7 @@ def apply_ranking_overrides(
 
 # Native simplified rows that already carry a measured ranking column keep
 # it. Floor rows (cedict/wiki placeholder 1, or a bare weight) may take the
-# folded traditional column so 乾淨's essay reaches 干净. Do not sum: the
+# folded traditional column so 乾淨's core count reaches 干净. Do not sum: the
 # two rows are the same word counted on different glyphs.
 _FOLD_INHERIT_FLOOR = 1
 
@@ -185,6 +186,9 @@ def emit_rime(
     ranking_overrides: Path | None = None,
 ) -> dict[str, int]:
     out_dir.mkdir(parents=True, exist_ok=True)
+    # Emit reads the resolved rank column; an unstamped store (fresh
+    # fixtures, manual CLI stores) resolves once here under policy v1.
+    ensure_resolved(store)
     to_simplified = _load_opencc_t2s()
     siblings: dict[str, list[Lemma]] = defaultdict(list)
     buckets: dict[str, list[Lemma]] = defaultdict(list)
@@ -507,7 +511,13 @@ def _write_notice(path: Path, store: LemmaStore) -> None:
     for lemma in store.all_lemmas():
         for ref in lemma.sources:
             licenses[f"{ref.source_id} ({ref.license})"] += 1
-    body = ["umate-lexicon emit NOTICE", ""]
+    body = [
+        "umate-lexicon emit NOTICE",
+        "",
+        "umate-core: absorbed from rime/rime-essay @ e9b1a37 (LGPL-3.0),"
+        " frozen 2026-10-03.",
+        "",
+    ]
     for key, count in sorted(licenses.items()):
         body.append(f"{key}: {count} lemmas")
     if (path.parent / "opencc" / "emoji_word.txt").is_file():

@@ -34,7 +34,6 @@ def test_repo_lock_version_and_kinds() -> None:
         "cedict",
         "thuocl",
         "luna",
-        "essay",
         "emoji",
         "wiki",
         "wiki_page",
@@ -156,12 +155,12 @@ def test_lgpl_is_not_treated_as_gpl(tmp_path: Path, license_id: str) -> None:
         tmp_path,
         [
             {
-                "id": "essay",
+                "id": "core",
                 "license": license_id,
-                "url": "https://example.invalid/essay.txt",
+                "url": "https://example.invalid/absorbed-core.tsv",
                 "sha256": "0" * 64,
-                "filename": "essay.txt",
-                "ingest": "essay",
+                "filename": "absorbed-core.tsv",
+                "ingest": "core",
             }
         ],
     )
@@ -335,14 +334,6 @@ def test_locked_pipeline_uses_verified_dumps(tmp_path: Path) -> None:
             "ingest": "luna",
         },
         {
-            "id": "essay",
-            "license": "lgpl-rime-essay",
-            "url": "https://example.invalid/essay.txt",
-            "sha256": _write(downloads / "essay.txt", "你好\t9\n"),
-            "filename": "essay.txt",
-            "ingest": "essay",
-        },
-        {
             "id": "emoji",
             "license": "lgpl-rime-emoji",
             "url": "https://example.invalid/emoji_word.txt",
@@ -360,6 +351,8 @@ def test_locked_pipeline_uses_verified_dumps(tmp_path: Path) -> None:
     )
     assert stats["eval_failures"] == 0
     assert stats["cedict"] >= 1
+    assert stats["core"] >= 1
+    assert stats["resolve"] >= 1
     store = LemmaStore(tmp_path / "lemmas.sqlite")
     hello = store.get("你好", "ni hao")
     assert hello is not None

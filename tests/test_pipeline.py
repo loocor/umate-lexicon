@@ -29,7 +29,7 @@ def test_fixture_pipeline_passes_gold(tmp_path: Path) -> None:
     assert (out_dir / "umate_hot_tail.dict.yaml").exists()
     bank = store.get("银行", "yin hang")
     assert bank is not None
-    assert bank.domain_freq.get("essay") == 36856
+    assert bank.domain_freq.get("core") == 36856
     assert store.get("銀行", "yin hang") is None
     walk = store.get("行走", "xing zou")
     assert walk is not None
@@ -42,7 +42,7 @@ def test_fixture_pipeline_passes_gold(tmp_path: Path) -> None:
     weixin = store.get("微信", "wei xin")
     assert weixin is not None
     assert weixin.status == "gold"
-    assert weixin.domain_freq.get("essay") == 31877
+    assert weixin.domain_freq.get("core") == 31877
     assert weixin.domain_freq.get("tencent") == 100
     assert assign_layer(weixin) == "base"
     ai = store.get("人工智能", "ren gong zhi neng")
