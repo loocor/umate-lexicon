@@ -196,6 +196,7 @@ def is_coverage_only(lemma: Lemma) -> bool:
 # and a core 1e8 count are different rulers, not addends; every domain
 # stays recorded in domain_freq as evidence.
 RANK_DOMAIN_PRECEDENCE: tuple[str, ...] = (
+    "modern_freq",
     "core",
     "hanyu_pinlu",
     "chars",
