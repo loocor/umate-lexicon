@@ -215,3 +215,17 @@ min_value=90000 裁掉，短尾巴被 MOT 稀释。
 dist 条目 1,461,667→1,480,994（含 hot_tail 投影重复计数）。
 
 判定：r1 结构修复成立，词库可同步键盘。不把知乎/VOA 写进 lemma 或 .gram。
+
+## coverage + ranking r2（2026-10-03）
+
+知乎 13 篇传感器未改写。覆盖 277→274（-3：肝片 / 共沸进 phrase-curation，外加 TGH 单字回 `chars`）。
+排序 850→861（+11）：OpenCC 折叠后「本地简体行优先」把繁体 essay 质量留在被丢的繁体行上，
+一批常用词只剩 weight 1（干净 / 游客 / 游戏 / 周末…）。本轮用 emit 提权表修了类 A 共 15 条
+（下锅 + t2s 簇），任务/人物等类 C 未动。
+
+TGH：`chars` 7960→8243。THUOCL industry 抢走的 鸮/鸰等回到单字表；273 个扩展区
+规范字（㑇 等）因 `han_len` 只认 BMP 而从未发出，现已进 `chars`。呒/呣 仍被 `ḿ`
+清洗丢掉。锅气 / 钾碱 仍是 rejected wiki_redirect，不洗白。
+
+结构性下一步（未做）：折叠时把繁体 essay 质量叠到留下的简体行，而不是继续加提权表。
+键盘同步 / Host 编译仍另走。详见 `data/eval/rounds/2026-10-03-coverage-ranking-r2.md`。

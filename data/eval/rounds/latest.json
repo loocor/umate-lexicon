@@ -1,32 +1,32 @@
 {
-  "round": "2026-10-01-ranking-r1",
-  "index": 3,
+  "round": "2026-10-03-coverage-ranking-r2",
+  "index": 4,
   "metrics": {
-    "dist_entries": 1480994,
-    "pinyin_keys": 1077371,
+    "dist_entries": 1480923,
+    "pinyin_keys": 1078140,
     "corpus_files": 13,
     "total_words": 14638,
     "unique_words": 5044,
-    "coverage_gaps": 277,
-    "ranking_gaps": 850,
-    "coverage_gap_rate_per_1k": 18.92,
-    "ranking_gap_rate_per_1k": 58.07
+    "coverage_gaps": 274,
+    "ranking_gaps": 861,
+    "coverage_gap_rate_per_1k": 18.72,
+    "ranking_gap_rate_per_1k": 58.82
   },
   "per_source": {
     "zhihu_alcohol": {
       "words": 360,
-      "coverage_gaps": 7,
+      "coverage_gaps": 6,
       "ranking_gaps": 14
     },
     "zhihu_cooking": {
       "words": 942,
-      "coverage_gaps": 58,
-      "ranking_gaps": 132
+      "coverage_gaps": 57,
+      "ranking_gaps": 133
     },
     "zhihu_dishwasher": {
       "words": 904,
       "coverage_gaps": 30,
-      "ranking_gaps": 79
+      "ranking_gaps": 78
     },
     "zhihu_fanqie": {
       "words": 596,
@@ -46,37 +46,37 @@
     "zhihu_oldfestival": {
       "words": 1249,
       "coverage_gaps": 7,
-      "ranking_gaps": 109
+      "ranking_gaps": 115
     },
     "zhihu_pdl": {
       "words": 2009,
-      "coverage_gaps": 27,
+      "coverage_gaps": 26,
       "ranking_gaps": 94
     },
     "zhihu_perpetual": {
       "words": 1537,
       "coverage_gaps": 8,
-      "ranking_gaps": 53
+      "ranking_gaps": 55
     },
     "zhihu_programmer_ai": {
       "words": 1367,
       "coverage_gaps": 8,
-      "ranking_gaps": 61
+      "ranking_gaps": 62
     },
     "zhihu_promotion": {
       "words": 2351,
       "coverage_gaps": 16,
-      "ranking_gaps": 137
+      "ranking_gaps": 138
     },
     "zhihu_stew": {
       "words": 1874,
       "coverage_gaps": 88,
-      "ranking_gaps": 166
+      "ranking_gaps": 169
     },
     "zhihu_vim": {
       "words": 335,
       "coverage_gaps": 3,
-      "ranking_gaps": 8
+      "ranking_gaps": 9
     }
   }
 }

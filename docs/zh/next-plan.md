@@ -4,6 +4,17 @@
 
 2026-10-01 另一次确认：ranking r1（emit 提权表）已授权落地；词库 YAML 可用官方 `Scripts/sync-lexicon-rime-to-bundle.sh` 同步键盘，仍不改引擎线程未提交文件，rsync 禁止 `--delete`。新数据源 / `HOT_WEIGHT_FLOOR` / 纯 wiki-CEDICT 抬热表仍冻结。
 
+## 本轮（codex/lexicon-coverage-ranking，2026-10-03）
+
+沿用 2026-10-01 目标模式：知乎 13 篇只当传感器；只修类 A；不改 `HOT_WEIGHT_FLOOR`；
+不把知乎写进 lemma / .gram。
+
+覆盖：TGH 单字先于 THUOCL industry/org 落 `chars`（鸮/鸰等），并把 TGH 扩展区
+1 字纳入同一扇门（㑇 等 273 字）。呒/呣 的 `ḿ` 清洗仍不动。
+
+排序：类 A 追加 `下锅` > `夏过`。覆盖短语：`肝片`、`共沸` 走 phrase-curation。
+锅气 / 钾碱 仍是 rejected wiki_redirect，不洗白。
+
 ## 可以做
 
 - 文档、盘点、测试、探针。
