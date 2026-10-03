@@ -9,13 +9,16 @@ from umate_lexicon.ingest.emoji import emoji_opencc_sidecar
 from umate_lexicon import layers as _layers
 from umate_lexicon.layers import (
     COLD_ONLY_LAYERS,
+    COVERAGE_FREQ_DOMAINS,
     HOT_PROJECTED_LAYERS,
     HOT_STRUCTURAL_LAYERS,
+    RANK_DOMAIN_PRECEDENCE,
     is_hot_projected,
     PACK_LAYERS,
     assign_layer,
     emit_weight,
     is_cjk_ideograph,
+    ranking_freq,
 )
 from umate_lexicon.lemma import Lemma
 from umate_lexicon.pinyin import sanitize_emit_code
@@ -106,6 +109,54 @@ def apply_ranking_overrides(
     return applied
 
 
+
+# Native simplified rows that already carry a measured ranking column keep
+# it. Floor rows (cedict/wiki placeholder 1, or a bare weight) may take the
+# folded traditional column so 乾淨's essay reaches 干净. Do not sum: the
+# two rows are the same word counted on different glyphs.
+_FOLD_INHERIT_FLOOR = 1
+
+
+def _ranking_domain_items(lemma: Lemma) -> dict[str, int]:
+    items: dict[str, int] = {}
+    for domain, count in lemma.domain_freq.items():
+        value = int(count)
+        if value <= 0 or domain in COVERAGE_FREQ_DOMAINS or domain == "curation_rank":
+            continue
+        if domain in RANK_DOMAIN_PRECEDENCE or domain.startswith("thuocl"):
+            items[domain] = value
+    return items
+
+
+def inherit_folded_ranking(native: Lemma, folded: Lemma) -> Lemma:
+    """Keep the native row. Copy folded ranking columns only when native is floor."""
+    if native.status == "rejected" or folded.status == "rejected":
+        return native
+    if "curated" in native.flags or "curated" in folded.flags:
+        return native
+    if ranking_freq(native) > _FOLD_INHERIT_FLOOR:
+        return native
+    incoming = _ranking_domain_items(folded)
+    if not incoming or ranking_freq(folded) <= ranking_freq(native):
+        return native
+    domain = dict(native.domain_freq)
+    for name, count in incoming.items():
+        domain[name] = max(int(domain.get(name) or 0), count)
+    return Lemma(
+        surface=native.surface,
+        pinyin_plain=native.pinyin_plain,
+        pinyin_toned=native.pinyin_toned,
+        weight=max(native.weight, folded.weight),
+        status=native.status,
+        script=native.script,
+        categories=list(native.categories),
+        flags=list(native.flags),
+        entity_type=native.entity_type,
+        domain_freq=domain,
+        sources=list(native.sources),
+    )
+
+
 def _emit_surface(lemma: Lemma, to_simplified: SimplifyFn) -> tuple[str, bool]:
     """Choose the emit surface and whether OpenCC folded it.
 
@@ -138,6 +189,7 @@ def emit_rime(
     siblings: dict[str, list[Lemma]] = defaultdict(list)
     buckets: dict[str, list[Lemma]] = defaultdict(list)
     t2s_converted = 0
+    t2s_inherited = 0
     deduped = 0
     best_by_key: dict[tuple[str, str], Lemma] = {}
     native_keys: set[tuple[str, str]] = set()
@@ -170,14 +222,21 @@ def emit_rime(
         deduped += 1
         existing_native = key in native_keys
         if existing_native and converted:
+            inherited = inherit_folded_ranking(existing, lemma)
+            if inherited is not existing:
+                best_by_key[key] = inherited
+                t2s_inherited += 1
             continue
         if converted and not existing_native:
             if lemma.weight > existing.weight:
                 best_by_key[key] = lemma
             continue
         if not converted and not existing_native:
-            best_by_key[key] = lemma
+            inherited = inherit_folded_ranking(lemma, existing)
+            best_by_key[key] = inherited
             native_keys.add(key)
+            if inherited is not lemma:
+                t2s_inherited += 1
             continue
         if lemma.weight > existing.weight:
             best_by_key[key] = lemma
@@ -217,6 +276,7 @@ def emit_rime(
 
     counts = {name: len(items) for name, items in buckets.items()}
     counts["t2s_converted"] = t2s_converted
+    counts["t2s_inherited"] = t2s_inherited
     counts["deduped"] = deduped
     counts["codes_sanitized"] = sanitized
     counts["codes_dropped"] = dropped

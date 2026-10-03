@@ -23,7 +23,10 @@
    traditional lemma when that would drop the chars gate (羣/群, 喫/吃).
    A TGH/gold/kHanyuPinlu/chars-source 1-gram, including TGH Extension
    A-F, stays in `chars` even when THUOCL tagged it as industry/org
-   (鸮/鸰). Unihan-only Extension A stays out.
+   (鸮/鸰). Unihan-only Extension A stays out. A floor simplified row
+   (ranking frequency <= 1) may inherit the folded traditional ranking
+   column (乾淨 essay -> 干净). A native row that already has a measured
+   column keeps it (群 does not absorb 羣).
 6. Compile on the Mac Host used by uMate. Copy `table.bin` /
    `prism.bin` into the keyboard bundle. Never compile inside the
    extension. Sync is a separate confirmation; this factory does not

@@ -318,3 +318,72 @@ def test_t2s_still_folds_pinlu_traditional_onto_simplified(tmp_path: Path, monke
     assert "干净\tgan jing\t" in base
     assert "乾淨\t" not in base
     store.close()
+
+
+def test_t2s_floor_native_inherits_folded_essay(tmp_path: Path, monkeypatch) -> None:
+    from umate_lexicon.emit import rime as emit_mod
+
+    monkeypatch.setattr(emit_mod, "_load_opencc_t2s", _fake_t2s)
+    store = LemmaStore(tmp_path / "lemmas.sqlite")
+    store.upsert(
+        Lemma(
+            surface="干净",
+            pinyin_plain="gan jing",
+            weight=1,
+            status="auto",
+            domain_freq={"cedict": 1},
+            sources=[SourceRef("cedict", "cc-by-sa-cedict", "test")],
+        )
+    )
+    store.upsert(
+        Lemma(
+            surface="乾淨",
+            pinyin_plain="gan jing",
+            weight=8000,
+            status="auto",
+            domain_freq={"essay": 8000},
+            sources=[SourceRef("essay", "lgpl-rime-essay", "test")],
+        )
+    )
+    out = tmp_path / "rime"
+    counts = emit_rime(store, out)
+    assert counts["t2s_inherited"] == 1
+    body = (out / "umate_base.dict.yaml").read_text(encoding="utf-8")
+    assert "干净\tgan jing\t8000" in body
+    assert "乾淨" not in body
+    store.close()
+
+
+def test_t2s_does_not_overwrite_native_essay(tmp_path: Path, monkeypatch) -> None:
+    from umate_lexicon.emit import rime as emit_mod
+
+    monkeypatch.setattr(emit_mod, "_load_opencc_t2s", _fake_t2s)
+    store = LemmaStore(tmp_path / "lemmas.sqlite")
+    store.upsert(
+        Lemma(
+            surface="群",
+            pinyin_plain="qun",
+            weight=1000,
+            status="auto",
+            flags=["tgh"],
+            domain_freq={"essay": 1000},
+            sources=[SourceRef("tgh", "unicode", "test")],
+        )
+    )
+    store.upsert(
+        Lemma(
+            surface="羣",
+            pinyin_plain="qun",
+            weight=14339,
+            status="auto",
+            domain_freq={"essay": 14339},
+            sources=[SourceRef("essay", "lgpl-rime-essay", "test")],
+        )
+    )
+    out = tmp_path / "rime"
+    counts = emit_rime(store, out)
+    assert counts["t2s_inherited"] == 0
+    body = (out / "umate_chars.dict.yaml").read_text(encoding="utf-8")
+    assert "群\tqun\t1000" in body
+    assert "14339" not in body
+    store.close()
