@@ -6,8 +6,9 @@ from umate_lexicon.ingest.curation import (
     ingest_english_emoji_curation,
     ingest_phrase_curation,
     ingest_pinyin_emoji_curation,
+    ingest_rare_char_curation,
 )
-from umate_lexicon.layers import EMOJI_TAIL_WEIGHT, emit_weight
+from umate_lexicon.layers import EMOJI_TAIL_WEIGHT, assign_layer, emit_weight
 from umate_lexicon.paths import data_dir
 from umate_lexicon.store import LemmaStore
 
@@ -76,3 +77,32 @@ def test_curated_phrase_rows_close_segmentation_gaps(tmp_path: Path) -> None:
     slang = store.get("不摆烂", "bu bai lan")
     assert slang is not None
     assert emit_weight(slang) == 6000
+
+
+def test_curated_rare_chars_ship_in_the_chars_table(tmp_path: Path) -> None:
+    store = LemmaStore(tmp_path / "lemmas.sqlite")
+    count = ingest_rare_char_curation(
+        store, data_dir() / "voimate" / "rare-char-curation.tsv"
+    )
+    assert count == 1
+    primary = store.get("𰻝", "biang")
+    assert primary is not None
+    assert "curated" in primary.flags
+    assert "rare-char" in primary.flags
+    assert emit_weight(primary) == 6000
+    assert assign_layer(primary) == "chars"
+    out = tmp_path / "rime"
+    counts = emit_rime(store, out)
+    assert counts.get("chars", 0) == 1
+    rows = {
+        (parts[0], parts[1]): int(parts[2])
+        for parts in (
+            line.split("\t")
+            for line in (out / "umate_chars.dict.yaml")
+            .read_text(encoding="utf-8")
+            .splitlines()
+            if line and not line.startswith("#") and line != "..." and "\t" in line
+        )
+        if len(parts) == 3
+    }
+    assert rows == {("𰻝", "biang"): 6000}

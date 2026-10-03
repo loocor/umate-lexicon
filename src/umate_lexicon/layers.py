@@ -388,6 +388,10 @@ def assign_layer(lemma: Lemma) -> str | None:
     # THUOCL animal/industry tags must not steal them.
     if _is_core_char_lemma(lemma):
         return "chars"
+    if "rare-char" in lemma.flags or "rare-char" in lemma.categories:
+        # Curated SIP rare chars (biang and future additions) are single
+        # chars by intent; they ship with umate_chars, below core 1-grams.
+        return "chars"
     if lemma.entity_type == "person" or "person" in lemma.categories:
         return "names"
     if lemma.entity_type == "place" or "place" in lemma.categories:

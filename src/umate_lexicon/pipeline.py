@@ -14,6 +14,7 @@ from umate_lexicon.ingest.curation import (
     ingest_english_emoji_curation,
     ingest_phrase_curation,
     ingest_pinyin_emoji_curation,
+    ingest_rare_char_curation,
 )
 from umate_lexicon.ingest.emoji import ingest_emoji
 from umate_lexicon.ingest.core import ingest_core, verify_absorbed_core
@@ -138,6 +139,9 @@ def _ingest_authored_curation(store: LemmaStore) -> int:
     phrases = voimate / "phrase-curation.tsv"
     if phrases.is_file():
         count += ingest_phrase_curation(store, phrases)
+    rare = voimate / "rare-char-curation.tsv"
+    if rare.is_file():
+        count += ingest_rare_char_curation(store, rare)
     return count
 
 

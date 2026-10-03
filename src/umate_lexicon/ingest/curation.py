@@ -124,3 +124,41 @@ def _phrase_row(surface: str, pinyin: str) -> Lemma:
         domain_freq={"phrase-curation": 1, "curation_rank": 1},
         sources=[SourceRef(SOURCE_ID, LICENSE_ID, f"{SOURCE_ID}:phrase:{surface}")],
     )
+
+
+def ingest_rare_char_curation(store: LemmaStore, path: Path) -> int:
+    """Curated rare single chars (SIP Ext-plane hanzi) with their pinyin.
+
+    File order is the rank: the first row is the reading's primary glyph.
+    Rows reach the chars layer through the rare-char flag; weights ride the
+    shared curated tier decay. Code competition is a non-issue for readings
+    such as biang that no common char claims.
+    """
+    count = 0
+    for raw in path.read_text(encoding="utf-8").splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#"):
+            continue
+        parts = line.split("\t")
+        if len(parts) < 2:
+            continue
+        surface, pinyin = parts[0].strip(), parts[1].strip()
+        if len(surface) != 1 or not pinyin:
+            continue
+        rank = count + 1
+        store.upsert(
+            Lemma(
+                surface=surface,
+                pinyin_plain=pinyin,
+                weight=curated_weight(rank),
+                status="auto",
+                categories=["rare-char"],
+                flags=["curated", "rare-char"],
+                domain_freq={"rare-char-curation": 1, "curation_rank": rank},
+                sources=[
+                    SourceRef(SOURCE_ID, LICENSE_ID, f"{SOURCE_ID}:rare-char:{surface}")
+                ],
+            )
+        )
+        count += 1
+    return count

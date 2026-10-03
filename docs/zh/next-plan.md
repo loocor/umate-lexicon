@@ -74,3 +74,24 @@ CC-BY-SA（CC-CEDICT、中文维基）**作为热表权重来源**可否进入�
 ## 不要做的事
 
 不 ingest rime-ice、rime-frost、melt_eng、商业细胞词库。LLM 不造词。ASR 热词、Snippets、IME 用户词库不并库。空闲联想仍是键盘静态表。octagram 实验不吸进本仓库。
+
+## 生僻字 curation（2026-10-03）
+
+新增 `data/voimate/rare-char-curation.tsv`（surface→拼音，ingest 走
+`ingest_rare_char_curation`，层判定进 `chars`，权重走 curated 档）。首批只有
+`𰻝 biang`（U+30EDD）。
+
+判定依据（本机实测，非推断）：
+
+- **字体**：CoreText `CTFontGetGlyphsForCharacters` 在活动苹方 SC 上对
+  𰻝/𰻞 返回 True；磁盘 AssetsV2 里的 PingFang.ttc 是陈旧副本，不能作为
+  字体判定依据。SIP 变体 𱿗 (U+31FD7)、𲁓 (U+32053) 无系统字形（会落
+  LastResort），不收录。
+- **OpenCC 折叠**：官方 t2s 把 𰻞 (U+30EDE) 规范化到 𰻝，与 淨→净 同一
+  机制；emit 只出 𰻝。测试环境无 opencc 时 t2s 降级恒等，写测试时不得
+  假设两个 glyph 同时出货。
+- **脏数据**：cedict 用 □ (U+25A1) 顶替无法编码的字（□|biang、□|biu、
+  □|ging），ingest 已加占位符闸，存量三行已置 rejected。
+
+已知缺口：`han_len` 只数 BMP 汉字，`𰻝𰻝面` 被算成长度 1，词组从不 emit
+（历史行为，非本次回归）。要发 SIP 词组需先改 `han_len`/层判定，另议。
