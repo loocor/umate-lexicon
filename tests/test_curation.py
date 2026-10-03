@@ -6,7 +6,9 @@ from umate_lexicon.ingest.curation import (
     ingest_english_emoji_curation,
     ingest_phrase_curation,
     ingest_pinyin_emoji_curation,
+    ingest_pinyin_symbol_curation,
     ingest_rare_char_curation,
+    ingest_repeated_char_curation,
 )
 from umate_lexicon.layers import EMOJI_TAIL_WEIGHT, assign_layer, emit_weight
 from umate_lexicon.paths import data_dir
@@ -106,3 +108,62 @@ def test_curated_rare_chars_ship_in_the_chars_table(tmp_path: Path) -> None:
         if len(parts) == 3
     }
     assert rows == {("𰻝", "biang"): 6000}
+
+
+def test_curated_symbols_ride_the_emoji_table(tmp_path: Path) -> None:
+    store = LemmaStore(tmp_path / "lemmas.sqlite")
+    count = ingest_pinyin_symbol_curation(
+        store, data_dir() / "voimate" / "pinyin-symbol-curation.tsv"
+    )
+    assert count >= 70
+    pair = store.get("《》", "shu ming hao")
+    assert pair is not None
+    assert pair.entity_type == "symbol"
+    assert "symbol" in pair.flags
+    assert assign_layer(pair) == "emoji"
+    assert emit_weight(pair) == 6000
+    out = tmp_path / "rime"
+    counts = emit_rime(store, out)
+    assert counts.get("emoji", 0) >= 70
+    rows = {
+        (parts[0], parts[1]): int(parts[2])
+        for parts in (
+            line.split("\t")
+            for line in (out / "umate_emoji.dict.yaml").read_text(encoding="utf-8").splitlines()
+            if line and not line.startswith("#") and line != "..." and "\t" in line
+        )
+        if len(parts) == 3
+    }
+    assert rows[("《》", "shu ming hao")] == 6000
+    assert rows[("℃", "she shi du")] == 6000
+    assert rows[("$", "mei yuan")] == 6000
+
+
+def test_repeated_spell_compound_chars_reach_the_chars_table(tmp_path: Path) -> None:
+    store = LemmaStore(tmp_path / "lemmas.sqlite")
+    count = ingest_repeated_char_curation(
+        store, data_dir() / "voimate" / "repeated-char-curation.tsv"
+    )
+    assert count >= 35
+    yan = store.get("焱", "huo huo huo")
+    assert yan is not None
+    assert "repeated-char" in yan.flags
+    assert emit_weight(yan) == 6000
+    assert assign_layer(yan) == "chars"
+    da = store.get("龘", "long long long")
+    assert da is not None
+    assert assign_layer(da) == "chars"
+    out = tmp_path / "rime"
+    counts = emit_rime(store, out)
+    assert counts.get("chars", 0) >= 35
+    rows = {
+        (parts[0], parts[1]): int(parts[2])
+        for parts in (
+            line.split("\t")
+            for line in (out / "umate_chars.dict.yaml").read_text(encoding="utf-8").splitlines()
+            if line and not line.startswith("#") and line != "..." and "\t" in line
+        )
+        if len(parts) == 3
+    }
+    assert rows[("焱", "huo huo huo")] == 6000
+    assert rows[("龘", "long long long")] == 6000

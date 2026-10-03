@@ -99,3 +99,17 @@ CC-BY-SA（CC-CEDICT、中文维基）**作为热表权重来源**可否进入�
 460、base/bulk→ext 186、bulk→base 27、base→phrases 3、ext→bulk 9）；
 5 条 review+polyphone 五字变体词被收严为不发射，符合政策。chars/names/
 places 热表零变动。
+
+## 符号与拼合字 curation（2026-10-03，同日第二批）
+
+- **符号**：`data/voimate/pinyin-symbol-curation.tsv`（74 行，成对标点/数学/
+  排版/货币，含 ℃/℉）。行进 `entity_type="symbol"`，层判定路由进 **emoji
+  候选表**（Host 消费 `umate_emoji` 作为插入型候选源；独立 symbols 表需要
+  改 Host sync 脚本才能被同步，暂不走）。可键入的 ASCII（% & * + = < >）
+  故意不收：拼音候选只对键盘打不出的字形有价值。
+- **拼合字**：`data/voimate/repeated-char-curation.tsv`（38 行）。码 =
+  **基础字的叠拼**（焱 = huo huo huo、龘 = long long long、𪚥 = long long
+  long long），不触碰七个自身读音争议行（劦/孨/尛/惢/灥/燚/皛 的多音数
+  据待 Unihan 核实，另列）。行进 chars 表，全部 tier-1 6000。
+- 遗留：龖 = long long 会与真实词 隆隆 同码，靠权重排序共存；独立
+  symbols 表 + Host 开关（emoji/符号分开关）留待后续需要时再做。

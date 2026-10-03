@@ -373,6 +373,10 @@ def assign_layer(lemma: Lemma) -> str | None:
         return None
     if "emoji" in lemma.flags or lemma.entity_type == "emoji" or "emoji" in lemma.categories:
         return "emoji"
+    if "symbol" in lemma.flags or lemma.entity_type == "symbol" or "symbol" in lemma.categories:
+        # Symbols ride the emoji candidate table: the Host consumes
+        # umate_emoji as its insertion-candidate source.
+        return "emoji"
     if "correction" in lemma.flags:
         return "corrections"
     if is_wiki_only(lemma):
@@ -394,9 +398,14 @@ def assign_layer(lemma: Lemma) -> str | None:
     # THUOCL animal/industry tags must not steal them.
     if _is_core_char_lemma(lemma):
         return "chars"
-    if "rare-char" in lemma.flags or "rare-char" in lemma.categories:
-        # Curated SIP rare chars (biang and future additions) are single
-        # chars by intent; they ship with umate_chars, below core 1-grams.
+    if (
+        "rare-char" in lemma.flags
+        or "repeated-char" in lemma.flags
+        or "rare-char" in lemma.categories
+    ):
+        # Curated SIP rare chars (biang) and repeated-spell compound
+        # hanzi (焱 via huo huo huo) are single chars by intent; they
+        # ship with umate_chars, below core 1-grams.
         return "chars"
     if lemma.entity_type == "person" or "person" in lemma.categories:
         return "names"
