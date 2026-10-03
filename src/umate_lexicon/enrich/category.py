@@ -20,6 +20,11 @@ def classify(lemma: Lemma) -> Lemma:
     flags = list(lemma.flags)
     categories = list(lemma.categories)
     entity = lemma.entity_type
+    # THUOCL sub-list lineage outranks ingest-order first-wins labels: a
+    # diming shadow on a food word re-derives to the canonical type.
+    from umate_lexicon.taxonomy import entity_type_from_domains
+
+    entity = entity_type_from_domains(lemma.domain_freq) or entity
     if _LATIN.search(lemma.surface) and _HAN.search(lemma.surface):
         if "mixed_latin" not in flags:
             flags.append("mixed_latin")
