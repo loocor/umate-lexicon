@@ -229,11 +229,17 @@ def _rank_column(ledger: dict[str, int]) -> int:
     if not ledger:
         return 0
     for domain in RANK_DOMAIN_PRECEDENCE:
-        value = ledger.get(domain)
+        if domain == "thuocl":
+            # Per-sublist domains (thuocl-food, ...) share the thuocl
+            # precedence tier; the strongest sublist column wins, never a sum.
+            value = max(
+                (count for key, count in ledger.items()
+                 if key == "thuocl" or key.startswith("thuocl-")),
+                default=0,
+            )
+        else:
+            value = ledger.get(domain)
         if value:
-            return value
-    for domain, value in ledger.items():
-        if domain.startswith("thuocl"):
             return value
     return max(ledger.values())
 

@@ -40,26 +40,12 @@ def ingest_thuocl(store: LemmaStore, path: Path, domain: str = "thuocl", locator
 
 
 def _categories_from_name(name: str) -> list[str]:
-    lowered = name.lower()
-    mapping = {
-        "it": "industry",
-        "diming": "place",
-        "lishimingren": "person",
-        "medical": "industry",
-        "law": "industry",
-        "caijing": "industry",
-        "car": "brand",
-        "food": "industry",
-        "animal": "industry",
-        "chengyu": "idiom",
-        "poem": "literary",
-    }
-    for key, value in mapping.items():
-        if key in lowered:
-            return [value]
-    return []
+    from umate_lexicon.taxonomy import thuocl_categories
+
+    return thuocl_categories(name)
 
 
 def _entity_from_name(name: str) -> str | None:
-    cats = _categories_from_name(name)
-    return cats[0] if cats else None
+    from umate_lexicon.taxonomy import thuocl_entity_type
+
+    return thuocl_entity_type(name)

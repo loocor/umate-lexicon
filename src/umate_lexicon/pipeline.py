@@ -192,7 +192,10 @@ def _ingest_pinned(
     if source.ingest == "cedict":
         return ingest_cedict(store, path, locator=locator)
     if source.ingest == "thuocl":
-        return ingest_thuocl(store, path, locator=locator)
+        # Per-sublist domain keys (thuocl-food, thuocl-diming, ...) keep
+        # the topic tag in domain_freq; ranking precedence matches the
+        # thuocl- prefix so calibration and resolve both see them.
+        return ingest_thuocl(store, path, locator=locator, domain=source.id)
     if source.ingest == "luna":
         return ingest_luna(store, path, locator=locator, simplify=simplify)
     if source.ingest == "emoji":
@@ -224,6 +227,9 @@ def _finish(store: LemmaStore, stats: dict[str, int], out_dir: Path | None) -> d
         stats["polyphone"] = apply_polyphone_flags(store)
         stats["rejected"] = apply_rules(store)
         stats["resolve"] = resolve_store(store)["resolved"]
+        from umate_lexicon.postprocess import run_postprocess
+
+        stats.update({f"post_{k}": v for k, v in run_postprocess(store).items()})
     emit_dir = out_dir or (Path(__file__).resolve().parents[2] / "dist" / "rime")
     stats.update({f"emit_{k}": v for k, v in emit_rime(store, emit_dir).items()})
     stats["lemmas"] = store.count()
