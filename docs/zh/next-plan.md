@@ -12,8 +12,11 @@
 覆盖：TGH 单字先于 THUOCL industry/org 落 `chars`（鸮/鸰等），并把 TGH 扩展区
 1 字纳入同一扇门（㑇 等 273 字）。呒/呣 的 `ḿ` 清洗仍不动。
 
-排序：类 A 追加 `下锅` > `夏过`。覆盖短语：`肝片`、`共沸` 走 phrase-curation。
-锅气 / 钾碱 仍是 rejected wiki_redirect，不洗白。
+排序：类 A 的繁简失重改为发射继承，不再靠继续加提权表。
+简体 `ranking_freq <= 1` 才继承折叠来的繁体列，max 不求和；已有实测列不吸收。
+知乎-13 覆盖仍 274，排序 861→848。类 C 未翻。提权表保留作近 tie 安全网。
+覆盖短语：`肝片`、`共沸` 仍走 phrase-curation。锅气 / 钾碱 仍是 rejected wiki_redirect，不洗白。
+键盘同步 / Host 编译仍另走。
 
 ## 可以做
 
