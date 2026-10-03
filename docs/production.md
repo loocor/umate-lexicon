@@ -65,3 +65,25 @@ versioned migration, never an automatic fetch.
 
 Acceptance: post-migration emit is byte-identical on every `*.dict.yaml`
 (NOTICE only renames `essay` -> `umate-core`, same 440148 lemmas).
+
+## OpenCC toolchain pin (2026-10-03)
+
+Emit t2s conversion must use the official `opencc` package
+(`uv run --with opencc -- ...`). The `opencc-python-reimplemented`
+package produces different variant-folding output on 132 base chars
+(谿→溪, 舖→铺, etc.). The current `dist/rime` output was refreshed with
+the official implementation; do not mix implementations between builds.
+
+## Modern-freq v2 record (2026-10-03)
+
+`modern_freq` v1 covers 2,837 single chars with both core + hanyu_pinlu
+measurements. Values are rank-calibrated onto the core scale via
+rank-to-rank quantile mapping (`scripts/build_modern_freq.py`). Policy
+version is `v2-modern-freq`; the column has top precedence in
+`RANK_DOMAIN_PRECEDENCE`. This fixes 群(14689) > 裙(663) and promotes 一
+to rank 2, matching natural Chinese frequency intuition.
+
+Multi-char words are NOT covered: tencent vocab has no usable frequency
+counts (88% are placeholder 1), only a coarse "appeared >= N times"
+signal. Word-level modern_freq requires a new corpus source (pending
+user decision).
