@@ -23,8 +23,16 @@ import json
 import sqlite3
 from pathlib import Path
 
+import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
+from umate_lexicon.layers import COVERAGE_FREQ_DOMAINS, RANK_DOMAIN_PRECEDENCE  # noqa: E402
+
+HOT_FLOOR = 450
+
 STRONG_DOMAINS = {"modern_freq", "core", "hanyu_pinlu", "chars", "gold"}
 TIERS = [(95, 1000), (85, 600), (70, 450), (50, 200), (0, 100)]
+from umate_lexicon.taxonomy import CANONICAL_RANK_FLOORS, thuocl_entity_type  # noqa: E402
 
 
 def load_sublists() -> dict[str, dict[str, int]]:
@@ -58,6 +66,24 @@ def tier_for(pct: float) -> int:
     return TIERS[-1][1]
 
 
+
+def _rank_source(domains: dict) -> str | None:
+    """Which domain wins the rank column under resolve precedence."""
+    ledger = {
+        k: int(v) for k, v in domains.items()
+        if k not in COVERAGE_FREQ_DOMAINS and k != "curation_rank" and int(v) > 0
+    }
+    if not ledger:
+        return None
+    for domain in RANK_DOMAIN_PRECEDENCE:
+        if ledger.get(domain):
+            return domain
+    for domain in ledger:
+        if domain.startswith("thuocl"):
+            return domain
+    return max(ledger, key=lambda k: ledger[k])
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--dry-run", action="store_true")
@@ -71,23 +97,28 @@ def main() -> None:
     for name, freqs in sublists.items():
         for surface in freqs:
             pct = percentile_rank(freqs, surface)
-            plan[surface] = (name, pct, tier_for(pct))
+            floor = CANONICAL_RANK_FLOORS.get(thuocl_entity_type(f"THUOCL_{name}.txt") or "", 100)
+            tier = max(tier_for(pct), floor)
+            if surface not in plan or tier > plan[surface][2]:
+                plan[surface] = (name, pct, tier)
 
-    rows = db.execute("SELECT surface, domain_freq, rank, weight FROM lemmas").fetchall()
+    rows = db.execute("SELECT surface, domain_freq, rank FROM lemmas").fetchall()
     updated = 0
     tier_stats: dict[int, int] = {}
     skipped_strong = 0
-    not_in_store = 0
-    for surface, df, rank, weight in rows:
+    for row in rows:
+        surface = row[0]
         if surface not in plan:
             continue
-        domains = json.loads(df or "{}")
-        if any(domains.get(d, 0) > 0 for d in STRONG_DOMAINS):
+        domains = json.loads(row[1] or "{}")
+        if _rank_source(domains) != "thuocl":
             skipped_strong += 1
             continue
-        _, pct, tier = plan[surface]
-        if rank == tier and weight == tier:
+        current = row[2] or 0
+        if current >= HOT_FLOOR:
+            skipped_strong += 1
             continue
+        tier = plan[surface][2]
         updated += 1
         tier_stats[tier] = tier_stats.get(tier, 0) + 1
         if not args.dry_run:
@@ -95,8 +126,6 @@ def main() -> None:
                 "UPDATE lemmas SET rank=?, weight=? WHERE surface=?",
                 (tier, tier, surface),
             )
-    not_in_store = len(plan) - (updated + skipped_strong)
-    print(f"plan size: {len(plan)}, store hits: {updated + skipped_strong}")
     print(f"would update: {updated}")
     print(f"skipped (stronger domain present): {skipped_strong}")
     print(f"tier distribution of updates: {dict(sorted(tier_stats.items(), reverse=True))}")
