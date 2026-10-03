@@ -41,16 +41,19 @@ def ingest_thuocl(store: LemmaStore, path: Path, domain: str = "thuocl", locator
 
 def _categories_from_name(name: str) -> list[str]:
     lowered = name.lower()
+    # Domain-term sublists (food/animal/medical/law/caijing) are topical
+    # vocabulary, not organization names: they must not carry entity_type
+    # "industry" or the orgs pack would absorb recipe and species words.
     mapping = {
-        "it": "industry",
+        "it": None,
         "diming": "place",
         "lishimingren": "person",
-        "medical": "industry",
-        "law": "industry",
-        "caijing": "industry",
+        "medical": None,
+        "law": None,
+        "caijing": None,
         "car": "brand",
-        "food": "industry",
-        "animal": "industry",
+        "food": None,
+        "animal": None,
         "chengyu": "idiom",
         "poem": "literary",
     }
