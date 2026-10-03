@@ -73,6 +73,17 @@ def load_review_real_words() -> list[str]:
     return out
 
 
+def load_surface_file(path: Path) -> list[str]:
+    seen: set[str] = set()
+    out: list[str] = []
+    for line in path.read_text(encoding="utf-8").splitlines():
+        s = line.strip()
+        if s and s not in seen:
+            seen.add(s)
+            out.append(s)
+    return out
+
+
 def load_done() -> set[str]:
     done: set[str] = set()
     if CHECKPOINT.exists():
@@ -150,9 +161,11 @@ def main() -> None:
     parser.add_argument("--batch", type=int, default=150)
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--limit", type=int, default=0)
+    parser.add_argument("--input", type=Path, default=None,
+                        help="classify surfaces from a newline file instead of the review checkpoint")
     args = parser.parse_args()
 
-    all_rows = load_review_real_words()
+    all_rows = load_surface_file(args.input) if args.input else load_review_real_words()
     if args.limit:
         all_rows = all_rows[: args.limit]
     done = load_done()
