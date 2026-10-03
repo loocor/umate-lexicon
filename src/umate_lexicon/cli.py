@@ -10,7 +10,7 @@ from umate_lexicon.gaps import classify_ledger, render_gaps
 from umate_lexicon.ingest.cedict import ingest_cedict
 from umate_lexicon.ingest.chars import ingest_chars
 from umate_lexicon.ingest.emoji import ingest_emoji
-from umate_lexicon.ingest.essay import ingest_essay
+from umate_lexicon.ingest.core import ingest_core
 from umate_lexicon.ingest.gold import ingest_gold
 from umate_lexicon.ingest.luna import ingest_luna
 from umate_lexicon.ingest.tencent import ingest_tencent
@@ -45,7 +45,7 @@ def main(argv: list[str] | None = None) -> int:
     pipe.add_argument("--out", type=Path, default=None)
 
     ingest = sub.add_parser("ingest")
-    ingest.add_argument("kind", choices=["cedict", "thuocl", "chars", "unihan", "tgh", "gold", "luna", "essay", "emoji", "tencent", "wiki", "wiki_page", "wiki_linktarget", "wiki_category"])
+    ingest.add_argument("kind", choices=["cedict", "thuocl", "chars", "unihan", "tgh", "gold", "luna", "core", "emoji", "tencent", "wiki", "wiki_page", "wiki_linktarget", "wiki_category"])
     ingest.add_argument("path", type=Path)
 
     emit = sub.add_parser("emit")
@@ -119,7 +119,7 @@ def main(argv: list[str] | None = None) -> int:
             "tgh": ingest_tgh,
             "gold": ingest_gold,
             "luna": ingest_luna,
-            "essay": ingest_essay,
+            "core": ingest_core,
             "emoji": ingest_emoji,
             "tencent": ingest_tencent,
             "wiki": ingest_wiki,

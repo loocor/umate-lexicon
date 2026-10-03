@@ -4,6 +4,20 @@
 
 2026-10-01 另一次确认：ranking r1（emit 提权表）已授权落地；词库 YAML 可用官方 `Scripts/sync-lexicon-rime-to-bundle.sh` 同步键盘，仍不改引擎线程未提交文件，rsync 禁止 `--delete`。新数据源 / `HOT_WEIGHT_FLOOR` / 纯 wiki-CEDICT 抬热表仍冻结。
 
+## 本轮（codex/lexicon-coverage-ranking，2026-10-03）
+
+沿用 2026-10-01 目标模式：知乎 13 篇只当传感器；只修类 A；不改 `HOT_WEIGHT_FLOOR`；
+不把知乎写进 lemma / .gram。
+
+覆盖：TGH 单字先于 THUOCL industry/org 落 `chars`（鸮/鸰等），并把 TGH 扩展区
+1 字纳入同一扇门（㑇 等 273 字）。呒/呣 的 `ḿ` 清洗仍不动。
+
+排序：类 A 的繁简失重改为发射继承，不再靠继续加提权表。
+简体 `ranking_freq <= 1` 才继承折叠来的繁体列，max 不求和；已有实测列不吸收。
+知乎-13 覆盖仍 274，排序 861→848。类 C 未翻。提权表保留作近 tie 安全网。
+覆盖短语：`肝片`、`共沸` 仍走 phrase-curation。锅气 / 钾碱 仍是 rejected wiki_redirect，不洗白。
+键盘同步 / Host 编译仍另走。
+
 ## 可以做
 
 - 文档、盘点、测试、探针。
@@ -60,3 +74,42 @@ CC-BY-SA（CC-CEDICT、中文维基）**作为热表权重来源**可否进入�
 ## 不要做的事
 
 不 ingest rime-ice、rime-frost、melt_eng、商业细胞词库。LLM 不造词。ASR 热词、Snippets、IME 用户词库不并库。空闲联想仍是键盘静态表。octagram 实验不吸进本仓库。
+
+## 生僻字 curation（2026-10-03）
+
+新增 `data/voimate/rare-char-curation.tsv`（surface→拼音，ingest 走
+`ingest_rare_char_curation`，层判定进 `chars`，权重走 curated 档）。首批只有
+`𰻝 biang`（U+30EDD）。
+
+判定依据（本机实测，非推断）：
+
+- **字体**：CoreText `CTFontGetGlyphsForCharacters` 在活动苹方 SC 上对
+  𰻝/𰻞 返回 True；磁盘 AssetsV2 里的 PingFang.ttc 是陈旧副本，不能作为
+  字体判定依据。SIP 变体 𱿗 (U+31FD7)、𲁓 (U+32053) 无系统字形（会落
+  LastResort），不收录。
+- **OpenCC 折叠**：官方 t2s 把 𰻞 (U+30EDE) 规范化到 𰻝，与 淨→净 同一
+  机制；emit 只出 𰻝。测试环境无 opencc 时 t2s 降级恒等，写测试时不得
+  假设两个 glyph 同时出货。
+- **脏数据**：cedict 用 □ (U+25A1) 顶替无法编码的字（□|biang、□|biu、
+  □|ging），ingest 已加占位符闸，存量三行已置 rejected。
+
+`han_len` 已扩展（同日）：`_HAN` 覆盖 Ext A / BMP / 兼容区 / Ext B-H，
+`𰻝𰻝面` 正确数成 3 字、进 bulk。全库 246 万条新旧层模拟：仅约 1,200 条
+含扩展区汉字的真实词组从 None/base/bulk 归位（None→base 610、None→bulk
+460、base/bulk→ext 186、bulk→base 27、base→phrases 3、ext→bulk 9）；
+5 条 review+polyphone 五字变体词被收严为不发射，符合政策。chars/names/
+places 热表零变动。
+
+## 符号与拼合字 curation（2026-10-03，同日第二批）
+
+- **符号**：`data/voimate/pinyin-symbol-curation.tsv`（74 行，成对标点/数学/
+  排版/货币，含 ℃/℉）。行进 `entity_type="symbol"`，层判定路由进 **emoji
+  候选表**（Host 消费 `umate_emoji` 作为插入型候选源；独立 symbols 表需要
+  改 Host sync 脚本才能被同步，暂不走）。可键入的 ASCII（% & * + = < >）
+  故意不收：拼音候选只对键盘打不出的字形有价值。
+- **拼合字**：`data/voimate/repeated-char-curation.tsv`（38 行）。码 =
+  **基础字的叠拼**（焱 = huo huo huo、龘 = long long long、𪚥 = long long
+  long long），不触碰七个自身读音争议行（劦/孨/尛/惢/灥/燚/皛 的多音数
+  据待 Unihan 核实，另列）。行进 chars 表，全部 tier-1 6000。
+- 遗留：龖 = long long 会与真实词 隆隆 同码，靠权重排序共存；独立
+  symbols 表 + Host 开关（emoji/符号分开关）留待后续需要时再做。

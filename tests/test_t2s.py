@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from umate_lexicon.ingest.chars import ingest_chars
-from umate_lexicon.ingest.essay import ingest_essay
+from umate_lexicon.ingest.core import ingest_core
 from umate_lexicon.ingest.gold import ingest_gold
 from umate_lexicon.ingest.luna import ingest_luna
 from umate_lexicon.paths import data_dir
@@ -16,16 +16,16 @@ def test_unihan_map_folds_yin_hang() -> None:
     assert simplify("微信") == "微信"
 
 
-def test_essay_overlays_simplified_bank(tmp_path: Path) -> None:
+def test_core_overlays_simplified_bank(tmp_path: Path) -> None:
     store = LemmaStore(tmp_path / "lemmas.sqlite")
     simplify = make_simplifier(load_unihan_simplified(data_dir() / "fixtures" / "unihan-variants.txt"))
     ingest_gold(store, data_dir() / "gold" / "readings.tsv")
     ingest_chars(store, data_dir() / "fixtures" / "chars.tsv")
     ingest_luna(store, data_dir() / "fixtures" / "luna.dict.yaml", simplify=simplify)
-    ingest_essay(store, data_dir() / "fixtures" / "essay.txt", simplify=simplify)
+    ingest_core(store, data_dir() / "fixtures" / "absorbed-core.txt", simplify=simplify)
     bank = store.get("银行", "yin hang")
     assert bank is not None
     assert bank.status == "gold"
-    assert bank.domain_freq["essay"] == 36856
+    assert bank.domain_freq["core"] == 36856
     assert store.get("銀行", "yin hang") is None
     store.close()

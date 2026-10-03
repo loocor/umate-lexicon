@@ -1,4 +1,4 @@
-# Original short essay-shaped sample: word<TAB>freq
+# Original short absorbed-core sample: word<TAB>freq (rime-essay sample, LGPL-3.0)
 你	9000
 好	8000
 的	4822928

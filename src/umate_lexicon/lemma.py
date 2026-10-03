@@ -27,6 +27,9 @@ class Lemma:
     entity_type: str | None = None
     domain_freq: dict[str, int] = field(default_factory=dict)
     sources: list[SourceRef] = field(default_factory=list)
+    # Resolved ranking column (policy v1). None until resolve runs; emit
+    # and layer gates read this instead of recomputing from domain_freq.
+    rank: int | None = None
 
     def key(self) -> tuple[str, str]:
         return (self.surface, self.pinyin_plain)

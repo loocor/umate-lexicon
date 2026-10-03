@@ -24,7 +24,7 @@ SimplifyFn = Callable[[str], str]
 
 # These probes verify membership in the extracted light vocabulary, not in the
 # final store. The store can legitimately contain the absent probes through
-# other sources such as cedict or essay.
+# other sources such as cedict or the absorbed core corpus.
 PRESENT_PROBES = ("微信", "人工智能", "银行卡")
 ABSENT_PROBES = ("元宇宙", "新冠病毒", "yyds")
 

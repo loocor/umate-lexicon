@@ -89,7 +89,7 @@ def overlay_domain_freq(
         return 0
     trusted = [item for item in existing if is_trusted_reading(item)]
     pool = trusted if trusted else existing
-    # Single-character essay lines have no reading. Stamp only the
+    # Single-character core corpus lines have no reading. Stamp only the
     # preferred reading so a secondary reading cannot inherit the count.
     # Multi-character rows keep every trusted reading: a gold correction
     # (信息/zi xun) must not steal the count from the common reading.

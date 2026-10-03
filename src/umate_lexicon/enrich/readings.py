@@ -5,7 +5,7 @@ from collections import defaultdict
 from umate_lexicon.ingest.compose import is_trusted_reading
 from umate_lexicon.store import LemmaStore
 
-_MASS_DOMAINS = ("essay", "tencent", "thuocl")
+_MASS_DOMAINS = ("core", "tencent", "thuocl")
 
 
 def apply_reading_merge(store: LemmaStore) -> int:

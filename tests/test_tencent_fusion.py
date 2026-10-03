@@ -3,7 +3,7 @@ from pathlib import Path
 from umate_lexicon.enrich.category import classify
 from umate_lexicon.eval.tencent_absorb import measure_tencent_absorb
 from umate_lexicon.ingest.chars import ingest_chars
-from umate_lexicon.ingest.essay import ingest_essay
+from umate_lexicon.ingest.core import ingest_core
 from umate_lexicon.ingest.gold import ingest_gold
 from umate_lexicon.ingest.tencent import ingest_tencent
 from umate_lexicon.layers import assign_layer, emit_weight
@@ -49,27 +49,27 @@ def test_wiki_plus_tencent_coverage_stays_bulk() -> None:
     assert assign_layer(lemma) == "bulk"
 
 
-def test_tencent_overlay_keeps_base_and_essay_rank() -> None:
-    essay_only = Lemma(
+def test_tencent_overlay_keeps_base_and_core_rank() -> None:
+    core_only = Lemma(
         surface="微信",
         pinyin_plain="wei xin",
         status="gold",
-        domain_freq={"essay": 10},
+        domain_freq={"core": 10},
         sources=[
             SourceRef("gold", "umate-gold", "product-terms.tsv"),
-            SourceRef("essay", "lgpl-rime-essay", "essay.txt"),
+            SourceRef("umate-core", "lgpl-rime-essay", "absorbed-core.tsv"),
         ],
     )
     overlaid = Lemma(
         surface="微信",
         pinyin_plain="wei xin",
         status="gold",
-        domain_freq={"essay": 10, "tencent": 1},
-        sources=essay_only.sources
+        domain_freq={"core": 10, "tencent": 1},
+        sources=core_only.sources
         + [SourceRef("tencent", "cc-by-3.0-tencent", "tencent-light")],
     )
     assert assign_layer(overlaid) == "base"
-    assert emit_weight(overlaid) == emit_weight(essay_only)
+    assert emit_weight(overlaid) == emit_weight(core_only)
 
 
 def test_tencent_placeholder_does_not_invent_rank() -> None:
@@ -78,11 +78,11 @@ def test_tencent_placeholder_does_not_invent_rank() -> None:
         pinyin_plain="wei xin",
         status="gold",
         weight=10,
-        domain_freq={"essay": 10, "tencent": 1},
+        domain_freq={"core": 10, "tencent": 1},
     )
     assert lemma.domain_freq["tencent"] == 1
     assert emit_weight(lemma) == emit_weight(
-        Lemma(surface="微信", pinyin_plain="wei xin", status="gold", domain_freq={"essay": 10})
+        Lemma(surface="微信", pinyin_plain="wei xin", status="gold", domain_freq={"core": 10})
     )
 
 
@@ -121,7 +121,7 @@ def test_tencent_t2s_overlays_simplified_surface(tmp_path: Path) -> None:
     simplify = make_simplifier(load_unihan_simplified(data_dir() / "fixtures" / "unihan-variants.txt"))
     ingest_gold(store, data_dir() / "gold" / "readings.tsv")
     ingest_chars(store, data_dir() / "fixtures" / "chars.tsv")
-    ingest_essay(store, data_dir() / "fixtures" / "essay.txt", simplify=simplify)
+    ingest_core(store, data_dir() / "fixtures" / "absorbed-core.txt", simplify=simplify)
     vocab = tmp_path / "tencent-light-vocab.txt"
     vocab.write_text("微信\n銀行\n", encoding="utf-8")
     count = ingest_tencent(store, vocab, simplify=simplify)
@@ -129,7 +129,7 @@ def test_tencent_t2s_overlays_simplified_surface(tmp_path: Path) -> None:
     bank = store.get("银行", "yin hang")
     assert bank is not None
     assert bank.domain_freq["tencent"] == 1
-    assert bank.domain_freq["essay"] == 36856
+    assert bank.domain_freq["core"] == 36856
     assert store.get("銀行", "yin hang") is None
     store.close()
 
@@ -202,8 +202,8 @@ def test_probes_measure_light_vocab_not_store_presence(tmp_path: Path) -> None:
             surface="微信",
             pinyin_plain="wei xin",
             status="auto",
-            domain_freq={"essay": 10},
-            sources=[SourceRef("essay", "lgpl-rime-essay", "essay.txt")],
+            domain_freq={"core": 10},
+            sources=[SourceRef("umate-core", "lgpl-rime-essay", "absorbed-core.tsv")],
         )
     )
     store.upsert(
@@ -211,8 +211,8 @@ def test_probes_measure_light_vocab_not_store_presence(tmp_path: Path) -> None:
             surface="元宇宙",
             pinyin_plain="yuan yu zhou",
             status="auto",
-            domain_freq={"essay": 10},
-            sources=[SourceRef("essay", "lgpl-rime-essay", "essay.txt")],
+            domain_freq={"core": 10},
+            sources=[SourceRef("umate-core", "lgpl-rime-essay", "absorbed-core.tsv")],
         )
     )
     vocab = tmp_path / "tencent-light-vocab.txt"

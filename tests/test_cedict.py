@@ -13,3 +13,11 @@ def test_ingests_simplified_with_plain_pinyin(tmp_path: Path) -> None:
     assert lemma is not None
     assert lemma.status == "auto"
     store.close()
+
+
+def test_skips_placeholder_tofu_surfaces(tmp_path: Path) -> None:
+    store = LemmaStore(tmp_path / "lemmas.sqlite")
+    ingest_cedict(store, data_dir() / "fixtures" / "cedict.txt")
+    assert store.get("□", "biang") is None
+    assert store.get("重庆", "chong qing") is not None
+    store.close()

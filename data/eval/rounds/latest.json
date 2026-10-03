@@ -1,32 +1,32 @@
 {
-  "round": "2026-10-01-ranking-r1",
-  "index": 3,
+  "round": "2026-10-03-t2s-inherit",
+  "index": 5,
   "metrics": {
-    "dist_entries": 1480994,
-    "pinyin_keys": 1077371,
+    "dist_entries": 1481873,
+    "pinyin_keys": 1078140,
     "corpus_files": 13,
     "total_words": 14638,
     "unique_words": 5044,
-    "coverage_gaps": 277,
-    "ranking_gaps": 850,
-    "coverage_gap_rate_per_1k": 18.92,
-    "ranking_gap_rate_per_1k": 58.07
+    "coverage_gaps": 274,
+    "ranking_gaps": 848,
+    "coverage_gap_rate_per_1k": 18.72,
+    "ranking_gap_rate_per_1k": 57.93
   },
   "per_source": {
     "zhihu_alcohol": {
       "words": 360,
-      "coverage_gaps": 7,
+      "coverage_gaps": 6,
       "ranking_gaps": 14
     },
     "zhihu_cooking": {
       "words": 942,
-      "coverage_gaps": 58,
-      "ranking_gaps": 132
+      "coverage_gaps": 57,
+      "ranking_gaps": 131
     },
     "zhihu_dishwasher": {
       "words": 904,
       "coverage_gaps": 30,
-      "ranking_gaps": 79
+      "ranking_gaps": 78
     },
     "zhihu_fanqie": {
       "words": 596,
@@ -46,11 +46,11 @@
     "zhihu_oldfestival": {
       "words": 1249,
       "coverage_gaps": 7,
-      "ranking_gaps": 109
+      "ranking_gaps": 108
     },
     "zhihu_pdl": {
       "words": 2009,
-      "coverage_gaps": 27,
+      "coverage_gaps": 26,
       "ranking_gaps": 94
     },
     "zhihu_perpetual": {

@@ -37,7 +37,12 @@ CREATE TABLE IF NOT EXISTS lemmas (
     flags TEXT NOT NULL DEFAULT '[]',
     entity_type TEXT,
     domain_freq TEXT NOT NULL DEFAULT '{}',
+    rank INTEGER,
     PRIMARY KEY (surface, pinyin_plain)
+);
+CREATE TABLE IF NOT EXISTS store_meta (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL
 );
 CREATE TABLE IF NOT EXISTS lemma_sources (
     surface TEXT NOT NULL,
@@ -69,6 +74,10 @@ class LemmaStore:
         self._conn = sqlite3.connect(path)
         self._conn.row_factory = sqlite3.Row
         self._conn.executescript(SCHEMA)
+        columns = {row[1] for row in self._conn.execute("PRAGMA table_info(lemmas)")}
+        if "rank" not in columns:
+            self._conn.execute("ALTER TABLE lemmas ADD COLUMN rank INTEGER")
+            self._conn.commit()
         self._autocommit = True
 
     def close(self) -> None:
@@ -88,8 +97,8 @@ class LemmaStore:
             """
             INSERT INTO lemmas (
                 surface, pinyin_plain, pinyin_toned, weight, status, script,
-                categories, flags, entity_type, domain_freq
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                categories, flags, entity_type, domain_freq, rank
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(surface, pinyin_plain) DO UPDATE SET
                 pinyin_toned = excluded.pinyin_toned,
                 weight = excluded.weight,
@@ -98,7 +107,8 @@ class LemmaStore:
                 categories = excluded.categories,
                 flags = excluded.flags,
                 entity_type = excluded.entity_type,
-                domain_freq = excluded.domain_freq
+                domain_freq = excluded.domain_freq,
+                rank = excluded.rank
             """,
             (
                 merged.surface,
@@ -111,6 +121,7 @@ class LemmaStore:
                 json.dumps(merged.flags, ensure_ascii=False),
                 merged.entity_type,
                 json.dumps(merged.domain_freq, ensure_ascii=False),
+                merged.rank,
             ),
         )
         for ref in merged.sources:
@@ -177,6 +188,29 @@ class LemmaStore:
     def count(self) -> int:
         row = self._conn.execute("SELECT COUNT(*) AS n FROM lemmas").fetchone()
         return int(row["n"])
+
+    def set_ranks(self, rows: list[tuple[int, str, str]]) -> None:
+        "Bulk-write resolved rank columns. Call inside deferred_commit."
+        self._conn.executemany(
+            "UPDATE lemmas SET rank = ? WHERE surface = ? AND pinyin_plain = ?",
+            rows,
+        )
+        if self._autocommit:
+            self._conn.commit()
+
+    def set_meta(self, key: str, value: str) -> None:
+        self._conn.execute(
+            "INSERT OR REPLACE INTO store_meta (key, value) VALUES (?, ?)",
+            (key, value),
+        )
+        if self._autocommit:
+            self._conn.commit()
+
+    def get_meta(self, key: str) -> str | None:
+        row = self._conn.execute(
+            "SELECT value FROM store_meta WHERE key = ?", (key,)
+        ).fetchone()
+        return None if row is None else str(row["value"])
 
     def surfaces(self) -> set[str]:
         rows = self._conn.execute("SELECT DISTINCT surface FROM lemmas").fetchall()
@@ -300,4 +334,5 @@ class LemmaStore:
             entity_type=row["entity_type"],
             domain_freq=json.loads(row["domain_freq"]),
             sources=sources,
+            rank=row["rank"],
         )

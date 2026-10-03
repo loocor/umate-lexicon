@@ -31,8 +31,8 @@ def test_emit_writes_packs(tmp_path: Path) -> None:
             pinyin_plain="yi hui r",
             weight=5000,
             status="auto",
-            domain_freq={"essay": 5000},
-            sources=[SourceRef("essay", "lgpl-rime-essay", "test")],
+            domain_freq={"core": 5000},
+            sources=[SourceRef("umate-core", "lgpl-rime-essay", "test")],
         )
     )
     out = tmp_path / "rime"
@@ -100,8 +100,8 @@ def test_hot_tail_is_a_weight_projection(tmp_path: Path) -> None:
             surface="人工智能大会",
             pinyin_plain="ren gong zhi neng da hui",
             status="auto",
-            domain_freq={"essay": 2000},
-            sources=[SourceRef("essay", "lgpl-rime-essay", "test")],
+            domain_freq={"core": 2000},
+            sources=[SourceRef("umate-core", "lgpl-rime-essay", "test")],
         )
     )
     store.upsert(
@@ -109,8 +109,8 @@ def test_hot_tail_is_a_weight_projection(tmp_path: Path) -> None:
             surface="大会论文",
             pinyin_plain="da hui lun wen",
             status="auto",
-            domain_freq={"essay": 100},
-            sources=[SourceRef("essay", "lgpl-rime-essay", "test")],
+            domain_freq={"core": 100},
+            sources=[SourceRef("umate-core", "lgpl-rime-essay", "test")],
         )
     )
     out = tmp_path / "rime"
@@ -132,14 +132,14 @@ def test_emitted_weight_is_the_raw_ranking_frequency(tmp_path: Path) -> None:
             surface="粉色",
             pinyin_plain="fen se",
             status="auto",
-            domain_freq={"essay": 1584, "cedict": 1},
-            sources=[SourceRef("essay", "lgpl-rime-essay", "essay.txt")],
+            domain_freq={"core": 1584, "cedict": 1},
+            sources=[SourceRef("umate-core", "lgpl-rime-essay", "absorbed-core.tsv")],
         )
     )
     out = tmp_path / "rime"
     emit_rime(store, out)
     body = (out / "umate_base.dict.yaml").read_text(encoding="utf-8")
-    # One column: the essay count itself, not essay + cedict marker.
+    # One column: the core count itself, not core + cedict marker.
     assert "粉色\tfen se\t1584" in body
     store.close()
 
@@ -196,7 +196,7 @@ def test_t2s_keeps_tgh_char_when_traditional_is_heavier(tmp_path: Path, monkeypa
             weight=1210,
             status="auto",
             flags=["hanyu_pinlu", "tgh"],
-            domain_freq={"hanyu_pinlu": 1210, "essay": 1000},
+            domain_freq={"hanyu_pinlu": 1210, "core": 1000},
             sources=[SourceRef("tgh", "unicode", "test")],
         )
     )
@@ -206,8 +206,8 @@ def test_t2s_keeps_tgh_char_when_traditional_is_heavier(tmp_path: Path, monkeypa
             pinyin_plain="qun",
             weight=14339,
             status="auto",
-            domain_freq={"essay": 14339},
-            sources=[SourceRef("essay", "lgpl-rime-essay", "test")],
+            domain_freq={"core": 14339},
+            sources=[SourceRef("umate-core", "lgpl-rime-essay", "test")],
         )
     )
     store.upsert(
@@ -226,8 +226,8 @@ def test_t2s_keeps_tgh_char_when_traditional_is_heavier(tmp_path: Path, monkeypa
             pinyin_plain="chi",
             weight=65597,
             status="auto",
-            domain_freq={"essay": 65597},
-            sources=[SourceRef("essay", "lgpl-rime-essay", "test")],
+            domain_freq={"core": 65597},
+            sources=[SourceRef("umate-core", "lgpl-rime-essay", "test")],
         )
     )
     out = tmp_path / "rime"
@@ -252,7 +252,7 @@ def test_t2s_does_not_fold_tgh_qian_into_gan(tmp_path: Path, monkeypatch) -> Non
             weight=6347,
             status="auto",
             flags=["tgh"],
-            domain_freq={"essay": 6347},
+            domain_freq={"core": 6347},
             sources=[SourceRef("tgh", "unicode", "test")],
         )
     )
@@ -317,4 +317,73 @@ def test_t2s_still_folds_pinlu_traditional_onto_simplified(tmp_path: Path, monke
     base = (out / "umate_base.dict.yaml").read_text(encoding="utf-8")
     assert "干净\tgan jing\t" in base
     assert "乾淨\t" not in base
+    store.close()
+
+
+def test_t2s_floor_native_inherits_folded_core(tmp_path: Path, monkeypatch) -> None:
+    from umate_lexicon.emit import rime as emit_mod
+
+    monkeypatch.setattr(emit_mod, "_load_opencc_t2s", _fake_t2s)
+    store = LemmaStore(tmp_path / "lemmas.sqlite")
+    store.upsert(
+        Lemma(
+            surface="干净",
+            pinyin_plain="gan jing",
+            weight=1,
+            status="auto",
+            domain_freq={"cedict": 1},
+            sources=[SourceRef("cedict", "cc-by-sa-cedict", "test")],
+        )
+    )
+    store.upsert(
+        Lemma(
+            surface="乾淨",
+            pinyin_plain="gan jing",
+            weight=8000,
+            status="auto",
+            domain_freq={"core": 8000},
+            sources=[SourceRef("umate-core", "lgpl-rime-essay", "test")],
+        )
+    )
+    out = tmp_path / "rime"
+    counts = emit_rime(store, out)
+    assert counts["t2s_inherited"] == 1
+    body = (out / "umate_base.dict.yaml").read_text(encoding="utf-8")
+    assert "干净\tgan jing\t8000" in body
+    assert "乾淨" not in body
+    store.close()
+
+
+def test_t2s_does_not_overwrite_native_core(tmp_path: Path, monkeypatch) -> None:
+    from umate_lexicon.emit import rime as emit_mod
+
+    monkeypatch.setattr(emit_mod, "_load_opencc_t2s", _fake_t2s)
+    store = LemmaStore(tmp_path / "lemmas.sqlite")
+    store.upsert(
+        Lemma(
+            surface="群",
+            pinyin_plain="qun",
+            weight=1000,
+            status="auto",
+            flags=["tgh"],
+            domain_freq={"core": 1000},
+            sources=[SourceRef("tgh", "unicode", "test")],
+        )
+    )
+    store.upsert(
+        Lemma(
+            surface="羣",
+            pinyin_plain="qun",
+            weight=14339,
+            status="auto",
+            domain_freq={"core": 14339},
+            sources=[SourceRef("umate-core", "lgpl-rime-essay", "test")],
+        )
+    )
+    out = tmp_path / "rime"
+    counts = emit_rime(store, out)
+    assert counts["t2s_inherited"] == 0
+    body = (out / "umate_chars.dict.yaml").read_text(encoding="utf-8")
+    assert "群\tqun\t1000" in body
+    assert "14339" not in body
     store.close()

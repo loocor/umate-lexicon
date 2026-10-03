@@ -1,0 +1,8 @@
+# VoiMate-curated rare single chars. Format: surface<TAB>pinyin_plain.
+# 𰻝 (U+30EDD, CJK Ext G) is the simplified encoded biang glyph: the
+# official OpenCC t2s normalizes the other encoded glyph 𰻞 (U+30EDE)
+# onto it, and the active PingFang on macOS/iOS renders it. SIP variants
+# 𱿗 (U+31FD7) and 𲁓 (U+32053) stay out: no system glyph, they would
+# render through LastResort. cedict placeholder rows (U+25A1) are
+# rejected at ingest and never shipped.
+𰻝	biang

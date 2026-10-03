@@ -28,5 +28,11 @@ def test_composable_triggers_become_emoji_lemmas(tmp_path: Path) -> None:
     assert counts.get("emoji", 0) >= 1
     schema = (out / "umate_hans.schema.yaml").read_text(encoding="utf-8")
     assert "umate_emoji" not in schema
+    hot = (out / "umate_hans.dict.yaml").read_text(encoding="utf-8")
+    assert "- umate_emoji" not in hot
+    cold = (out / "umate_hans_cold.dict.yaml").read_text(encoding="utf-8")
+    assert "- umate_emoji" in cold
+    emoji_table = (out / "umate_emoji.dict.yaml").read_text(encoding="utf-8")
+    assert "😂\tha ha\t" in emoji_table
     assert (out / "opencc" / "emoji_word.txt").exists()
     store.close()

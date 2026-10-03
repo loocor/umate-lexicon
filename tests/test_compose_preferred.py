@@ -2,7 +2,7 @@ from pathlib import Path
 
 from umate_lexicon.ingest.chars import ingest_chars
 from umate_lexicon.ingest.compose import compose_pinyin
-from umate_lexicon.ingest.essay import ingest_essay
+from umate_lexicon.ingest.core import ingest_core
 from umate_lexicon.ingest.gold import ingest_gold
 from umate_lexicon.ingest.luna import ingest_luna
 from umate_lexicon.lemma import Lemma, SourceRef
@@ -46,14 +46,14 @@ def test_compose_prefers_tgh_reading_for_polyphone_phrases(tmp_path: Path) -> No
     store.close()
 
 
-def test_essay_bakes_polyphone_skeleton_phrases(tmp_path: Path) -> None:
+def test_core_bakes_polyphone_skeleton_phrases(tmp_path: Path) -> None:
     store = LemmaStore(tmp_path / "lemmas.sqlite")
     fixture = data_dir() / "fixtures"
     ingest_gold(store, data_dir() / "gold" / "readings.tsv")
     ingest_chars(store, fixture / "chars.tsv")
     ingest_luna(store, fixture / "luna.dict.yaml")
-    essay = tmp_path / "essay.txt"
-    essay.write_text("我和\t12742\n我的\t158176\n", encoding="utf-8")
+    core = tmp_path / "absorbed-core.tsv"
+    core.write_text("我和\t12742\n我的\t158176\n", encoding="utf-8")
     # Seed polyphone chars the way production does (multiple plains + tgh).
     store.upsert(
         Lemma(
@@ -62,7 +62,7 @@ def test_essay_bakes_polyphone_skeleton_phrases(tmp_path: Path) -> None:
             weight=665031,
             status="auto",
             flags=["tgh", "polyphone"],
-            domain_freq={"essay": 665031},
+            domain_freq={"core": 665031},
             sources=[SourceRef("chars", "umate-chars", "test")],
         )
     )
@@ -73,7 +73,7 @@ def test_essay_bakes_polyphone_skeleton_phrases(tmp_path: Path) -> None:
             weight=665031,
             status="auto",
             flags=["polyphone"],
-            domain_freq={"essay": 665031},
+            domain_freq={"core": 665031},
             sources=[SourceRef("cedict", "cc-cedict", "test")],
         )
     )
@@ -84,7 +84,7 @@ def test_essay_bakes_polyphone_skeleton_phrases(tmp_path: Path) -> None:
             weight=4822928,
             status="auto",
             flags=["tgh", "polyphone"],
-            domain_freq={"essay": 4822928},
+            domain_freq={"core": 4822928},
             sources=[SourceRef("chars", "umate-chars", "test")],
         )
     )
@@ -95,7 +95,7 @@ def test_essay_bakes_polyphone_skeleton_phrases(tmp_path: Path) -> None:
             weight=4822928,
             status="auto",
             flags=["polyphone"],
-            domain_freq={"essay": 4822928},
+            domain_freq={"core": 4822928},
             sources=[SourceRef("cedict", "cc-cedict", "test")],
         )
     )
@@ -106,11 +106,11 @@ def test_essay_bakes_polyphone_skeleton_phrases(tmp_path: Path) -> None:
             weight=1191912,
             status="auto",
             flags=["tgh"],
-            domain_freq={"essay": 1191912},
+            domain_freq={"core": 1191912},
             sources=[SourceRef("chars", "umate-chars", "test")],
         )
     )
-    count = ingest_essay(store, essay)
+    count = ingest_core(store, core)
     assert count >= 2
     assert store.get("我和", "wo he") is not None
     assert store.get("我的", "wo de") is not None

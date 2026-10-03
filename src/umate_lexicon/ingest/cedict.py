@@ -11,6 +11,9 @@ from umate_lexicon.store import LemmaStore
 _LINE = re.compile(
     r"^(?P<trad>\S+)\s+(?P<simp>\S+)\s+\[(?P<pinyin>[^\]]+)\]\s+/(?P<gloss>.*)/$"
 )
+# CC-CEDICT writes □ (U+25A1) when it cannot encode a glyph; a surface
+# built from placeholders is not typeable content and must not ship.
+_PLACEHOLDER_CHARS = frozenset({"\u25a1", "\ufffd"})
 
 
 def ingest_cedict(store: LemmaStore, path: Path, locator: str | None = None) -> int:
@@ -27,6 +30,8 @@ def ingest_cedict(store: LemmaStore, path: Path, locator: str | None = None) -> 
         surface = match.group("simp")
         plain, toned = parse_cedict_pinyin_field(match.group("pinyin"))
         if not surface or not plain:
+            continue
+        if any(ch in _PLACEHOLDER_CHARS for ch in surface):
             continue
         store.upsert(
             Lemma(

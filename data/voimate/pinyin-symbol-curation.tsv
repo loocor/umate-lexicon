@@ -1,0 +1,84 @@
+# VoiMate-curated pinyin symbols: pinyin<TAB>symbol[|symbol...].
+# Groups: paired CJK punct, math, layout/shape, currency. Rows ride the
+# emoji candidate table (umate_emoji): the Host consumes that table as
+# its insertion-candidate source, so symbols need no extra Host wiring.
+# Deliberately typeable ASCII (%% & * + = < >) stays out: pinyin candidates
+# only add value for glyphs the alphabet cannot produce.
+# --- paired CJK punctuation ---
+shu ming hao	《》
+dan shu ming hao	〈〉
+sheng lue hao	……
+po zhe hao	——
+jian ge hao	·
+dun hao	、
+fen hao	；
+mao hao	：
+wen hao	？
+tan hao	！
+gan tan hao	！
+kuo hao	（）
+yuan kuo hao	（）
+fang kuo hao	【】
+yin hao	“”
+dan yin hao	‘’
+shu xian	｜
+bo lang hao	～
+# --- math ---
+cheng hao	×
+chu hao	÷
+yue deng yu	≈
+bu deng yu	≠
+quan deng yu	≡
+da yu deng yu	≥
+xiao yu deng yu	≤
+zheng fu hao	±
+gen hao	√
+ping fang	²
+li fang	³
+du hao	°
+she shi du	℃
+hua shi du	℉
+wu qiong da	∞
+qian fen hao	‰
+yin wei	∵
+suo yi	∴
+chui zhi	⊥
+ping xing	∥
+jiao du	∠
+shu yu	∈
+bing ji	∪
+jiao ji	∩
+qiu he	∑
+ji fen	∫
+# --- layout / shapes ---
+jian tou	→
+zuo jian tou	←
+shang jian tou	↑
+xia jian tou	↓
+dui gou	✓
+cha hao	✗
+shi xin yuan dian	●
+kong xin yuan dian	○
+shi xin fang kuai	■
+kong xin fang kuai	□
+shi xin san jiao	▲
+kong xin san jiao	△
+shi xin ling xing	◆
+kong xin ling xing	◇
+ai xin	♥
+kong xin ai xin	♡
+xing xing	★
+kong xin xing xing	☆
+yin fu	♪
+zhang jie hao	§
+duan luo hao	¶
+# --- currency ---
+mei yuan	$
+ren min bi	¥
+ou yuan	€
+ying bang	£
+han yuan	₩
+lu bu	₽
+tai zhu	฿
+lu bi	₹
+gang bi	HK$

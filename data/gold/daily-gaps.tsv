@@ -12,3 +12,6 @@ surface	origin	reported	note
 划散	zhihu-corpus	2026-10-01	phrase gap (segmentation); cooking term
 发柴	zhihu-corpus	2026-10-01	phrase gap (segmentation); cooking term
 任前	zhihu-corpus	2026-10-01	phrase gap (segmentation); workplace/gov term (renqian talk)
+下锅	zhihu-corpus	2026-10-03	present-ranked-low; 夏过 (thuocl industry) beat cooking 下锅
+肝片	zhihu-corpus	2026-10-03	phrase gap (segmentation); cooking term from cooking corpus
+共沸	zhihu-corpus	2026-10-03	phrase gap; chemistry term, wiki-only was not emitted

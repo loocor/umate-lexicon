@@ -124,3 +124,110 @@ def _phrase_row(surface: str, pinyin: str) -> Lemma:
         domain_freq={"phrase-curation": 1, "curation_rank": 1},
         sources=[SourceRef(SOURCE_ID, LICENSE_ID, f"{SOURCE_ID}:phrase:{surface}")],
     )
+
+
+def ingest_rare_char_curation(store: LemmaStore, path: Path) -> int:
+    """Curated rare single chars (SIP Ext-plane hanzi) with their pinyin.
+
+    File order is the rank: the first row is the reading's primary glyph.
+    Rows reach the chars layer through the rare-char flag; weights ride the
+    shared curated tier decay. Code competition is a non-issue for readings
+    such as biang that no common char claims.
+    """
+    count = 0
+    for raw in path.read_text(encoding="utf-8").splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#"):
+            continue
+        parts = line.split("\t")
+        if len(parts) < 2:
+            continue
+        surface, pinyin = parts[0].strip(), parts[1].strip()
+        if len(surface) != 1 or not pinyin:
+            continue
+        rank = count + 1
+        store.upsert(
+            Lemma(
+                surface=surface,
+                pinyin_plain=pinyin,
+                weight=curated_weight(rank),
+                status="auto",
+                categories=["rare-char"],
+                flags=["curated", "rare-char"],
+                domain_freq={"rare-char-curation": 1, "curation_rank": rank},
+                sources=[
+                    SourceRef(SOURCE_ID, LICENSE_ID, f"{SOURCE_ID}:rare-char:{surface}")
+                ],
+            )
+        )
+        count += 1
+    return count
+
+
+def ingest_pinyin_symbol_curation(store: LemmaStore, path: Path) -> int:
+    """Curated pinyin → symbol rows (paired punct, math, shapes, currency).
+
+    Rows ride the emoji candidate table: the Host consumes umate_emoji
+    as its insertion-candidate source, so a separate symbols pack would
+    need Host sync wiring before any of this could surface. Data stays
+    self-describing via the symbol flag / entity_type.
+    """
+    count = 0
+    for raw in read_rows(path):
+        key, symbols = raw
+        for rank, symbol in enumerate(symbols, start=1):
+            store.upsert(_symbol_row(key, symbol, rank, f"{SOURCE_ID}:pinyin:{key}"))
+            count += 1
+    return count
+
+
+def _symbol_row(sound: str, surface: str, rank: int, locator: str) -> Lemma:
+    return Lemma(
+        surface=surface,
+        pinyin_plain=sound,
+        weight=curated_weight(rank),
+        status="auto",
+        categories=["symbol"],
+        flags=["curated", "symbol"],
+        entity_type="symbol",
+        domain_freq={"symbol-curation": 1, "curation_rank": max(1, rank)},
+        sources=[SourceRef(SOURCE_ID, LICENSE_ID, locator)],
+    )
+
+
+def ingest_repeated_char_curation(store: LemmaStore, path: Path) -> int:
+    """Curated repeated-spelling codes for compound hanzi (焱 = huo huo huo).
+
+    The code spells the BASE char's syllables, not the compound's own
+    reading, so the known own-reading disputes stay out of scope. Each
+    row is its own unambiguous long code and ships at curated tier 1.
+    """
+    count = 0
+    for raw in path.read_text(encoding="utf-8").splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#"):
+            continue
+        parts = line.split("\t")
+        if len(parts) < 2:
+            continue
+        surface, pinyin = parts[0].strip(), parts[1].strip()
+        if len(surface) != 1 or not pinyin:
+            continue
+        store.upsert(
+            Lemma(
+                surface=surface,
+                pinyin_plain=pinyin,
+                weight=curated_weight(1),
+                status="auto",
+                categories=["rare-char"],
+                flags=["curated", "repeated-char"],
+                domain_freq={"repeated-char-curation": 1, "curation_rank": 1},
+                sources=[
+                    SourceRef(
+                        SOURCE_ID, LICENSE_ID, f"{SOURCE_ID}:repeated-char:{surface}"
+                    )
+                ],
+            )
+        )
+        count += 1
+    return count
