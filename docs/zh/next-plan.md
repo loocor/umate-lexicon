@@ -93,5 +93,9 @@ CC-BY-SA（CC-CEDICT、中文维基）**作为热表权重来源**可否进入�
 - **脏数据**：cedict 用 □ (U+25A1) 顶替无法编码的字（□|biang、□|biu、
   □|ging），ingest 已加占位符闸，存量三行已置 rejected。
 
-已知缺口：`han_len` 只数 BMP 汉字，`𰻝𰻝面` 被算成长度 1，词组从不 emit
-（历史行为，非本次回归）。要发 SIP 词组需先改 `han_len`/层判定，另议。
+`han_len` 已扩展（同日）：`_HAN` 覆盖 Ext A / BMP / 兼容区 / Ext B-H，
+`𰻝𰻝面` 正确数成 3 字、进 bulk。全库 246 万条新旧层模拟：仅约 1,200 条
+含扩展区汉字的真实词组从 None/base/bulk 归位（None→base 610、None→bulk
+460、base/bulk→ext 186、bulk→base 27、base→phrases 3、ext→bulk 9）；
+5 条 review+polyphone 五字变体词被收严为不发射，符合政策。chars/names/
+places 热表零变动。

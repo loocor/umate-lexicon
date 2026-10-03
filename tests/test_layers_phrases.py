@@ -78,3 +78,23 @@ def test_wikinews_only_short_lemma_is_bulk() -> None:
     )
     assert is_coverage_only(lemma)
     assert assign_layer(lemma) == "bulk"
+
+
+def test_sip_hanzi_count_toward_word_length() -> None:
+    from umate_lexicon.layers import han_len
+
+    assert han_len("𰻝𰻝面") == 3
+    assert han_len("㝿") == 1
+    assert han_len("拿破𪨧帝国") == 5
+
+    # Before the SIP-aware _HAN range this cedict word miscounted as a
+    # 1-gram and dropped out of every table.
+    word = Lemma(
+        surface="𰻝𰻝面",
+        pinyin_plain="biang biang mian",
+        status="auto",
+        rank=1,
+        weight=1,
+        sources=[SourceRef("cedict", "cc-by-sa-cedict", "cedict")],
+    )
+    assert assign_layer(word) == "bulk"

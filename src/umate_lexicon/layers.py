@@ -6,7 +6,13 @@ from collections.abc import Sequence
 
 from umate_lexicon.lemma import Lemma
 
-_HAN = re.compile(r"[\u4e00-\u9fff]")
+# CJK ideographs across Ext A, the BMP block, compatibility ideographs,
+# and Ext B-H (SIP). Layer math counts real hanzi; before 2026-10 it
+# stayed on the BMP block and miscounted words like 𰻝𰻝面 as 1-grams.
+_HAN = re.compile(
+    "[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff"
+    "\U00020000-\U0002cead\U00030000-\U000323af]"
+)
 
 CORE_LAYERS = ("chars", "base")
 PACK_LAYERS = (
@@ -154,9 +160,9 @@ def han_len(surface: str) -> int:
 def is_cjk_ideograph(surface: str) -> bool:
     """True for a single CJK ideograph, including TGH Extension A-F.
 
-    `han_len` stays on the BMP block so 2-3 character layer math does not
-    change. The 8105 TGH set includes Extension A/B/C/E/F 1-grams; those
-    must still reach `chars`.
+    The 8105 TGH set includes Extension A/B/C/E/F 1-grams; those must
+    still reach `chars`. `han_len` counts the same blocks plus SIP
+    Ext G/H so 2-3 character layer math sees real word length.
     """
     if len(surface) != 1:
         return False
