@@ -42,11 +42,12 @@ SYSTEM = (
 )
 
 
-def fetch_rows() -> list[tuple[str, str]]:
+def fetch_rows(cold: bool = False) -> list[tuple[str, str]]:
     db = sqlite3.connect("data/store/lemmas.sqlite")
+    rank_filter = "rank IS NULL OR rank<500" if cold else "rank>=500"
     rows = db.execute(
-        "SELECT surface, pinyin_plain FROM lemmas "
-        "WHERE status='review' AND rank>=500 ORDER BY rank DESC"
+        f"SELECT surface, pinyin_plain FROM lemmas "
+        f"WHERE status='review' AND ({rank_filter}) ORDER BY rank DESC"
     ).fetchall()
     return [(r[0], r[1]) for r in rows]
 
@@ -130,9 +131,11 @@ def main() -> None:
     parser.add_argument("--batch", type=int, default=100)
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--limit", type=int, default=0)
+    parser.add_argument("--cold", action="store_true",
+                        help="classify cold review rows (rank<500) instead of visible ones")
     args = parser.parse_args()
 
-    all_rows = fetch_rows()
+    all_rows = fetch_rows(cold=args.cold)
     if args.limit:
         all_rows = all_rows[: args.limit]
     done = load_done()

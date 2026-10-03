@@ -16,6 +16,7 @@ from umate_lexicon.postprocess.wiki_notability import apply_wiki_notability
 from umate_lexicon.postprocess.reading_fix import apply_reading_fix
 from umate_lexicon.postprocess.thuocl_calibration import calibrate_thuocl_rank
 from umate_lexicon.postprocess.rank_curation import apply_rank_curation
+from umate_lexicon.postprocess.erhua_dual import apply_erhua_dual
 
 
 def run_postprocess(store: LemmaStore) -> dict[str, int]:
@@ -26,4 +27,5 @@ def run_postprocess(store: LemmaStore) -> dict[str, int]:
         stats.update(apply_reading_fix(store))
         stats.update(calibrate_thuocl_rank(store))
         stats.update(apply_rank_curation(store))
+        stats.update(apply_erhua_dual(store))
     return stats
