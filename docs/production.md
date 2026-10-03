@@ -21,6 +21,9 @@
    `_GOLD_SKIP`. OpenCC t2s folds traditional *words* at emit time; it
    must not replace a TGH/gold/chars 1-gram or keep the heavier
    traditional lemma when that would drop the chars gate (羣/群, 喫/吃).
+   A TGH/gold/kHanyuPinlu/chars-source 1-gram, including TGH Extension
+   A-F, stays in `chars` even when THUOCL tagged it as industry/org
+   (鸮/鸰). Unihan-only Extension A stays out.
 6. Compile on the Mac Host used by uMate. Copy `table.bin` /
    `prism.bin` into the keyboard bundle. Never compile inside the
    extension. Sync is a separate confirmation; this factory does not

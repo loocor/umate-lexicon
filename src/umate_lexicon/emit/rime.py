@@ -15,7 +15,7 @@ from umate_lexicon.layers import (
     PACK_LAYERS,
     assign_layer,
     emit_weight,
-    han_len,
+    is_cjk_ideograph,
 )
 from umate_lexicon.lemma import Lemma
 from umate_lexicon.pinyin import sanitize_emit_code
@@ -116,7 +116,7 @@ def _emit_surface(lemma: Lemma, to_simplified: SimplifyFn) -> tuple[str, bool]:
     chars-source 1-grams on their own glyph. kHanyuPinlu-only traditional
     1-grams such as 淨 still fold onto 净.
     """
-    if han_len(lemma.surface) == 1 and (
+    if is_cjk_ideograph(lemma.surface) and (
         "tgh" in lemma.flags
         or lemma.status == "gold"
         or any(ref.source_id == "chars" for ref in lemma.sources)

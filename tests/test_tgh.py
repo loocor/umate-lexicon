@@ -27,3 +27,27 @@ def test_unihan_only_char_is_not_core() -> None:
         sources=[],
     )
     assert assign_layer(lemma) is None
+
+
+def test_tgh_industry_tag_still_goes_to_chars() -> None:
+    lemma = Lemma(
+        surface="鸮",
+        pinyin_plain="xiao",
+        status="auto",
+        flags=["tgh"],
+        entity_type="industry",
+        categories=["industry"],
+        sources=[],
+    )
+    assert assign_layer(lemma) == "chars"
+
+
+def test_tgh_extension_a_char_goes_to_chars() -> None:
+    lemma = Lemma(
+        surface="㑇",
+        pinyin_plain="zhou",
+        status="auto",
+        flags=["tgh"],
+        sources=[],
+    )
+    assert assign_layer(lemma) == "chars"

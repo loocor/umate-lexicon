@@ -151,6 +151,36 @@ def han_len(surface: str) -> int:
     return len(_HAN.findall(surface))
 
 
+def is_cjk_ideograph(surface: str) -> bool:
+    """True for a single CJK ideograph, including TGH Extension A-F.
+
+    `han_len` stays on the BMP block so 2-3 character layer math does not
+    change. The 8105 TGH set includes Extension A/B/C/E/F 1-grams; those
+    must still reach `chars`.
+    """
+    if len(surface) != 1:
+        return False
+    cp = ord(surface)
+    return (
+        0x3400 <= cp <= 0x4DBF
+        or 0x4E00 <= cp <= 0x9FFF
+        or 0xF900 <= cp <= 0xFAFF
+        or 0x20000 <= cp <= 0x2CEAD
+    )
+
+
+def _is_core_char_lemma(lemma: Lemma) -> bool:
+    if not is_cjk_ideograph(lemma.surface):
+        return False
+    return (
+        lemma.status == "gold"
+        or "tgh" in lemma.flags
+        or "hanyu_pinlu" in lemma.flags
+        or any(ref.source_id == "chars" for ref in lemma.sources)
+        or (lemma.surface in polyphone_chars() and _trusted_char_reading(lemma))
+    )
+
+
 def is_wiki_only(lemma: Lemma) -> bool:
     return {ref.source_id for ref in lemma.sources} == {"wiki"}
 
@@ -343,6 +373,10 @@ def assign_layer(lemma: Lemma) -> str | None:
         return "wiki_tail" if WIKI_TAIL_ENABLED else None
     if is_coverage_only(lemma):
         return "bulk"
+    # TGH / gold / pinlu / chars-source 1-grams are characters, not orgs.
+    # THUOCL animal/industry tags must not steal them.
+    if _is_core_char_lemma(lemma):
+        return "chars"
     if lemma.entity_type == "person" or "person" in lemma.categories:
         return "names"
     if lemma.entity_type == "place" or "place" in lemma.categories:
@@ -361,14 +395,8 @@ def assign_layer(lemma: Lemma) -> str | None:
             return "brands"
         return None
     if n == 1:
-        if (
-            lemma.status == "gold"
-            or "tgh" in lemma.flags
-            or "hanyu_pinlu" in lemma.flags
-            or any(ref.source_id == "chars" for ref in lemma.sources)
-            or (lemma.surface in polyphone_chars() and _trusted_char_reading(lemma))
-        ):
-            return "chars"
+        # Core 1-grams already returned chars above. Remaining BMP
+        # 1-grams (CEDICT-only, luna-only) stay out of the table.
         return None
     if n in {2, 3} and lemma.status == "gold":
         return "base"
