@@ -60,6 +60,8 @@ def test_official_emoji_rides_the_tail_floor(tmp_path: Path) -> None:
     }
     assert rows[("👌", "hao")] == 6000
     assert all(weight >= EMOJI_TAIL_WEIGHT for weight in rows.values())
+    hot = (out / "umate_hans.dict.yaml").read_text(encoding="utf-8")
+    assert "- umate_emoji" not in hot
 
 
 def test_curated_phrase_rows_close_segmentation_gaps(tmp_path: Path) -> None:

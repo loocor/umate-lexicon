@@ -31,9 +31,11 @@
    `prism.bin` into the keyboard bundle. Never compile inside the
    extension. Sync is a separate confirmation; this factory does not
    push YAML into the keyboard tree by itself.
-7. Emit shape: hot `umate_hans` (chars, base, corrections, emoji,
-   hot_tail) and cold `umate_hans_cold` (every emitable pack). Which
-   cold packs the keyboard actually compiles is a uMate schema choice.
+7. Emit shape: hot `umate_hans` (chars, base, corrections, hot_tail)
+   and cold `umate_hans_cold` (every emitable pack). Emoji is a
+   standalone `umate_emoji` channel, never merged into the hot table.
+   Which cold packs the keyboard actually compiles is a uMate schema
+   choice.
 
 `pipeline --fixtures` is the unit-test path. Unlocked `pipeline` is the
 full ingest gate and must not substitute fixtures when a dump is missing.
