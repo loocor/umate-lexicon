@@ -7,11 +7,31 @@ from umate_lexicon.ingest.io import read_ingest_text
 from umate_lexicon.lemma import Lemma, SourceRef
 from umate_lexicon.store import LemmaStore
 from umate_lexicon.t2s import SimplifyFn
+from umate_lexicon.sources import sha256_file
 
+# Attribution stays: the absorbed word list derives from rime-essay (LGPL-3.0).
 LICENSE_ID = "lgpl-rime-essay"
 
 
-def ingest_essay(
+def absorbed_core_path() -> Path:
+    from umate_lexicon.paths import data_dir
+
+    return data_dir() / "voimate" / "absorbed-core.tsv"
+
+
+def verify_absorbed_core() -> Path:
+    """Integrity-check the in-repo absorbed snapshot against its pinned hash."""
+    path = absorbed_core_path()
+    expected = path.with_suffix(".sha256").read_text(encoding="utf-8").strip()
+    digest = sha256_file(path)
+    if digest != expected:
+        raise ValueError(
+            f"absorbed-core.tsv hash mismatch: expected {expected}, got {digest}"
+        )
+    return path
+
+
+def ingest_core(
     store: LemmaStore,
     path: Path,
     locator: str | None = None,
@@ -19,7 +39,7 @@ def ingest_essay(
 ) -> int:
     text = read_ingest_text(path)
     count = 0
-    source = locator or f"essay:{path.name}"
+    source = locator or f"absorbed:{path.name}"
     for raw in text.splitlines():
         line = raw.strip()
         if not line or line.startswith("#"):
@@ -35,9 +55,9 @@ def ingest_essay(
         overlaid = overlay_domain_freq(
             store,
             surface,
-            domain="essay",
+            domain="core",
             freq=freq,
-            source_id="essay",
+            source_id="umate-core",
             license_id=LICENSE_ID,
             locator=source,
         )
@@ -55,8 +75,8 @@ def ingest_essay(
                 pinyin_plain=pinyin,
                 weight=freq,
                 status="auto",
-                domain_freq={"essay": freq},
-                sources=[SourceRef("essay", LICENSE_ID, source)],
+                domain_freq={"core": freq},
+                sources=[SourceRef("umate-core", LICENSE_ID, source)],
             )
         )
         count += 1

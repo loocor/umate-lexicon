@@ -64,7 +64,7 @@ class SourceLock:
     sources: tuple[PinnedSource, ...]
 
 
-ALLOWED_INGEST = frozenset({"unihan", "t2s", "tgh", "cedict", "thuocl", "luna", "essay", "emoji", "tencent", "wiki", "wiki_page", "wiki_linktarget", "wiki_category", "aosp_en", "wikinews"})
+ALLOWED_INGEST = frozenset({"unihan", "t2s", "tgh", "cedict", "thuocl", "luna", "core", "emoji", "tencent", "wiki", "wiki_page", "wiki_linktarget", "wiki_category", "aosp_en", "wikinews"})
 ALLOWED_EXTRACT = frozenset({"gzip", "zip", "word2vec-vocab", "transcode", "base64-gzip"})
 
 
